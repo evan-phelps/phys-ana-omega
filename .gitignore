@@ -1,0 +1,15 @@
+*
+*/
+*.so
+
+!.gitignore
+!*.h
+!*.cpp
+!*.mk
+!omega.txt
+!input/
+!scripts/
+!scripts/*.C
+!scripts/*.h
+!scripts/*.py
+!README.md
