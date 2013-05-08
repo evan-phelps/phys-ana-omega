@@ -19,6 +19,7 @@ public:
 	TDirectory *fDir;
 	DhTmH10clone(h10looper *h10l, std::string name = "h10clone", TDirectory *pDir = NULL) : DataHandler(name) {
 		treenumber = -1;
+		h10 = NULL;
 		_h10looper = h10l;
 		if (pDir == NULL) {
 			std::string emsg = name;

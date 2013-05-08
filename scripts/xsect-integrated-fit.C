@@ -18,7 +18,6 @@
 
 using namespace ParticleConstants;
 
-
 Double_t stepfactor(Double_t x, Double_t x0, Double_t x1)
 {
   if (x < x0) return 1;
@@ -88,8 +87,8 @@ TF1 *f_pol4gaus(char *funcn, double min, double max, TF1 *fpol4, TF1 *fgaus)
 void fitmmp(TH1 *hmmp, float step_x0 = 2, float step_x1 = 2.1, float wval = 0, bool verbose = false) {
   float fnrangemax = 1.1;
   float mmplow = 0.4;
+  //float bgp2 = 2.1e8;
   float gsig = -0.0065+0.013*wval;
-  float bgp2 = 2.1e8;
   float pol2cutoff = 4; //wval under which to use pol2
   float fitcutoff = 1.1;
   TString options;
@@ -191,7 +190,7 @@ void fit(float bgpar2smudge=1.0) {
   h2xsect->GetYaxis()->Set(7,qbinedges);
   TH3 *h3 = (TH3*)_file0->Get("hq2wmmp");
   int qbins = h3->GetZaxis()->GetNbins();
-  int wbins = h3->GetYaxis()->GetNbins();
+  //int wbins = h3->GetYaxis()->GetNbins();
   fprintf(ofile, "W\tQ2\txsect\terror\tpol4p0\tpol4p1\tpol4p2\tpol4p3\tpol4p4\tgN\tgM\tgS\tstepx0\tstepx1\txsectFn\n");
   for (int iq = 0; iq < qbins; iq++) {
     TString hsn = TString::Format("hs%d",iq);
@@ -203,6 +202,7 @@ void fit(float bgpar2smudge=1.0) {
       float *wq = getwq(h);
       float wval = wq[0];
       float qval = wq[1];
+      delete [] wq;
       int wbin = h3->GetYaxis()->FindBin(wval);
       float wlow = h3->GetYaxis()->GetBinLowEdge(wbin);
       float step_x0 = sqrt(wlow*wlow+MASS_P*MASS_P-2*wlow*MASS_P);
@@ -229,8 +229,8 @@ void fit(float bgpar2smudge=1.0) {
       //fsig->Print();
       double Nfn = 0;
       for (int b = 1; b < h->GetNbinsX(); b++) {
-	double x = h->GetXaxis()->GetBinCenter(b);
-	Nfn += fsig->Eval(x);
+        double x = h->GetXaxis()->GetBinCenter(b);
+        Nfn += fsig->Eval(x);
       }
       //printf("**** %.3e\t\%.3e\n",Nfn,N);
       double xsect = N/(0.891*wwidth*qwidth*19.844);
@@ -256,5 +256,6 @@ void parms(TH1 *h) {
   float *wq = getwq(h);
   float wval = wq[0];
   float qval = wq[1];
+  delete [] wq;
   printf("%.3e, %.3e\n",wval,qval);
 }

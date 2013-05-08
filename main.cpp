@@ -27,9 +27,7 @@ int main(int argc, char **argv)
 {
 	printf("Bazinga!\n");
 	try {
-		int dtype = _DATA_H10SIM;
 		/* get data */
-		TChain *_mychain = new TChain();
 		std::cout << "argc = " << argc << endl;
 		if (argc == 1) {
 			//_mychain->Add("/home/ephelps/analysis/root_37808_pass1.a20.root/h10");
@@ -40,6 +38,8 @@ int main(int argc, char **argv)
 			TRint *app = new TRint("Rint",&argc_root,argv,NULL,0);
 			app->Run();
 		} else {
+			TChain *_mychain = new TChain();
+			int dtype = _DATA_H10SIM;
 			for (int i = 1; i < argc; i++) {
 				_mychain->Add(argv[i]);
 				std::cout << i << ": " << argv[i] << std::endl;
