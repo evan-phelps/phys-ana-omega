@@ -29,7 +29,7 @@
   int qof = qax->GetNbins()+1;
   int wof = wax->GetNbins()+1;
   int gcs[] = { kRed+1, kGreen+1, kBlue, kYellow+1, kMagenta+1, kCyan+1, 9 };
-for (int iq = 1; iq < qof; iq++) {
+  for (int iq = 1; iq < qof; iq++) {
     TMultiGraph *mgtmp = new TMultiGraph();
     float qlo = qax->GetBinLowEdge(iq);
     float qhi = qax->GetBinLowEdge(iq+1);

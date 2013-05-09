@@ -7,13 +7,17 @@ of FitSchemeXsectInt and add corresponding scheme to 'fss' map in main().
 """
 
 # TODO: simulation-inspired background function
+# TODO: add radiative tail to signal function
 # TODO: allow class to accumulate cross-sections
 #       W, Q^2, cross-sections, error, and parameters see fit() of
-#       xsect-integrated-fit.C
+#       xsect-integrated-fit.C. remember to propagate errors!
+# README: background subtraction error propagation
+#         average relative error of sideband yields
+#         and apply to integral of background function under signal
 # TODO: add background-subtracted histogram
 #       for each scheme to canvas and legend
 # TODO: add ability to change functional forms
-#       number of parameters etc.
+#       number of parameters etc.`
 # TODO: pull reusables to module
 #       e.g., MASS_P, goodcolors, common regexps, etc.
 # TODO: ParticleConstants for python
@@ -52,23 +56,25 @@ class FitSchemeXsectInt:
           functions, along with any other "decorations" or visual modification
           to the histogram.
     """
-    def __init__(self, desc, fnsetup=None):
+    def __init__(self, desc, name='', fnsetup=None):
+        self.name = name
         # ##########################################################
         # ######## default values of adjustable parameters #########
         # ##########################################################
+        self.prefit = None
         self.wrange, self.q2range = [0, 0], [0, 0]
         self.drawrange = [0.4, 2]
         self.bgNparms = 5
         self.sigNparms = 3
         self.fnNparms = 8
         self.endAtEdge = False
-        self.bg = TF1('fbg', self.d_pol4,
+        self.bg = TF1('fbg_%s' % self.name, self.d_pol4,
                       self.drawrange[0], self.drawrange[1],
                       self.bgNparms)
-        self.sig = TF1('fsig', self.d_sig,
+        self.sig = TF1('fsig_%s' % self.name, self.d_sig,
                        self.drawrange[0], self.drawrange[1],
                        self.sigNparms)
-        self.fn = TF1('fbgsig', self.d_pol4gaus,
+        self.fn = TF1('fbgsig_%s' % self.name, self.d_pol4gaus,
                       self.drawrange[0], self.drawrange[1],
                       self.fnNparms)
         # fit ranges
@@ -87,13 +93,14 @@ class FitSchemeXsectInt:
         self.bg.skip = [[0.74, 0.85], [0.5, 0.6]]
         self.sig.skip = []
         self.fn.skip = [[0.5, 0.6]]
-        # ################## end default values ####################
-
         # x values of modified step, i.e., x0/x1 of stepfactor()
         self.edgerange = [2, 2.1]
-
         # draw options during fitting
         self.doptions = 'N'
+        # ################## end default values ####################
+
+        self.desc = desc
+        self.converged = True
 
         # override default parameters
         if fnsetup is not None:
@@ -137,6 +144,8 @@ class FitSchemeXsectInt:
     # ################## END DEFAULT FIT FUNCTIONS ##########################
 
     def Setup(self, hist, wrange=None, q2range=None):
+        print('****************************** \n'
+              + self.desc + '\n******************************')
         # attempt to set modified step function (phase-space edge) parameters
         # and populate W and Q2 ranges
         wlow, whigh = 0, 0
@@ -198,7 +207,6 @@ class FitSchemeXsectInt:
             x1 = x1 if x1 < self.edgerange[0] else self.edgerange[0]
         h.Fit(self.sig, self.doptions, '',
               self.sig.range[0], x1)
-
         # set initial parameters of bg+sig function
         [self.fn.SetParameter(i, v) for i, v
             in zip(range(0, self.bgNparms), bg.GetParameters())]
@@ -213,8 +221,16 @@ class FitSchemeXsectInt:
         x1 = self.bg.range[1]
         if self.endAtEdge:
             x1 = x1 if x1 < self.edgerange[0] else self.edgerange[0]
+        if self.prefit is not None:
+            self.prefit(self)
+        # self.converged = R.gMinuit.fCstatu == 'CONVERGED '
         hist.Fit(self.fn, self.doptions, '',
                  self.fn.range[0], x1)
+        for pidx in range(0, self.bgNparms):
+            self.bg.SetParameter(pidx, self.fn.GetParameter(pidx))
+        for pidx in range(0, self.sigNparms):
+            self.sig.SetParameter(pidx,
+                                  self.fn.GetParameter(pidx+self.bgNparms))
 
     def Decorate(self, hist):
         fns = [self.bg.Clone('fbg'), self.sig.Clone('fsig'),
@@ -243,6 +259,16 @@ def FSpol2trunc(fs):
     fs.fn.fixparms = {3: 0, 4: 0, 8: 2, 9: 2.1}
 
 
+def FSpol2trunc5(fs):
+    FSpol2trunc(fs)
+    fs.prefit = lambda s: s.fn.FixParameter(2, 1.05*s.fn.GetParameter(2))
+
+
+def FSpol2truncM5(fs):
+    FSpol2trunc(fs)
+    fs.prefit = lambda s: s.fn.FixParameter(2, 0.95*s.fn.GetParameter(2))
+
+
 def FSpol4trunc(fs):
     # use 2nd order polynomial
     FSpol2trunc(fs)
@@ -256,6 +282,7 @@ def FSpol4trunc(fs):
 def FSpol4full(fs):
     # use truncated 4th order polynomial
     FSpol4trunc(fs)
+    #fs.doptions = ''
     # open range
     fs.bg.range = [0.4, 2]
     fs.fn.range = [0.4, 2]
@@ -265,16 +292,24 @@ def FSpol4full(fs):
 def main():
     fss = {'pol2trunc':
            FitSchemeXsectInt('2nd order polynomial background, Gauss signal.\
-                             fit range = 0.4-1.1, skipping eta peak',
+                             fit range = 0.4-1.1, skipping eta peak', 'p2t',
                              FSpol2trunc),
            'pol4trunc':
            FitSchemeXsectInt('4th order polynomial background, Gauss signal.\
-                             fit range = 0.4-1.1, skipping eta peak',
+                             fit range = 0.4-1.1, skipping eta peak', 'p4t',
                              FSpol4trunc),
            'pol4full':
            FitSchemeXsectInt('4th order polynomial background, Gauss signal.\
-                             fit range = 0.4-2, skipping eta peak',
-                             FSpol4full)}
+                             fit range = 0.4-2, skipping eta peak', 'p4f',
+                             FSpol4full),
+           'pol2truncM5':
+           FitSchemeXsectInt('2th order polynomial background, Gauss signal.\
+                             fit range = 0.4-1.1, skipping eta peak, -5\% p2',
+                             'p2tm5', FSpol2truncM5),
+           'pol2trunc5':
+           FitSchemeXsectInt('2th order polynomial background, Gauss signal.\
+                             fit range = 0.4-1.1, skipping eta peak, +5\% p2',
+                             'p2t5', FSpol2trunc5)}
     fin = TFile('/home/ephelps/analysis/sandbox/h3maker-hn.root')
     h = fin.Get('hs0').GetHists()[1]
     c = TCanvas('cpreview', 'preview')
@@ -295,7 +330,9 @@ def main():
         h.GetListOfFunctions().Add(v.fn)
         # range only needs to be set once, but since range is accessible here,
         h.GetXaxis().SetRangeUser(v.drawrange[0], v.edgerange[1]+0.1)
-        leg.AddEntry(v.bg, k, 'l')
+        lbl = k
+        lbl = k if v.converged else k+' (X)'
+        leg.AddEntry(v.bg, lbl, 'l')
 
 if __name__ == '__main__':
     main()
