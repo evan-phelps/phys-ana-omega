@@ -20,6 +20,8 @@ of FitSchemeXsectInt and add corresponding scheme to 'fss' map in main().
 # TODO: maybe add resolution convolution
 # TODO: option to create histograms
 #       rather than pulling from file (ala h3maker.h)
+# TODO: change re.search to re.findall
+#       and get wlow, whigh, q2low, q2high in one expression
 
 import math as m
 import re
@@ -54,6 +56,7 @@ class FitSchemeXsectInt:
         # ##########################################################
         # ######## default values of adjustable parameters #########
         # ##########################################################
+        self.wrange, self.q2range = [0, 0], [0, 0]
         self.drawrange = [0.4, 2]
         self.bgNparms = 5
         self.sigNparms = 3
@@ -96,6 +99,9 @@ class FitSchemeXsectInt:
         if fnsetup is not None:
             fnsetup(self)
 
+    # #######################################################################
+    # #################### DEFAULT FIT FUNCTIONS ############################
+    # #######################################################################
     def stepfactor(self, x):
         x0, x1 = self.edgerange[0], self.edgerange[1]
         return 1 if x < x0 else (0 if x > x1 else 1-1/(x1-x0)*(x-x0))
@@ -128,9 +134,11 @@ class FitSchemeXsectInt:
         return step*(par[0] + par[1]*x[0] + par[2]*x[0]**2
                      + par[3]*x[0]**3 + par[4]*x[0]**4
                      + par[5]*m.exp(-0.5*pow(((x[0]-par[6])/par[7]), 2)))
+    # ################## END DEFAULT FIT FUNCTIONS ##########################
 
-    def Setup(self, hist, wrange=None):
+    def Setup(self, hist, wrange=None, q2range=None):
         # attempt to set modified step function (phase-space edge) parameters
+        # and populate W and Q2 ranges
         wlow, whigh = 0, 0
         if wrange is not None:
             wlow, whigh = wrange[0], wrange[1]
@@ -148,6 +156,21 @@ class FitSchemeXsectInt:
             x0 = m.sqrt(wlow**2+MASS_P**2-2*wlow*MASS_P)
             x1 = m.sqrt(whigh**2+MASS_P**2-2*whigh*MASS_P)
             self.edgerange = [x0, x1]
+        self.wrange[0], self.wrange[1] = wlow, whigh
+
+        q2low, q2high = 0, 0
+        if q2range is not None:
+            q2low, q2high = q2range[0], q2range[1]
+        else:
+            # try to get wrange from histogram title
+            # assuming histograms of h3maker
+            # look for '(W = <number>' without returning '(W = '
+            re_string = '(?<=Q\^2 = \()'+RE_FLOAT
+            q2low = float(re.search(re_string, hist.GetTitle()).group(0))
+            # look for ',<number)' without returning ',' or ')'
+            re_string = '(?<=,)'+RE_FLOAT+'(?<=\))?'
+            q2high = float(re.findall(re_string, hist.GetTitle())[1][0])
+        self.q2range[0], self.q2range[1] = q2low, q2high
 
         # estimate background subtraction
         for pidx, pval in self.bg.setparms.items():
