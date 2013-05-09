@@ -1,19 +1,25 @@
-#!/bin/python
+#!/bin/python2
 
 """Provides class, configuration functions, and main function meant to make
 systematic studies of integrated background subtraction easier.  To add a new
 fitting scheme, create a new FS* function that sets the adjustable parameters
-of FitSchemeXsectInt and add a corresponding scheme to the 'fss' map in main().
+of FitSchemeXsectInt and add corresponding scheme to 'fss' map in main().
 """
 
-# TODO simulation guidance
-# TODO add class variables to accumulate W, Q^2, cross-sections, error, and
-#   parameters
-# TODO add ability to change functional forms, number of parameters etc.
-# TODO pull reusables (e.g., MASS_P and goodcolors) to module
-# TODO ParticleConstants for python
-# TODO maybe add resolution convolution
-# TODO option to make histograms rather than pulling from file (ala h3maker.h)
+# TODO: simulation-inspired background function
+# TODO: allow class to accumulate cross-sections
+#       W, Q^2, cross-sections, error, and parameters see fit() of
+#       xsect-integrated-fit.C
+# TODO: add background-subtracted histogram
+#       for each scheme to canvas and legend
+# TODO: add ability to change functional forms
+#       number of parameters etc.
+# TODO: pull reusables to module
+#       e.g., MASS_P, goodcolors, common regexps, etc.
+# TODO: ParticleConstants for python
+# TODO: maybe add resolution convolution
+# TODO: option to create histograms
+#       rather than pulling from file (ala h3maker.h)
 
 import math as m
 import re
@@ -80,7 +86,7 @@ class FitSchemeXsectInt:
         self.fn.skip = [[0.5, 0.6]]
         # ################## end default values ####################
 
-        # x values of modified step of stepfactor()
+        # x values of modified step, i.e., x0/x1 of stepfactor()
         self.edgerange = [2, 2.1]
 
         # draw options during fitting
@@ -264,6 +270,7 @@ def main():
         h.GetListOfFunctions().Add(v.bg)
         h.GetListOfFunctions().Add(v.sig)
         h.GetListOfFunctions().Add(v.fn)
+        # range only needs to be set once, but since range is accessible here,
         h.GetXaxis().SetRangeUser(v.drawrange[0], v.edgerange[1]+0.1)
         leg.AddEntry(v.bg, k, 'l')
 
