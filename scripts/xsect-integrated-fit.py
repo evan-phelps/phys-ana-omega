@@ -6,6 +6,10 @@ fitting scheme, create a new FS* function that sets the adjustable parameters
 of FitSchemeXsectInt and add corresponding scheme to 'fss' map in main().
 """
 
+# TODO: histogram cosmetics
+#       fix histogram titles; add axis titles,
+#       give descriptive names for legend,
+#       move legend to left where there's more space.
 # TODO: simulation-inspired background function
 # TODO: add radiative tail to signal function
 # TODO: allow class to accumulate cross-sections
@@ -57,6 +61,7 @@ class FitSchemeXsectInt:
           to the histogram.
     """
     def __init__(self, desc, name='', fnsetup=None):
+        self.g = R.TMinuit()    # leave reference active for access to gMinuit
         self.name = name
         # ##########################################################
         # ######## default values of adjustable parameters #########
@@ -96,9 +101,9 @@ class FitSchemeXsectInt:
         # x values of modified step, i.e., x0/x1 of stepfactor()
         self.edgerange = [2, 2.1]
         # draw options during fitting
-        self.doptions = 'N'
+        self.doptions = 'QN'
         # ################## end default values ####################
-
+        self.goptions = ''
         self.desc = desc
         self.converged = True
 
@@ -189,7 +194,7 @@ class FitSchemeXsectInt:
         x1 = self.bg.range[1]
         if self.endAtEdge:
             x1 = x1 if x1 < self.edgerange[0] else self.edgerange[0]
-        hist.Fit(self.bg, self.doptions, '',
+        hist.Fit(self.bg, self.doptions, self.goptions,
                  self.bg.range[0], x1)
         bg = self.bg.Clone('bgtmp')
         for pidx, pval in self.bg.fixparms.items():
@@ -205,8 +210,9 @@ class FitSchemeXsectInt:
         x1 = self.sig.range[1]
         if self.endAtEdge:
             x1 = x1 if x1 < self.edgerange[0] else self.edgerange[0]
-        h.Fit(self.sig, self.doptions, '',
+        h.Fit(self.sig, self.doptions, self.goptions,
               self.sig.range[0], x1)
+
         # set initial parameters of bg+sig function
         [self.fn.SetParameter(i, v) for i, v
             in zip(range(0, self.bgNparms), bg.GetParameters())]
@@ -223,8 +229,8 @@ class FitSchemeXsectInt:
             x1 = x1 if x1 < self.edgerange[0] else self.edgerange[0]
         if self.prefit is not None:
             self.prefit(self)
-        # self.converged = R.gMinuit.fCstatu == 'CONVERGED '
-        hist.Fit(self.fn, self.doptions, '',
+        self.converged = R.gMinuit.fCstatu.startswith('CONV')
+        hist.Fit(self.fn, self.doptions, self.goptions,
                  self.fn.range[0], x1)
         for pidx in range(0, self.bgNparms):
             self.bg.SetParameter(pidx, self.fn.GetParameter(pidx))
@@ -290,6 +296,7 @@ def FSpol4full(fs):
 
 
 def main():
+    R.gROOT.SetBatch(True)
     fss = {'pol2trunc':
            FitSchemeXsectInt('2nd order polynomial background, Gauss signal.\
                              fit range = 0.4-1.1, skipping eta peak', 'p2t',
@@ -311,28 +318,35 @@ def main():
                              fit range = 0.4-1.1, skipping eta peak, +5\% p2',
                              'p2t5', FSpol2trunc5)}
     fin = TFile('/home/ephelps/analysis/sandbox/h3maker-hn.root')
-    h = fin.Get('hs0').GetHists()[1]
-    c = TCanvas('cpreview', 'preview')
-    c.cd()
-    h.Draw()
-    leg = TLegend(0.75, 0.6, 0.99, 0.93)
-    h.GetListOfFunctions().Add(leg)
-    for i, (k, v) in enumerate(fss.items()):
-        v.Setup(h)
-        v.Fit(h)
-        v.bg.SetLineColor(goodcolors[i])
-        v.sig.SetLineColor(goodcolors[i])
-        v.sig.SetLineStyle(2)
-        v.fn.SetLineColor(goodcolors[i])
-        v.fn.SetLineStyle(3)
-        h.GetListOfFunctions().Add(v.bg)
-        h.GetListOfFunctions().Add(v.sig)
-        h.GetListOfFunctions().Add(v.fn)
-        # range only needs to be set once, but since range is accessible here,
-        h.GetXaxis().SetRangeUser(v.drawrange[0], v.edgerange[1]+0.1)
-        lbl = k
-        lbl = k if v.converged else k+' (X)'
-        leg.AddEntry(v.bg, lbl, 'l')
+    for h in fin.Get('hs0').GetHists():
+        c = TCanvas('cpreview', 'preview')
+        c.cd()
+        h.Draw()
+        leg = TLegend(0.75, 0.6, 0.99, 0.93)
+        h.GetListOfFunctions().Add(leg)
+        for i, (k, v) in enumerate(fss.items()):
+            v.Setup(h)
+            v.Fit(h)
+            v.bg.SetLineColor(goodcolors[i])
+            v.sig.SetLineColor(goodcolors[i])
+            v.sig.SetLineStyle(2)
+            v.fn.SetLineColor(goodcolors[i])
+            v.fn.SetLineStyle(3)
+            v.bg.SetNpx(500)
+            v.sig.SetNpx(500)
+            v.fn.SetNpx(500)
+            h.GetListOfFunctions().Add(v.bg)
+            h.GetListOfFunctions().Add(v.sig)
+            h.GetListOfFunctions().Add(v.fn)
+            # range only needs to be set once, but since range is accessible here,
+            h.GetXaxis().SetRangeUser(v.drawrange[0], v.edgerange[1]+0.1)
+            lbl = k
+            lbl = k if v.converged else k+' (X)'
+            leg.AddEntry(v.bg, lbl, 'l')
+        h.GetYaxis().SetRangeUser(0, 1.1*h.GetMaximum())
+        c.Modified()
+        c.Update()
+        c.SaveAs('xsect/%s.pdf' % h.GetName())
 
 if __name__ == '__main__':
     main()
