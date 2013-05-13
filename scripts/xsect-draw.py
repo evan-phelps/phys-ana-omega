@@ -67,3 +67,4 @@ for k, mg in gs.items():
     R.gPad.BuildLegend(0.8, 0.6, 0.99, 0.92)
     c.Modified()
     c.Update()
+    c.SaveAs('xsect/%s.pdf' % mg.GetName())

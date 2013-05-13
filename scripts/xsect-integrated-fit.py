@@ -231,7 +231,7 @@ class FitSchemeXsectInt:
         # ################ bin-centric Xsect #############################
         # ################################################################
         sigma = self.sig.GetParameter(2)
-        intrange = (h.FindBin(0.783-2*sigma), h.FindBin(0.783+2*sigma))
+        intrange = (h.FindBin(0.783-3*sigma), h.FindBin(0.783+3*sigma))
         self.N = 0
         self.Nerr = 0
         berr2 = 0
@@ -244,8 +244,8 @@ class FitSchemeXsectInt:
         dq2 = self.q2range[1] - self.q2range[0]
         br = 0.891
         lum = 19.844
-        self.xsect = self.N/(br*dw*dq2*lum*0.95)
-        self.xsecterr = self.Nerr/(br*dw*dq2*lum*0.95)
+        self.xsect = self.N/(br*dw*dq2*lum*0.997)
+        self.xsecterr = self.Nerr/(br*dw*dq2*lum*0.997)
 
         # TODO: !!! BEWARE of *Nparms confusion
         #           during param copying, code currently ASSUMES 2 extra
