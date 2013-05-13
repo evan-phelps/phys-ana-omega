@@ -24,8 +24,6 @@ of FitSchemeXsectInt and add corresponding scheme to 'fss' map in main().
 # TODO: maybe add resolution convolution
 # TODO: option to create histograms
 #       rather than pulling from file (a la h3maker.h)
-# TODO: look at gsig as function of W, Q2
-#       (a la xsect-draw-sys.C)
 # TODO: disambiguate "sig"
 #       which current can refer to sigma or signal
 
@@ -38,6 +36,7 @@ from ROOT import TFile
 from ROOT import TF1
 from ROOT import TCanvas
 from ROOT import TLegend
+from ROOT import TH1D
 
 MASS_P = 0.93827203
 RE_FLOAT = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
@@ -103,7 +102,7 @@ class FitSchemeXsectInt:
         # x values of modified step, i.e., x0/x1 of stepfactor()
         self.edgerange = [0.77, 0.9]
         # draw options during fitting
-        self.doptions = 'N'
+        self.doptions = 'QN'
         # ################## end default values ####################
         self.goptions = ''
         self.desc = desc
@@ -205,7 +204,7 @@ class FitSchemeXsectInt:
             if hasattr(pval, '__call__'):
                 pval = pval(self)
             bg.FixParameter(pidx, pval)
-        h = hist.Clone('htmp')
+        h = hist.Clone('%s_sig' % hist.GetName())
         h.Add(bg, -1)
 
         # estimate signal function parameters
@@ -224,6 +223,29 @@ class FitSchemeXsectInt:
             x1 = x1 if x1 < self.edgerange[0] else self.edgerange[0]
         h.Fit(self.sig, self.doptions, self.goptions,
               self.sig.range[0], x1)
+        h.SetMarkerColor(R.kBlue)
+        h.SetLineColor(R.kBlue)
+        self.hist_sig = h
+
+        # ################################################################
+        # ################ bin-centric Xsect #############################
+        # ################################################################
+        sigma = self.sig.GetParameter(2)
+        intrange = (h.FindBin(0.783-2*sigma), h.FindBin(0.783+2*sigma))
+        self.N = 0
+        self.Nerr = 0
+        berr2 = 0
+        for b in range(intrange[0], intrange[1]):
+            byield = h.GetBinContent(b)
+            berr2 += h.GetBinError(b)**2
+            self.N += byield
+        self.Nerr = m.sqrt(berr2)
+        dw = self.wrange[1] - self.wrange[0]
+        dq2 = self.q2range[1] - self.q2range[0]
+        br = 0.891
+        lum = 19.844
+        self.xsect = self.N/(br*dw*dq2*lum*0.95)
+        self.xsecterr = self.Nerr/(br*dw*dq2*lum*0.95)
 
         # TODO: !!! BEWARE of *Nparms confusion
         #           during param copying, code currently ASSUMES 2 extra
@@ -257,10 +279,32 @@ class FitSchemeXsectInt:
         for pidx in range(0, self.sigNparms-2):
             self.sig.SetParameter(pidx,
                                   self.fn.GetParameter(pidx+self.bgNparms-2))
-        self.bg.SetParameter(5, self.fn.GetParameter(8))
-        self.bg.SetParameter(6, self.fn.GetParameter(9))
-        self.sig.SetParameter(3, self.fn.GetParameter(8))
-        self.sig.SetParameter(4, self.fn.GetParameter(9))
+        self.bg.SetParameter(self.bgNparms-2, self.fn.GetParameter(8))
+        self.bg.SetParameter(self.bgNparms-1, self.fn.GetParameter(9))
+        self.sig.SetParameter(self.sigNparms-2, self.fn.GetParameter(8))
+        self.sig.SetParameter(self.sigNparms-1, self.fn.GetParameter(9))
+
+        # ##################################################################
+        # ############### calculate cross-section and error ################
+        # ##################################################################
+        self.sig.Nf, self.sig.Nferr = 0, 0
+        Nferr2 = 0
+        sigma = self.sig.GetParameter(2)
+        intrange = (hist.FindBin(0.783-3*sigma), hist.FindBin(0.783+3*sigma))
+        for b in range(intrange[0], intrange[1]):
+            byield = hist.GetBinContent(b)
+            berr2 = hist.GetBinError(b)**2
+            bNf = self.sig.Eval(hist.GetXaxis().GetBinCenter(b))
+            if byield > 0 and bNf > 0:
+                self.sig.Nf += bNf
+                Nferr2 += (self.sig.Nf/byield)*berr2
+        self.sig.Nferr = m.sqrt(Nferr2)
+        dw = self.wrange[1] - self.wrange[0]
+        dq2 = self.q2range[1] - self.q2range[0]
+        br = 0.891
+        lum = 19.844
+        self.sig.xsect = self.sig.Nf/(br*dw*dq2*lum)
+        self.sig.xsecterr = self.sig.Nferr/(br*dw*dq2*lum)
 
     def Decorate(self, hist):
         fns = [self.bg.Clone('fbg'), self.sig.Clone('fsig'),
@@ -343,6 +387,30 @@ def gettext(x, y, s, f=12):
     return t
 
 
+def geterrrel(hist):
+    h = TH1D('%s_relerr' % hist.GetName(), '%s_relerr' % hist.GetName(),
+             hist.GetNbinsX(), hist.GetXaxis().GetBinLowEdge(1),
+             hist.GetXaxis().GetBinLowEdge(hist.GetNbinsX()))
+    for i in range(1, hist.GetNbinsX()):
+        N = hist.GetBinContent(i)
+        err = hist.GetBinError(i)
+        relerr = err/N if N > 0 else 0
+        h.SetBinContent(i, relerr)
+    return h
+
+
+def geterrsqrtN(hist):
+    h = TH1D('%s_relerr' % hist.GetName(), '%s_relerr' % hist.GetName(),
+             hist.GetNbinsX(), hist.GetXaxis().GetBinLowEdge(1),
+             hist.GetXaxis().GetBinLowEdge(hist.GetNbinsX()))
+    for i in range(1, hist.GetNbinsX()):
+        N = hist.GetBinContent(i)
+        err = hist.GetBinError(i)
+        relerr = err/m.sqrt(N) if N > 0 else 0
+        h.SetBinContent(i, relerr)
+    return h
+
+
 def main():
     R.gROOT.SetBatch(True)
     R.gErrorIgnoreLevel = R.kError
@@ -366,21 +434,21 @@ def main():
                    '2^{nd}-order, par2 -5%', '2^{nd}-order, par2 +5%']
     fin = TFile('/home/ephelps/analysis/sandbox/h3maker-hn.root')
     nq2bins = 7        # TODO: make nq2bins dynamic
-    # TODO: histogram cosmetics
-    #       fix histogram titles; add axis titles,
-    #       give descriptive names for legend,
-    #       move legend to left where there's more space.
     outgroups = 0
     hss = [fin.Get('hs%d' % i).GetHists() for i in range(0, nq2bins)]
-    for h in [h for hs in hss for h in hs][0:10]:
-    # for h in fin.Get('hs1').GetHists():
+    outf = open('xsects.txt', 'w')
+    # TODO: make number of xsects dynamic
+    outf.write('W/D\tQ2\txs1\te1\txs2\te2\txs3\te3\txs4\te4')
+    outf.write('\txs1b\te1b\txs2b\te2b\txs3b\te3b\txs4b\te4b\n')
+    for h in [h for hs in hss for h in hs if h.Integral() > 1000000]:
         c = TCanvas('cpreview', 'preview')
         c.cd()
         h.Draw()
         leg = TLegend(0.65, 0.67, 0.99, 0.91)
-        h.GetListOfFunctions().Add(leg)
         wrange, q2range = [], []
+        wval, q2val = 0, 0
         gsigs = []
+        xss, xssb = [], []
         for i, k, v in [(i, orderedkeys[i], fss[orderedkeys[i]])
                         for i in range(0, len(orderedkeys))]:
             v.Setup(h)
@@ -413,6 +481,18 @@ def main():
             wrange, q2range = v.wrange, v.q2range
             gsigs.append(gettext(0.15, 0.8-i*0.05, '#sigma = %.1f MeV' % (gsig*1000)))
             gsigs[i].SetTextColor(goodcolors[i])
+            xss.append((v.sig.xsect/(1e6), v.sig.xsecterr/(1e6)))
+            xssb.append((v.xsect/(1e6), v.xsecterr/(1e6)))
+            wval, q2val = (v.wrange[1]+v.wrange[0])/2, (v.q2range[1]+v.q2range[0])/2
+        histsig = fss[orderedkeys[0]].hist_sig
+        histsig.Draw('same')
+        h.GetListOfFunctions().Add(leg)
+        xstr = '%.3f\t%.3f' % (round(wval, 3), round(q2val, 3))
+        for x, e in xss:
+            xstr += '\t%.0f\t%.0f' % (x, e)
+        for x, e in xssb:
+            xstr += '\t%.0f\t%.0f' % (x, e)
+        outf.write(xstr + '\n')
         xhi = 0.933   # v.edgerange[1]+0.1
         xlo = 0.633   # v.drawrange[0]
         h.GetXaxis().SetTitle('M_{X} (GeV) in #gamma* p #rightarrow pX')
@@ -430,6 +510,14 @@ def main():
         c.Modified()
         c.Update()
         c.SaveAs('xsect/%s.pdf' % h.GetName())
+        herr = geterrsqrtN(h)
+        herr.Draw()
+        herr.GetXaxis().SetRangeUser(xlo, xhi)
+        herr.SetMinimum(0)
+        herr.SetTitle(h.GetTitle())
+        c.Modified()
+        c.Update()
+        c.SaveAs('xsect/errnorm/%s.pdf' % herr.GetName())
         sys.stdout.flush()
         outgroups += 1
         if outgroups % 10 == 0:
