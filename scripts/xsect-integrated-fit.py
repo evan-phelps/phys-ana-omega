@@ -440,7 +440,7 @@ def main():
     # TODO: make number of xsects dynamic
     outf.write('W/D\tQ2\txs1\te1\txs2\te2\txs3\te3\txs4\te4')
     outf.write('\txs1b\te1b\txs2b\te2b\txs3b\te3b\txs4b\te4b\n')
-    for h in [h for hs in hss for h in hs if h.Integral() > 1000000]:
+    for h in [h for hs in hss for h in hs if h.Integral() > 10000]:
         c = TCanvas('cpreview', 'preview')
         c.cd()
         h.Draw()
@@ -489,9 +489,10 @@ def main():
         h.GetListOfFunctions().Add(leg)
         xstr = '%.3f\t%.3f' % (round(wval, 3), round(q2val, 3))
         for x, e in xss:
-            xstr += '\t%.0f\t%.0f' % (x, e)
+            # xstr += '\t%.0f\t%.0f' % (x, e)
+            xstr += '\t%f\t%f' % (x, e)
         for x, e in xssb:
-            xstr += '\t%.0f\t%.0f' % (x, e)
+            xstr += '\t%f\t%f' % (x, e)
         outf.write(xstr + '\n')
         xhi = 0.933   # v.edgerange[1]+0.1
         xlo = 0.633   # v.drawrange[0]
