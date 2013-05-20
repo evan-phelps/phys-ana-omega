@@ -44,4 +44,5 @@ def f_gausexp(fn='fgexp', funcrange=(0.4, 2), limsmag=(0, 100000),
     f.SetParLimits(2, limssigma[0], limssigma[1])
     f.SetParLimits(3, limsehl[0], limsehl[1])
     f.SetParameters(limsmag[1], limsmean[0], limssigma[0], limsehl[0])
+    f.SetNpx(500)
     return f
