@@ -8,6 +8,8 @@
 !*.mk
 !omega.txt
 !input/
+!python/
+!python/*.py
 !scripts/
 !scripts/*.C
 !scripts/*.h
