@@ -3,6 +3,7 @@
 *.so
 
 !.gitignore
+!*.sh
 !*.h
 !*.cpp
 !*.mk
