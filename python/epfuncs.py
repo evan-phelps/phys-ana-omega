@@ -45,4 +45,6 @@ def f_gausexp(fn='fgexp', funcrange=(0.4, 2), limsmag=(0, 100000),
     f.SetParLimits(3, limsehl[0], limsehl[1])
     f.SetParameters(limsmag[1], limsmean[0], limssigma[0], limsehl[0])
     f.SetNpx(500)
+    # add some convenience properties to this instance of TF1
+    f.lims = {0: limsmag, 1: limsmean, 2: limssigma, 3: limsehl}
     return f

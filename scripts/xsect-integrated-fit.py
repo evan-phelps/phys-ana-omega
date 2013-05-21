@@ -17,7 +17,7 @@ of FitSchemeXsectInt and add corresponding scheme to 'fss' map in main().
 # TODO: add background-subtracted histogram
 #       for each scheme to canvas and legend
 # TODO: add ability to change functional forms
-#       number of parameters etc.`
+#       number of parameters etc.
 # TODO: pull reusables to module
 #       e.g., MASS_P, goodcolors, common regexps, etc.
 # TODO: ParticleConstants for python
@@ -250,7 +250,7 @@ class FitSchemeXsectInt:
         # TODO: !!! BEWARE of *Nparms confusion
         #           during param copying, code currently ASSUMES 2 extra
         #           "edge" parameters on bg and sig, so it throws off the
-        #           bg/sig-to-fn paramter mapping
+        #           bg/sig-to-fn parameter mapping
         # set initial parameters of bg+sig function
         [self.fn.SetParameter(i, v) for i, v
             in zip(range(0, self.bgNparms-2), bg.GetParameters())]
