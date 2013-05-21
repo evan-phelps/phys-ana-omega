@@ -59,7 +59,7 @@ class h3maker : public h10t3pi_sel
         return retval;
         }
         */
-        void Setup()
+        virtual void Setup()
         {
             printf("in h3maker::Setup()\n");
             TString option = GetOption();
@@ -80,7 +80,7 @@ class h3maker : public h10t3pi_sel
             //Double_t qbins[] = { 1.5, 2.0, 2.5, 3.1, 5.1 };
             //h3->GetZaxis()->Set(4,qbins);
         }
-        void Process()
+        virtual void Process()
         {
             int segment = (cc_segm[cc[h10idx_e]-1]%1000)/10;
             int pmt_hit = (cc_segm[cc[h10idx_e]-1]/1000)-1;
@@ -90,16 +90,16 @@ class h3maker : public h10t3pi_sel
             float wacc = fid->acc->GetAcc(kin.W,kin.Q2,kin.ct,kin.phi,err);
             float wcceff = ccw8(sector,segment,pmt_hit);
             double invw = kin.vgflux*wcceff*wacc;
-            double weight = 0
-                if (invw > 0) weight = 1/invw;
+            double weight = 0;
+            if (invw > 0) weight = 1/invw;
 
             int ibinq2w = h2eff_acc->FindBin(kin.W, kin.Q2);
 
-            h2eff_acc.Fill(kin.W, kin.Q2, wacc);
-            h2eff_cc.Fill(kin.W, kin.Q2, wcceff);
+            h2eff_acc->Fill(kin.W, kin.Q2, wacc);
+            h2eff_cc->Fill(kin.W, kin.Q2, wcceff);
             h2pfw->Fill(kin.W,parts[1].p);
-            h2eff_acc.SetBinError(ibinq2w, err);
-            h2eff_cc.SetBinError(ibinq2w, 0);
+            h2eff_acc->SetBinError(ibinq2w, err);
+            h2eff_cc->SetBinError(ibinq2w, 0);
 
             if (!w8ed) h3->Fill(kin.mmp,kin.W,kin.Q2);
             else
@@ -130,7 +130,7 @@ class h3maker : public h10t3pi_sel
                 }
             }
         }
-        void Finalize()
+        virtual void Finalize()
         {
             printf("in h3maker::Finalize()\n");
             h3->Write();

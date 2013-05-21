@@ -10,6 +10,9 @@
 !*.cfg
 !omega.txt
 !input/
+!input/*
+input/*.d
+input/*.so
 !python/
 !python/*.py
 !scripts/

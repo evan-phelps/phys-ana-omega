@@ -1,4 +1,7 @@
 {
+  gSystem->AddIncludePath("-I/home/ephelps/projects/phys-ana-omega");
+  gROOT->ProcessLine(".include /home/ephelps/projects/phys-ana-omega");
+
   TChain *h10 = new TChain("h10clone/h10");
   TChain *tpilf = new TChain("3pi-tree/t3pi");
   TChain *tpipf = new TChain("3pi-tree/t3pi_physfrm");
@@ -40,14 +43,22 @@
   printf("h10->tkin(=k)\n");
   printf("elist_fid_mm_[123]=el[123]\n");
 
-  gROOT->ProcessLine(".L ~/analysis/omega/acc.cpp+");
-  gROOT->ProcessLine(".L ~/analysis/omega/fid.cpp+");
-  gROOT->ProcessLine(".L ~/analysis/omega/particle-constants.h");
-  Fid::Instance("/home/ephelps/analysis/omega/input/fid.parms");
-  gROOT->ProcessLine(".L  ~/analysis/omega/scripts/infid.C");
-  gROOT->ProcessLine(".L  ~/analysis/omega/scripts/eff.C");
-  gROOT->ProcessLine(".L  ~/analysis/omega/h10t3pi_sel.C++");
-  gROOT->ProcessLine(".L  ~/analysis/omega/input/cc_eff_lazy_programmer.h");
+  gROOT->ProcessLine(".L /home/ephelps/projects/phys-ana-omega/acc.cpp+");
+  printf("loaded acc.cpp\n");
+  gROOT->ProcessLine(".L /home/ephelps/projects/phys-ana-omega/fid.cpp+");
+  printf("loaded fid.cpp\n");
+  gROOT->ProcessLine(".L /home/ephelps/projects/phys-ana-omega/particle-constants.h");
+  printf("loaded particle-constants.h\n");
+  Fid::Instance("/home/ephelps/projects/phys-ana-omega/input/fid.parms");
+  printf("loaded Fid instance\n");
+  gROOT->ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/scripts/infid.C");
+  printf("loaded infid.C\n");
+  gROOT->ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/scripts/eff.C");
+  printf("loaded eff.cpp\n");
+  printf("recompiling h10t3pi_sel.C...\n");
+  gROOT->ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/h10t3pi_sel.C++");
+  printf("... done.\n");
+  gROOT->ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/input/cc_eff_lazy_programmer.h");
   using namespace ParticleConstants;
 
   const char *sol = TString::Format("%e",SOL).Data();
@@ -75,7 +86,7 @@
   h10->SetAlias("ccseg","(cc_segm[cc[h10idx_e]-1]%1000)/10");
   h10->SetAlias("cchit","(cc_segm[cc[h10idx_e]-1]/1000 - 1)");
 
-  printf("Fid::Instance() loaded\n\t from ~/analysis/omega/fid.cpp\n\t with parameters from /home/ephelps/analysis/omega/input/fid.parms\n");
-  printf("infid() loaded\n\t from ~/analysis/sandbox/sim/infid.C\n");
+  printf("Fid::Instance() loaded\n\t from /home/ephelps/projects/phys-ana-omega/fid.cpp\n\t with parameters from /home/ephelps/analysis/omega/input/fid.parms\n");
+  printf("infid() loaded\n\t from /home/ephelps/projects/phys-ana-sandbox/sim/infid.C\n");
   printf("h10 aliases: c, mpip, bifpip, dtifpip, sf\n\tfidpass, fidpass[e,p,pip,pim]\n\ttop[1,2,3]pass, mmthreshpass, mmpi0pass\n\tccpass\n");
 }
