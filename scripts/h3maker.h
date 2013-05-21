@@ -29,6 +29,13 @@ class h3maker : public h10t3pi_sel
         {
             printf("in h3maker::h3maker()\n");
             w8ed = true;
+            fid = NULL;
+            fout = NULL;
+            h3 = NULL;
+            h2pfw = NULL;
+            h2eff_cc = NULL;
+            h2eff_acc = NULL;
+            for (int i = 0; i < 7; i++) hs[i] = NULL;
         }
         ~h3maker()
         {
