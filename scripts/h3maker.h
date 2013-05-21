@@ -21,7 +21,7 @@ class h3maker : public h10t3pi_sel
         TFile *fout;
         TH3 *h3;
         TH2 *h2pfw;              //proton momentum versus W
-        TH2 *h2eff_cc, *h2eff_acc;
+        TH2 *h2eff_cc, *h2eff_acc, *h2eff_nentries;
         THStack *hs[7];
         bool w8ed;
 
@@ -35,6 +35,7 @@ class h3maker : public h10t3pi_sel
             h2pfw = NULL;
             h2eff_cc = NULL;
             h2eff_acc = NULL;
+            h2eff_nentries = NULL;
             for (int i = 0; i < 7; i++) hs[i] = NULL;
         }
         ~h3maker()
@@ -44,6 +45,7 @@ class h3maker : public h10t3pi_sel
             delete h2pfw;
             delete h2eff_cc;
             delete h2eff_acc;
+            delete h2eff_nentries;
             delete fout;
         }
         /*
@@ -69,12 +71,12 @@ class h3maker : public h10t3pi_sel
             h3 = new TH3F("hq2wmmp","Q^2:W:mmp",160,0.4,2.0,32,1.6,3.2,7,1.5,5.1);
             h2pfw = new TH2F("h2pfw","p_p vs W",160,1.6,3.2,400,0,4);
             Double_t qbins[] = { 1.5, 1.6, 1.8, 2.1, 2.4, 2.76, 3.3, 5.1 };
+            h2eff_nentries = new TH2F("hq2w_eff_nentries","Q^2:W nentries",32,1.6,3.2,7,1.5,5.1);
+            h2eff_nentries->GetYaxis()->Set(7,qbins);
             h2eff_cc = new TH2F("hq2w_eff_cc","Q^2:W CC cut efficiency",32,1.6,3.2,7,1.5,5.1);
             h2eff_cc->GetYaxis()->Set(7,qbins);
-            h2eff_cc->SetBit(TH1::kIsAverage);
             h2eff_acc = new TH2F("hq2w_eff_acc","Q^2:W acceptance",32,1.6,3.2,7,1.5,5.1);
             h2eff_acc->GetYaxis()->Set(7,qbins);
-            h2eff_acc->SetBit(TH1::kIsAverage);
             h3->GetZaxis()->Set(7,qbins);
             h3->Sumw2();
             //Double_t qbins[] = { 1.5, 2.0, 2.5, 3.1, 5.1 };
@@ -94,10 +96,14 @@ class h3maker : public h10t3pi_sel
             if (invw > 0) weight = 1/invw;
 
             int ibinq2w = h2eff_acc->FindBin(kin.W, kin.Q2);
-
+            //kIsAverage bit only affects hist addition, so...
+            //FIXME: accumulate averages in eff hists
+            //FIXME: propagate error in eff hists
+            h2eff_nentries->Fill(kin.W, kin.Q2);
             h2eff_acc->Fill(kin.W, kin.Q2, wacc);
             h2eff_cc->Fill(kin.W, kin.Q2, wcceff);
             h2pfw->Fill(kin.W,parts[1].p);
+            //FIXME: add error in quadrature here
             h2eff_acc->SetBinError(ibinq2w, err);
             h2eff_cc->SetBinError(ibinq2w, 0);
 
@@ -133,8 +139,15 @@ class h3maker : public h10t3pi_sel
         virtual void Finalize()
         {
             printf("in h3maker::Finalize()\n");
+            //FIXME: set h2eff errors to zero
+            //FIXME: scale acc and cc errors by h2eff bin contents
+            h2eff_cc->Divide(h2eff_nentries);
+            h2eff_acc->Divide(h2eff_nentries);
+            h2eff_cc->SetBit(TH1::kIsAverage);
+            h2eff_acc->SetBit(TH1::kIsAverage);
             h3->Write();
             h2pfw->Write();
+            h2eff_nentries->Write();
             h2eff_cc->Write();
             h2eff_acc->Write();
             TAxis *wax = h3->GetYaxis();
