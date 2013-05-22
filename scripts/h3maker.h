@@ -96,15 +96,12 @@ class h3maker : public h10t3pi_sel
             if (invw > 0) weight = 1/invw;
 
             int ibinq2w = h2eff_acc->FindBin(kin.W, kin.Q2);
-            //kIsAverage bit only affects hist addition, so...
-            //FIXME: accumulate averages in eff hists
-            //FIXME: propagate error in eff hists
             h2eff_nentries->Fill(kin.W, kin.Q2);
             h2eff_acc->Fill(kin.W, kin.Q2, wacc);
             h2eff_cc->Fill(kin.W, kin.Q2, wcceff);
             h2pfw->Fill(kin.W,parts[1].p);
-            //FIXME: add error in quadrature here
-            h2eff_acc->SetBinError(ibinq2w, err);
+            float err2 = err*err + h2eff_acc->GetBinError(ibinq2w)*h2eff_acc->GetBinError(ibinq2w);
+            h2eff_acc->SetBinError(ibinq2w, sqrt(err2));
             h2eff_cc->SetBinError(ibinq2w, 0);
 
             if (!w8ed) h3->Fill(kin.mmp,kin.W,kin.Q2);
@@ -139,8 +136,14 @@ class h3maker : public h10t3pi_sel
         virtual void Finalize()
         {
             printf("in h3maker::Finalize()\n");
-            //FIXME: set h2eff errors to zero
-            //FIXME: scale acc and cc errors by h2eff bin contents
+            for (int ibinx = 1; ibinx < h2eff_nentries->GetNbinsX(); ibinx++) {
+                for (int ibiny = 0; ibiny < h2eff_nentries->GetNbinsY(); ibiny++) {
+                    h2eff_nentries->SetBinError(ibinx, ibiny, 0);
+                    double err = h2eff_acc->GetBinError(ibinx, ibiny);
+                    double scale = h2eff_nentries->GetBinContent(ibinx, ibiny);
+                    h2eff_acc->SetBinError(ibinx, ibiny, err/scale);
+                }
+            }
             h2eff_cc->Divide(h2eff_nentries);
             h2eff_acc->Divide(h2eff_nentries);
             h2eff_cc->SetBit(TH1::kIsAverage);

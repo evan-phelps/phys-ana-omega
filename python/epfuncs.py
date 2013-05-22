@@ -8,6 +8,7 @@ ROOT.  Function naming conventions:
 
 """
 
+import ROOT
 from ROOT import TMath as m
 from ROOT import TF1
 
@@ -30,7 +31,7 @@ def d_gausexp(v, par):
     return mag * factor * m.Erfc(erfcarg)
 
 
-def f_gausexp(fn='fgexp', funcrange=(0.4, 2), limsmag=(0, 100000),
+def f_gausexp(fn='fgexp', funcrange=(0.4, 2), limsmag=(1, 100000),
               limsmean=(0.773, 0.793), limssigma=(0.010, 0.030),
               limsehl=(0.01, 0.2)):
     """Wraps creation of TF1 corresponding to d_gausexp.  Default values and
@@ -48,3 +49,29 @@ def f_gausexp(fn='fgexp', funcrange=(0.4, 2), limsmag=(0, 100000),
     # add some convenience properties to this instance of TF1
     f.lims = {0: limsmag, 1: limsmean, 2: limssigma, 3: limsehl}
     return f
+
+
+def d_pol2(v, par):
+    return par[0] + par[1]*v[0] + par[2]*v[0]**2
+
+
+class RejectWrapper:
+    """Wraps a TF1 with point rejection logic according to provided skip
+    ranges."""
+    def __init__(self, tf1, rejs, fname=None):
+        self.rejranges = rejs
+        self.tf1 = tf1
+        if fname is None:
+            fname = '%s_rej' % self.tf1.GetName()
+        lo, hi, nparms = ROOT.Double(0), ROOT.Double(0), self.tf1.GetNpar()
+        self.tf1.GetRange(lo, hi)
+        self.newtf1 = TF1(fname, self.d_tf1, lo, hi, nparms)
+
+    def d_tf1(self, v, par):
+        for i, p in enumerate(par):
+            self.tf1.SetParameter(i, par[i])
+        val = self.tf1.Eval(v[0])
+        for (lo, hi) in self.rejranges:
+            if v[0] > lo and v[0] < hi:
+                TF1.RejectPoint()
+        return val
