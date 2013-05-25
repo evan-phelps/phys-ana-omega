@@ -75,3 +75,4 @@ class RejectWrapper:
             if v[0] > lo and v[0] < hi:
                 TF1.RejectPoint()
         return val
+

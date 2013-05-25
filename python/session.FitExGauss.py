@@ -1,5 +1,5 @@
 import ROOT as r
-from epfuncs import d_pol2
+# from epfuncs import d_pol2
 from epfuncs import d_gausexp
 from epfuncs import f_gausexp
 from epfuncs import RejectWrapper
@@ -39,13 +39,16 @@ dmmp = 0.01
 etarange = (0.5, 0.6)
 omegarange = (0.7, 0.9)
 fbgskip = [etarange, omegarange]
-fbg = RejectWrapper(r.TF1('fbg', 'pol2', 0.4, 1.2), fbgskip).newtf1
+bgwrapper = RejectWrapper(r.TF1('fbg', 'pol2', 0.4, 1.2), fbgskip)
+fbgrej = bgwrapper.newtf1
+fbg = bgwrapper.tf1
 # fbgw = RejectWrapper(r.TF1('fbg', 'pol2', 0.4, 1.2), fbgskip)
 # fbg = r.TF1('fbg', 'pol2', 0.4, 1.2)
 # fbg = r.TF1('fbg', d_pol2, 0.4, 1.2, 3)
 # fbg.rejranges = fbgskip
 # h.Fit(fbg, '', '', 0.56, 0.74)
-h.Fit(fbg, '', '', 0.4, 1.05)
+h.Fit(fbgrej, 'N0', '', 0.4, 1.05)
+h.GetListOfFunctions().Add(fbg.Clone('fbg'))
 h.GetListOfFunctions()[0].SetRange(0.4, 1.2)
 hsig = h.Clone('hsig')
 hsig.Add(h.GetListOfFunctions()[0], -1)
@@ -68,7 +71,7 @@ fsigbg.lims.update(fs.lims)
 # get start parameters for signal+background function
 par = [fs.GetParameter(i) for i in range(0, 4)]
 for i in range(0, 3):
-    par.append(fbg.GetParameter(i))
+    par.append(fbgrej.GetParameter(i))
 for i in range(0, 7):
     fsigbg.SetParameter(i, par[i])
     low8, hiw8 = 0.5, 1.5
