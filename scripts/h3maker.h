@@ -21,6 +21,7 @@ class h3maker : public h10t3pi_sel
         TFile *fout;
         TH3 *h3;
         TH2 *h2pfw;              //proton momentum versus W
+        TH2 h2q2w;
         TH2 *h2eff_cc, *h2eff_acc, *h2eff_nentries;
         THStack *hs[7];
         bool w8ed;
@@ -33,6 +34,7 @@ class h3maker : public h10t3pi_sel
             fout = NULL;
             h3 = NULL;
             h2pfw = NULL;
+            h2q2w = NULL;
             h2eff_cc = NULL;
             h2eff_acc = NULL;
             h2eff_nentries = NULL;
@@ -43,6 +45,7 @@ class h3maker : public h10t3pi_sel
             printf("in h3maker::h3maker()\n");
             delete h3;
             delete h2pfw;
+            delete h2q2w;
             delete h2eff_cc;
             delete h2eff_acc;
             delete h2eff_nentries;
@@ -70,6 +73,7 @@ class h3maker : public h10t3pi_sel
             fout = new TFile("h3maker-hn.root","recreate");
             h3 = new TH3F("hq2wmmp","Q^2:W:mmp",160,0.4,2.0,32,1.6,3.2,7,1.5,5.1);
             h2pfw = new TH2F("h2pfw","p_p vs W",160,1.6,3.2,400,0,4);
+            h2q2w = new TH2F("h2q2w","Q^{2} vs W",160,1.6,3.2,500,1,6);
             Double_t qbins[] = { 1.5, 1.6, 1.8, 2.1, 2.4, 2.76, 3.3, 5.1 };
             h2eff_nentries = new TH2F("hq2w_eff_nentries","Q^2:W nentries",32,1.6,3.2,7,1.5,5.1);
             h2eff_nentries->GetYaxis()->Set(7,qbins);
@@ -100,6 +104,7 @@ class h3maker : public h10t3pi_sel
             h2eff_acc->Fill(kin.W, kin.Q2, wacc);
             h2eff_cc->Fill(kin.W, kin.Q2, wcceff);
             h2pfw->Fill(kin.W,parts[1].p);
+            h2q2w->Fill(kin.W,kin.Q2);
             float err2 = err*err + h2eff_acc->GetBinError(ibinq2w)*h2eff_acc->GetBinError(ibinq2w);
             h2eff_acc->SetBinError(ibinq2w, sqrt(err2));
             h2eff_cc->SetBinError(ibinq2w, 0);
@@ -150,6 +155,7 @@ class h3maker : public h10t3pi_sel
             h2eff_acc->SetBit(TH1::kIsAverage);
             h3->Write();
             h2pfw->Write();
+            h2q2w->Write();
             h2eff_nentries->Write();
             h2eff_cc->Write();
             h2eff_acc->Write();
