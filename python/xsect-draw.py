@@ -1,4 +1,5 @@
 import ROOT as R
+from ROOT import TFile
 from ROOT import TCanvas
 from ROOT import TTree
 from ROOT import TGraphErrors
@@ -15,6 +16,7 @@ goodcolors = [R.kRed+1,
 goodmarkers = list(range(20, 27))
 goodmarkers.append(32)
 
+fout = TFile('xsect/xsect_grpQ2.root', 'create')
 t = TTree()
 t.ReadFile('xsects.txt', '', '\t')
 gs = {}
@@ -68,3 +70,6 @@ for k, mg in gs.items():
     c.Modified()
     c.Update()
     c.SaveAs('xsect/%s.pdf' % mg.GetName())
+    fout.WriteObject(mg, 'mg_%d' % (k*1000))
+    fout.WriteObject(c, 'cmg_%d' % (k*1000))
+fout.Close()

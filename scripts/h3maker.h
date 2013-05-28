@@ -21,7 +21,7 @@ class h3maker : public h10t3pi_sel
         TFile *fout;
         TH3 *h3;
         TH2 *h2pfw;              //proton momentum versus W
-        TH2 h2q2w;
+        TH2 *h2q2w;
         TH2 *h2eff_cc, *h2eff_acc, *h2eff_nentries;
         THStack *hs[7];
         bool w8ed;

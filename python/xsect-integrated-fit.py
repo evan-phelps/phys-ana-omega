@@ -1,4 +1,4 @@
-#!/bin/python2
+#!/usr/bin/python2
 
 """Provides class, configuration functions, and main function meant to make
 systematic studies of integrated background subtraction easier.  To add a new
@@ -37,6 +37,12 @@ from ROOT import TF1
 from ROOT import TCanvas
 from ROOT import TLegend
 from ROOT import TH1D
+
+# from epxsectutils import vgflux
+
+# R.gROOT.SetStyle("Simple")
+R.gStyle.SetOptStat(0000)
+R.gStyle.SetOptFit(0000)
 
 MASS_P = 0.93827203
 RE_FLOAT = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
@@ -432,7 +438,11 @@ def main():
                              'p2t5', FSpol2trunc5)}
     orderedkeys = ['2^{nd}-order', '4^{th}-order',
                    '2^{nd}-order, par2 -5%', '2^{nd}-order, par2 +5%']
-    fin = TFile('/home/ephelps/analysis/sandbox/h3maker-hn.root')
+    fin = TFile('/home/ephelps/projects/phys-ana-omega/h3maker-hn.root')
+    # fin = TFile('/home/ephelps/projects/phys-ana-omega/h3maker-hn-now8.root')
+    # eff_cc = fin.Get('hq2w_eff_cc')
+    # eff_acc = fin.Get('hq2w_eff_acc')
+    # fin = TFile('/data/ephelps.bak/analysis/sandbox/h3maker-hn.root')
     nq2bins = 7        # TODO: make nq2bins dynamic
     outgroups = 0
     hss = [fin.Get('hs%d' % i).GetHists() for i in range(0, nq2bins)]
@@ -479,11 +489,22 @@ def main():
             lbl += ' '
             leg.AddEntry(v.bg, lbl, 'l')
             wrange, q2range = v.wrange, v.q2range
+            wval, q2val = (v.wrange[1]+v.wrange[0])/2, (v.q2range[1]+v.q2range[0])/2
             gsigs.append(gettext(0.15, 0.8-i*0.05, '#sigma = %.1f MeV' % (gsig*1000)))
             gsigs[i].SetTextColor(goodcolors[i])
-            xss.append((v.sig.xsect/(1e6), v.sig.xsecterr/(1e6)))
-            xssb.append((v.xsect/(1e6), v.xsecterr/(1e6)))
-            wval, q2val = (v.wrange[1]+v.wrange[0])/2, (v.q2range[1]+v.q2range[0])/2
+            # gidx = eff_acc.FindBin(wval, q2val)
+            # dw = wrange[1]-wrange[0]
+            # dq2 = q2range[1]-q2range[0]
+            # accf = eff_acc.GetBinContent(gidx)
+            # ccf = eff_cc.GetBinContent(gidx)
+            # flx = vgflux(wval, q2val)
+            # brf = 0.891
+            # lum = 19.844
+            # corrinv = brf*lum*flx*accf*ccf*dw*dq2*1e6
+            # corr = 0 if corrinv == 0 else 1/corrinv
+            corr = 1/(1e6)
+            xss.append((v.sig.xsect*corr, v.sig.xsecterr*corr))
+            xssb.append((v.xsect*corr, v.xsecterr*corr))
         histsig = fss[orderedkeys[0]].hist_sig
         histsig.Draw('same')
         h.GetListOfFunctions().Add(leg)
