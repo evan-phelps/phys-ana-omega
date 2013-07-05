@@ -20,7 +20,6 @@ class h6maker : public h10t3pi_sel {
   TH1 *ht1, *ht1w;
   THnSparseF *hbd;
   Double_t bdcoord[6];
-
  h6maker() : h10t3pi_sel() {
     printf("in h6maker::h6maker()\n");
   }

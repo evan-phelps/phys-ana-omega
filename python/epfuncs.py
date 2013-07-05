@@ -15,7 +15,6 @@ from ROOT import TF1
 
 from epxsectutils import MOMEGA, WOMEGA
 
-
 def d_gausexp(v, par):
     """Convolution of gauss and exponential using analytic expression.
     parameters:
