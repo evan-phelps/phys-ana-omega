@@ -28,7 +28,7 @@ runb = TChain("lumblock")
 
 chains = [h10, tpilf, tpipf, lum, lb]
 for c in chains:
-    c.Add("/data/e1f/skim/3????.root")
+    c.Add("/data/e1f/skim/skims.root") #3????.root")
 run.Add("/data/e1f/skim/3xxxx_run.root")
 runb.Add("/data/e1f/skim/3xxxx_run.root")
 tkin.Add("/data/e1f/skim/friend-tkin.root")
@@ -43,9 +43,10 @@ h10.AddFriend(tkin, "k")
 
 felist = TFile("/data/e1f/skim/elists.root")
 elf = felist.Get("fid_cc")
-el1 = felist.Get("t1_mm_cc_fid")
-el2 = felist.Get("t2_mm_cc_fid")
-el3 = felist.Get("t3_mm_cc_fid")
+el1 = felist.Get("el1")
+el2 = felist.Get("el2")
+el3 = felist.Get("el3")
+el1_himm = felist.Get("el1_himm")
 
 print("/data/e1f/skim/3????.root")
 print("/data/e1f/skim/3xxxx_run.root")

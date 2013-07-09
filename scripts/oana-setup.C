@@ -13,7 +13,8 @@
   TChain *runb = new TChain("lumblock");
 
   TChain *chains[] = {h10,tpilf,tpipf,lum,lb};
-  for (int ichain = 0; ichain < 5; ichain++) chains[ichain]->Add("/data/e1f/skim/3????.root");
+  for (int ichain = 0; ichain < 5; ichain++) chains[ichain]->Add("/data/e1f/skim/skims.root");
+  //3????.root");
   run->Add("/data/e1f/skim/3xxxx_run.root");
   runb->Add("/data/e1f/skim/3xxxx_run.root");
   tkin->Add("/data/e1f/skim/friend-tkin.root");
@@ -27,13 +28,15 @@
   h10->AddFriend(tkin,"k");
 
   TFile felist("/data/e1f/skim/elists.root"); //,"update");
-  TEntryList *elf = (TEntryList*)felist->Get("fid_cc");
-  TEntryList *el1 = (TEntryList*)felist->Get("t1_mm_cc_fid");
-  TEntryList *el2 = (TEntryList*)felist->Get("t2_mm_cc_fid");
-  TEntryList *el3 = (TEntryList*)felist->Get("t3_mm_cc_fid");
+  //TEntryList *elf = (TEntryList*)felist->Get("fid_cc");
+  TEntryList *el1 = (TEntryList*)felist->Get("el1"); //t1_mm_cc_fid");
+  TEntryList *el2 = (TEntryList*)felist->Get("el2"); //t2_mm_cc_fid");
+  TEntryList *el3 = (TEntryList*)felist->Get("el3"); //t3_mm_cc_fid");
+  TEntryList *el1_himm = (TEntryList*)felist->Get("el1_himm"); //t3_mm_cc_fid");
   //h10->SetEntryList(elist);
 
-  printf("/data/e1f/skim/3????.root\n");
+  //printf("/data/e1f/skim/3????.root\n");
+  printf("/data/e1f/skim/skims.root\n");
   printf("/data/e1f/skim/3xxxx_run.root\n");
   printf("run->lum(=l)\n");
   printf("runb->lb(=l)\n");

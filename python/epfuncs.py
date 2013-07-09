@@ -73,7 +73,7 @@ def d_bwexpgaus(v, par):
         par[2]:  gauss sqrt(variance)
         par[3]:  exponential decay half-life
     """
-    convrange = [v[0]-6*par[2], v[0]+6*par[2]+4*par[3]]
+    convrange = [v[0]-3*par[2], v[0]+3*par[2]+4*par[3]]
     nsteps = 100
     convstepsize = (convrange[1]-convrange[0])/nsteps
     summ = 0
@@ -85,7 +85,7 @@ def d_bwexpgaus(v, par):
     return par[0]*convstepsize*summ
 
 
-def f_bwexpgaus(fn='fbwexgaus', funcrange=(0.4, 2), limsmag=(1, 100000),
+def f_bwexpgaus(fn='fbwexgaus', funcrange=(0.4, 2), limsmag=(1, 10000000),
                 limsmass=(MOMEGA-0.03, MOMEGA+0.01), limssigma=(0.005, 0.030),
                 limsehl=(0.01, 0.2)):
     """Wraps creation of TF1 corresponding to d_bwgausexp.  Default values and

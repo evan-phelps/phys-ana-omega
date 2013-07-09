@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/opt/root/lib')
+
 import ROOT as r
 # from epfuncs import d_pol2
 # from epfuncs import d_gausexp
