@@ -168,9 +168,6 @@ def h2costphis(ibinW, ibinQ2, iedges, vals=None):
     h6_e.GetAxis(idims.mmp).SetRange(iedges[0], iedges[1])
     hexpsb = h6_e.Projection(idims.ct, idims.phi)
 
-    h6_e.GetAxis(idims.w).SetRange(0, -1)
-    h6_e.GetAxis(idims.q2).SetRange(0, -1)
-
     if vals is None:
         vals = ibins2vals(ibinW, ibinQ2)
     (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
@@ -206,6 +203,9 @@ def h2costphis(ibinW, ibinQ2, iedges, vals=None):
         h2.SetTitle(h2costphiTitle % (h2simsnames[i], wlo, whi, q2lo, q2hi))
         h2.GetXaxis().SetTitle(h2costphiXtitle)
         h2.GetYaxis().SetTitle(h2costphiYtitle)
+
+    h6_e.GetAxis(idims.w).SetRange(0, -1)
+    h6_e.GetAxis(idims.q2).SetRange(0, -1)
 
     return (hexpsig, hexpsb, h2sims[0], h2sims[1])
 
@@ -322,7 +322,7 @@ def applythresholds(h4a, thresh=0):
     haccdist0s.GetListOfFunctions().Add(r.TLine(thresh, 0, thresh, 1.05*haccdist0s.GetMaximum()))
     return (haccdist0s, herrdist0s)
 
-# FIXME: xsect seems to be 10^3 too high!
+# FIXME: xsect seem a little bit high
 def applyacc(wbin, q2bin, iedges, vedges, weights):
     # TODO: clone 2d hists to keep snapshots between steps of acceptance
     # corrections and zero-filling
