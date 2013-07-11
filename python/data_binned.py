@@ -28,7 +28,7 @@ fbgskip = [etarange, omegarange]
 
 # <codecell>
 
-c8 = r.TCanvas('c8','c8')
+c8 = r.TCanvas('c8', 'c8')
 
 # <codecell>
 
