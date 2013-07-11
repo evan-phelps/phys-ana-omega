@@ -1,7 +1,12 @@
 # TODO: apply acceptance
+
 # TODO: apply hole corrections
+
 # TODO: calculate integrated cross-sections and add to output
+
 # TODO: calculate differential cross-sections and add to output
+
+# TODO: propagate integral errors to error on weight3s
 import sys
 sys.path.append('/opt/root/lib')
 import new
@@ -10,6 +15,7 @@ import ROOT as r
 from rootpy.io import root_open as ropen
 from rootpy import asrootpy
 from rootpy.plotting import Canvas
+from rootpy.plotting import Hist
 from rootpy.interactive import wait
 from epfuncs import RejectWrapper
 
@@ -53,12 +59,17 @@ tchi2str = '#tilde{#chi}^{2} = #scale[0.65]{#frac{%.2f}{%d}}' \
            + ' = #scale[0.75]{%.2f}'
 tchi2posX = 0.07
 tchi2posY = 0.75
+h2costphiTitle = '%s, W = [%.3f,%.3f), Q^{2} = [%.3f,%.3f)'
+h2costphiXtitle = '#phi^{*} (radians)'
+h2costphiYtitle = '#cos(#theta^{*}'
 
 #output data
 oroot = 'out/ana_bd.root'
 orecords = 'out/ana_bd.dat'
 keyorder = ['Wbin', 'Q2bin', 'W', 'Wlo', 'Whi', 'Q2', 'Q2lo', 'Q2hi',
-            'fbgstat', 'fsigstat', 'fsigchi2', 'weight3s', 'weightsb']
+            'weight3s', 'weightsb', 'fbgstat', 'fbgchi2', 'fsigstat', 'fsigchi2',
+            'fbgpar0', 'fbgpar1', 'fbgpar2', 'fbgpar3', 'fbgpar4', 'fbgpar5',
+            'fsigpar0', 'fsigpar1', 'fsigpar2', 'fsigpar3', 'hsigint3s']
 
 # get histograms for simulation, acceptance, and experiment
 fin_t = ropen(ifacc)
@@ -71,7 +82,7 @@ foutrecs = open(orecords, 'w')
 # write data header
 for i, k in enumerate(keyorder):
     if i > 0:
-        foutrecs.write(', ')
+        foutrecs.write(',')
     foutrecs.write(k)
 foutrecs.write('\n')
 
@@ -107,7 +118,9 @@ def fitsig(h):
     fvoigt = r.TF1('fsig', d_voigt, fitrange[0], fitrange[1], 4)
     fvoigt.SetNpx(1000)
     fvoigt.SetParameters(250000, mw, 0.017, ww)
+    fvoigt.SetParLimits(0, 100, 9999999)
     fvoigt.SetParLimits(1, mw-0.00060, mw+0.00060)
+    fvoigt.SetParLimits(2, 0.008, 0.035)
     fvoigt.SetParLimits(3, ww-0.00040, ww+0.00040)
     h.Fit(fvoigt, 'QN0')
     h.GetListOfFunctions().Add(fvoigt)
@@ -149,6 +162,54 @@ def hmmp(ibinW, ibinQ2, vals=None):
     return h
 
 
+def h2costphis(ibinW, ibinQ2, iedges, vals=None):
+    h6_e.GetAxis(idims.w).SetRange(ibinW, ibinW)
+    h6_e.GetAxis(idims.q2).SetRange(ibinQ2, ibinQ2)
+    h6_e.GetAxis(idims.mmp).SetRange(iedges[0], iedges[1])
+    hexpsb = h6_e.Projection(idims.ct, idims.phi)
+
+    h6_e.GetAxis(idims.w).SetRange(0, -1)
+    h6_e.GetAxis(idims.q2).SetRange(0, -1)
+
+    if vals is None:
+        vals = ibins2vals(ibinW, ibinQ2)
+    (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
+    (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
+    hexpsb.SetName('h2costphi_sb_%d_%d' % (1000*wval, 1000*q2val))
+    hexpsb.SetTitle(h2costphiTitle % ('sideband', wlo, whi, q2lo, q2hi))
+    hexpsb.GetXaxis().SetTitle(h2costphiXtitle)
+    hexpsb.GetYaxis().SetTitle(h2costphiYtitle)
+
+    h6_e.GetAxis(idims.mmp).SetRange(iedges[2], iedges[3])
+    # "potential memory leak" warning will be issued here, but it's not
+    hexpsb.Add(h6_e.Projection(idims.ct, idims.phi))
+
+    h6_e.GetAxis(idims.mmp).SetRange(iedges[1], iedges[2])
+    hexpsig = h6_e.Projection(idims.ct, idims.phi)
+    hexpsig.SetName('h2costphi_sig_%d_%d' % (1000*wval, 1000*q2val))
+    hexpsig.SetTitle(h2costphiTitle % ('signal', wlo, whi, q2lo, q2hi))
+    hexpsig.GetXaxis().SetTitle(h2costphiXtitle)
+    hexpsig.GetYaxis().SetTitle(h2costphiYtitle)
+
+    h2sims = []
+    h2simsnames = ['thrown', 'acceptance']
+    for i, h4 in enumerate([h4_t, h4_a]):
+        h4.GetAxis(idims.w).SetRange(ibinW, ibinW)
+        h4.GetAxis(idims.q2).SetRange(ibinQ2, ibinQ2)
+        h2 = h4.Projection(2, 3)
+        h2sims.append(h2)
+
+        h4.GetAxis(idims.w).SetRange(0, -1)
+        h4.GetAxis(idims.q2).SetRange(0, -1)
+
+        h2.SetName('h2costphi_%s_%d_%d' % (h2simsnames[i], 1000*wval, 1000*q2val))
+        h2.SetTitle(h2costphiTitle % (h2simsnames[i], wlo, whi, q2lo, q2hi))
+        h2.GetXaxis().SetTitle(h2costphiXtitle)
+        h2.GetYaxis().SetTitle(h2costphiYtitle)
+
+    return (hexpsig, hexpsb, h2sims[0], h2sims[1])
+
+
 def fitbin(wbin, q2bin):
     # get bin center and edges
     vals = ibins2vals(wbin, q2bin)
@@ -166,7 +227,7 @@ def fitbin(wbin, q2bin):
     fbg = fitbg(h)
     record['fbgstat'] = r.gMinuit.fCstatu
     for ipar in range(0, fbg.GetNpar()):
-        record['p%d' % ipar] = fbg.GetParameter(ipar)
+        record['fbgpar%d' % ipar] = fbg.GetParameter(ipar)
 
     # subtract background fit function
     hsig = asrootpy(h.Clone('%s_hsig' % h.GetName()))
@@ -176,7 +237,7 @@ def fitbin(wbin, q2bin):
     fsig = fitsig(hsig)
     record['fsigstat'] = r.gMinuit.fCstatu
     for ipar in range(0, fsig.GetNpar()):
-        record['p%d' % ipar] = fbg.GetParameter(ipar)
+        record['fsigpar%d' % ipar] = fsig.GetParameter(ipar)
 
     # get signal boundaries and integral correction factor
     gm = fsig.GetParameter(1)
@@ -186,7 +247,9 @@ def fitbin(wbin, q2bin):
     mmplo, mmphi = h.GetBinLowEdge(mmpbinlo), h.GetBinLowEdge(mmpbinhi+1)
     intfull = fsig.Integral(*fitrange)
     int3s = fsig.Integral(mmplo, mmphi)
+    hsigint = hsig.Integral(mmpbinlo, mmpbinhi)
     weight3s = int3s/intfull if intfull > 0 else -1
+    record['hsigint3s'] = hsigint
     record['weight3s'] = weight3s
 
     # define signal/sideband edges and sideband weight factor
@@ -211,9 +274,12 @@ def fitbin(wbin, q2bin):
     r.gPad.Update()
     hs.GetHistogram().GetXaxis().SetTitle(h.GetXaxis().GetTitle())
     hs.GetHistogram().GetYaxis().SetTitle('yield')
-    chi2, ndf = fsig.GetChisquare(), fsig.GetNDF()
-    rchi2 = chi2/ndf if ndf > 0 else -1
-    record['fsigchi2'] = rchi2
+    chi2sig, ndfsig = fsig.GetChisquare(), fsig.GetNDF()
+    rchi2sig = chi2sig/ndfsig if ndfsig > 0 else -1
+    record['fsigchi2'] = rchi2sig
+    chi2bg, ndfbg = fbg.GetChisquare(), fbg.GetNDF()
+    rchi2bg = chi2bg/ndfbg if ndfbg > 0 else -1
+    record['fbgchi2'] = rchi2bg
     ylo, yhi = r.gPad.GetUymin(), r.gPad.GetUymax()
     xlo, xhi = r.gPad.GetUxmin(), r.gPad.GetUxmax()
     for l in [r.TLine(mmplo, ylo, mmplo, yhi), r.TLine(mmphi, ylo, mmphi, yhi)]:
@@ -221,29 +287,93 @@ def fitbin(wbin, q2bin):
         l.SetLineColor(r.kBlue)
     yscale = yhi-ylo
     xscale = xhi-xlo
-    tchi2 = r.TLatex(xlo+tchi2posX*xscale, ylo+tchi2posY*yscale, tchi2str % (chi2, ndf, rchi2))
+    tchi2 = r.TLatex(xlo+tchi2posX*xscale, ylo+tchi2posY*yscale, tchi2str % (chi2sig, ndfsig, rchi2sig))
     tchi2.Draw()
     r.gPad.Update()
     cmmp.SaveAs('out/%s.pdf' % cmmp.GetName())
 
     # output
-    # TODO: add fit parameters to record output
     for (k, v) in record.items():
         if isinstance(v, float):
-            record[k] = '%.3f' % v
+            record[k] = '%.5f' % v if k.startswith('fsig') else '%.3f' % v
         if isinstance(v, basestring):
             record[k] = '\"%s\"' % v
     for i, k in enumerate(keyorder):
         if i > 0:
-            foutrecs.write(', ')
+            foutrecs.write(',')
         foutrecs.write(str(record[k]))
     foutrecs.write('\n')
 
     wait()
+    return (iedges, vedges, [weightsb, weight3s])
+
+
+def applythresholds(h4a, thresh=0):
+    haccdist0s = Hist(100, 0, 0.1)
+    herrdist0s = Hist(100, 0, 1)
+    for ibin in range(0, h4a.GetNbins()):
+        bc = h4a.GetBinContent(ibin)
+        haccdist0s.Fill(bc)
+        if bc <= thresh:
+            h4a.SetBinContent(ibin, 0)
+            h4a.SetBinError(ibin, 0)
+        else:
+            herrdist0s.Fill(h4_a.GetBinError(ibin)/bc)
+    haccdist0s.GetListOfFunctions().Add(r.TLine(thresh, 0, thresh, 1.05*haccdist0s.GetMaximum()))
+    return (haccdist0s, herrdist0s)
+
+# FIXME: xsect seems to be 10^3 too high!
+def applyacc(wbin, q2bin, iedges, vedges, weights):
+    # TODO: clone 2d hists to keep snapshots between steps of acceptance
+    # corrections and zero-filling
+    vals = ibins2vals(wbin, q2bin)
+    (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
+    (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
+    h2s = (hexpsig, hexpsb, h2thr, h2acc) = h2costphis(wbin, q2bin, iedges)
+    h2rec_acor = h2thr.Clone('h2r_acor')
+    h2rec_acor.Multiply(h2acc)
+    inth2r = h2rec_acor.Integral()  # integral of reconstructed simulated events
+    h2rec_acor.Divide(h2acc)        # thrown events with acceptance holes
+    h2thr.Add(h2rec_acor, -1)       # thrown events IN acceptance holes
+
+    hexpsb.Scale(weights[0])  # weightsb
+    hexpsig.Add(hexpsb, -1)
+    inth2e = hexpsig.Integral()/weights[1]  # integral of signal region with 3-sigma cut correction
+    hexpsig.Divide(h2acc)
+    h2thr.Scale(inth2e/inth2r)
+    hexpsig.Add(h2thr)
+
+    cmmp = Canvas(name='hcostphi_%d_%d' % (1000*wval, 1000*q2val),
+                  title='Angular Distributions, W, Q2 = %.3f GeV,%.3f GeV2' % (wval, q2val))
+    cmmp.Divide(2, 2)
+    for ipad, h2 in enumerate(h2s):
+        cmmp.cd(ipad+1)
+        r.gPad.Update()
+        h2.Draw('colz')
+
+    wait()
+    return hexpsig
 
 
 def testme(wbin=15, q2bin=5):
-    fitbin(wbin, q2bin)
+    sigsbparms = fitbin(wbin, q2bin)
+    (haccdists, herrdists) = applythresholds(h4_a, 0.01)
+    haccdists.Draw()
+    wait()
+    # virtual photon flux factors and cc-cut efficiency factors
+    # already applied in h6maker.h!
+    h2e = applyacc(wbin, q2bin, *sigsbparms)
+
+    vals = ibins2vals(wbin, q2bin)
+    (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
+    (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
+
+    d2wq2 = (whi-wlo)*(q2hi-q2lo)
+    branch = 0.891
+    lum = 19.844*(1e6)
+    h2e.Scale(1/(d2wq2*branch*lum))
+    h2e.Scale(1, 'width')
+    print(h2e.Integral('width'))
     foutrecs.close()
     fout.Write()
     fout.Close()
@@ -251,9 +381,13 @@ def testme(wbin=15, q2bin=5):
 
 if __name__ == "__main__":
     r.gROOT.SetBatch(r.kTRUE)
+    (haccdists, herrdists) = applythresholds(h4_a, 0.01)
     for wbin in range(1, h6_e.GetAxis(idims.w).GetNbins()+1):
         for q2bin in range(1, h6_e.GetAxis(idims.q2).GetNbins()+1):
-            fitbin(wbin, q2bin)
+            sigsbparms = fitbin(wbin, q2bin)
+            # virtual photon flux factors and cc-cut efficiency factors
+            # already applied in h6maker.h!
+            applyacc(wbin, q2bin, *sigsbparms)
 
     foutrecs.close()
     fout.Write()
