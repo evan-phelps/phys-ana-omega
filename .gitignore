@@ -15,6 +15,7 @@ input/*.d
 input/*.so
 !python/
 !python/*.py
+!python/*.ipynb
 !scripts/
 !scripts/*.C
 !scripts/*.h
