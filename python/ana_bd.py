@@ -1,15 +1,10 @@
-# TODO: apply acceptance
-
-# TODO: apply hole corrections
-
-# TODO: calculate integrated cross-sections and add to output
-
 # TODO: calculate differential cross-sections and add to output
 
 # TODO: propagate integral errors to error on weight3s
 import sys
 sys.path.append('/opt/root/lib')
 import new
+from math import sqrt
 
 import ROOT as r
 from rootpy.io import root_open as ropen
@@ -18,6 +13,8 @@ from rootpy.plotting import Canvas
 from rootpy.plotting import Hist
 from rootpy.interactive import wait
 from epfuncs import RejectWrapper
+
+from epxsectutils import vgflux
 
 # set style for canvases
 r.gROOT.SetStyle('Modern')
@@ -43,7 +40,7 @@ cutsigma = 3
 
 # input data
 ifacc = '/home/ephelps/projects/phys-ana-omega/input/acc-per-part.root'
-ifexp = '/home/ephelps/projects/phys-ana-omega/h6maker-hn-el1.root'
+ifexp = '/home/ephelps/projects/phys-ana-omega/h6maker-hn-el1-CCcor.root'  # -el1_now8.root'
 ihacc = 'hacc'
 ihthr = 'hthrown'
 ihexp = 'hbd_yield'
@@ -61,7 +58,7 @@ tchi2posX = 0.07
 tchi2posY = 0.75
 h2costphiTitle = '%s, W = [%.3f,%.3f), Q^{2} = [%.3f,%.3f)'
 h2costphiXtitle = '#phi^{*} (radians)'
-h2costphiYtitle = '#cos(#theta^{*}'
+h2costphiYtitle = 'cos(#theta^{*})'
 
 #output data
 oroot = 'out/ana_bd.root'
@@ -84,7 +81,7 @@ for i, k in enumerate(keyorder):
     if i > 0:
         foutrecs.write(',')
     foutrecs.write(k)
-foutrecs.write('\n')
+foutrecs.write(',xsect,err,hcost\n')
 
 
 # TODO: add cutoff at phase-space edge
@@ -113,12 +110,12 @@ def fitbg(h, skip=fbgskip):
     return fbg
 
 
-# TODO: improve parameter limits
 def fitsig(h):
     fvoigt = r.TF1('fsig', d_voigt, fitrange[0], fitrange[1], 4)
     fvoigt.SetNpx(1000)
-    fvoigt.SetParameters(250000, mw, 0.017, ww)
-    fvoigt.SetParLimits(0, 100, 9999999)
+    mag = h.Integral('width')
+    fvoigt.SetParameters(mag, mw, 0.017, ww)
+    fvoigt.SetParLimits(0, 0.2*mag, 3*mag)
     fvoigt.SetParLimits(1, mw-0.00060, mw+0.00060)
     fvoigt.SetParLimits(2, 0.008, 0.035)
     fvoigt.SetParLimits(3, ww-0.00040, ww+0.00040)
@@ -146,7 +143,7 @@ def vals2ibins(valW, valQ2):
 def hmmp(ibinW, ibinQ2, vals=None):
     h6_e.GetAxis(idims.w).SetRange(ibinW, ibinW)
     h6_e.GetAxis(idims.q2).SetRange(ibinQ2, ibinQ2)
-    h = h6_e.Projection(idims.mmp)
+    h = h6_e.Projection(idims.mmp, 'e')
     h6_e.GetAxis(idims.w).SetRange(0, -1)
     h6_e.GetAxis(idims.q2).SetRange(0, -1)
 
@@ -154,7 +151,7 @@ def hmmp(ibinW, ibinQ2, vals=None):
         vals = ibins2vals(ibinW, ibinQ2)
     (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
     (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
-    h.SetName('hmmp_%d_%d' % (1000*wval, 1000*q2val))
+    h.SetName('hmmp_%d_%d' % (round(1000*wval), round(1000*q2val)))
     h.SetTitle(hmmpTitle % (wlo, whi, q2lo, q2hi))
     h.GetXaxis().SetTitle(hmmpXtitle)
     h.GetYaxis().SetTitle(hmmpYtitle)
@@ -166,24 +163,26 @@ def h2costphis(ibinW, ibinQ2, iedges, vals=None):
     h6_e.GetAxis(idims.w).SetRange(ibinW, ibinW)
     h6_e.GetAxis(idims.q2).SetRange(ibinQ2, ibinQ2)
     h6_e.GetAxis(idims.mmp).SetRange(iedges[0], iedges[1])
-    hexpsb = h6_e.Projection(idims.ct, idims.phi)
+    hexpsb = h6_e.Projection(idims.ct, idims.phi, 'e')
 
     if vals is None:
         vals = ibins2vals(ibinW, ibinQ2)
     (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
     (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
-    hexpsb.SetName('h2costphi_sb_%d_%d' % (1000*wval, 1000*q2val))
+    hexpsb.SetName('h2costphi_sb_%d_%d' % (round(1000*wval), round(1000*q2val)))
     hexpsb.SetTitle(h2costphiTitle % ('sideband', wlo, whi, q2lo, q2hi))
     hexpsb.GetXaxis().SetTitle(h2costphiXtitle)
     hexpsb.GetYaxis().SetTitle(h2costphiYtitle)
 
     h6_e.GetAxis(idims.mmp).SetRange(iedges[2], iedges[3])
     # "potential memory leak" warning will be issued here, but it's not
-    hexpsb.Add(h6_e.Projection(idims.ct, idims.phi))
+    hexpsb2 = h6_e.Projection(idims.ct, idims.phi, 'e')
+    hexpsb2.SetName('h2costphi_sb2_%d_%d' % (round(1000*wval), round(1000*q2val)))
+    hexpsb.Add(hexpsb2)
 
     h6_e.GetAxis(idims.mmp).SetRange(iedges[1], iedges[2])
-    hexpsig = h6_e.Projection(idims.ct, idims.phi)
-    hexpsig.SetName('h2costphi_sig_%d_%d' % (1000*wval, 1000*q2val))
+    hexpsig = h6_e.Projection(idims.ct, idims.phi, 'e')
+    hexpsig.SetName('h2costphi_sig_%d_%d' % (round(1000*wval), round(1000*q2val)))
     hexpsig.SetTitle(h2costphiTitle % ('signal', wlo, whi, q2lo, q2hi))
     hexpsig.GetXaxis().SetTitle(h2costphiXtitle)
     hexpsig.GetYaxis().SetTitle(h2costphiYtitle)
@@ -193,19 +192,20 @@ def h2costphis(ibinW, ibinQ2, iedges, vals=None):
     for i, h4 in enumerate([h4_t, h4_a]):
         h4.GetAxis(idims.w).SetRange(ibinW, ibinW)
         h4.GetAxis(idims.q2).SetRange(ibinQ2, ibinQ2)
-        h2 = h4.Projection(2, 3)
+        h2 = h4.Projection(2, 3, 'e')
         h2sims.append(h2)
 
         h4.GetAxis(idims.w).SetRange(0, -1)
         h4.GetAxis(idims.q2).SetRange(0, -1)
 
-        h2.SetName('h2costphi_%s_%d_%d' % (h2simsnames[i], 1000*wval, 1000*q2val))
+        h2.SetName('h2costphi_%s_%d_%d' % (h2simsnames[i], round(1000*wval), round(1000*q2val)))
         h2.SetTitle(h2costphiTitle % (h2simsnames[i], wlo, whi, q2lo, q2hi))
         h2.GetXaxis().SetTitle(h2costphiXtitle)
         h2.GetYaxis().SetTitle(h2costphiYtitle)
 
     h6_e.GetAxis(idims.w).SetRange(0, -1)
     h6_e.GetAxis(idims.q2).SetRange(0, -1)
+    h6_e.GetAxis(idims.mmp).SetRange(0, -1)
 
     return (hexpsig, hexpsb, h2sims[0], h2sims[1])
 
@@ -220,8 +220,6 @@ def fitbin(wbin, q2bin):
 
     # get MMp mass distribution for current W/Q2 bin
     h = asrootpy(hmmp(wbin, q2bin, vals))
-    if h.Integral() < 10000:
-        return
 
     # fit the background
     fbg = fitbg(h)
@@ -262,9 +260,9 @@ def fitbin(wbin, q2bin):
     record['weightsb'] = weightsb
 
     # draw canvas
-    cmmp = Canvas(name='bgsigfit_%d_%d' % (1000*wval, 1000*q2val),
+    cmmp = Canvas(name='bgsigfit_%d_%d' % (round(1000*wval), round(1000*q2val)),
                   title='MMp Fits, W, Q2 = %.3f GeV,%.3f GeV2' % (wval, q2val))
-    hs = r.THStack('hs_%d_%d' % (1000*wval, 1000*q2val),
+    hs = r.THStack('hs_%d_%d' % (round(1000*wval), round(1000*q2val)),
                    hstitle % (wlo, whi, q2lo, q2hi))
     hsig.SetColor('blue')
     hsig.GetListOfFunctions().FindObject('fsig').SetLineColor(r.kBlue)
@@ -302,7 +300,6 @@ def fitbin(wbin, q2bin):
         if i > 0:
             foutrecs.write(',')
         foutrecs.write(str(record[k]))
-    foutrecs.write('\n')
 
     wait()
     return (iedges, vedges, [weightsb, weight3s])
@@ -322,7 +319,7 @@ def applythresholds(h4a, thresh=0):
     haccdist0s.GetListOfFunctions().Add(r.TLine(thresh, 0, thresh, 1.05*haccdist0s.GetMaximum()))
     return (haccdist0s, herrdist0s)
 
-# FIXME: xsect seem a little bit high
+
 def applyacc(wbin, q2bin, iedges, vedges, weights):
     # TODO: clone 2d hists to keep snapshots between steps of acceptance
     # corrections and zero-filling
@@ -335,7 +332,7 @@ def applyacc(wbin, q2bin, iedges, vedges, weights):
     inth2r = h2rec_acor.Integral()  # integral of reconstructed simulated events
     h2rec_acor.Divide(h2acc)        # thrown events with acceptance holes
     h2thr.Add(h2rec_acor, -1)       # thrown events IN acceptance holes
-
+    [h2thr.SetBinError(i, j, sqrt(h2thr.GetBinContent(i, j))) for i in range(1, h2thr.GetNbinsX()) for j in range(1, h2thr.GetNbinsY())]
     hexpsb.Scale(weights[0])  # weightsb
     hexpsig.Add(hexpsb, -1)
     inth2e = hexpsig.Integral()/weights[1]  # integral of signal region with 3-sigma cut correction
@@ -343,7 +340,7 @@ def applyacc(wbin, q2bin, iedges, vedges, weights):
     h2thr.Scale(inth2e/inth2r)
     hexpsig.Add(h2thr)
 
-    cmmp = Canvas(name='hcostphi_%d_%d' % (1000*wval, 1000*q2val),
+    cmmp = Canvas(name='hcostphi_%d_%d' % (round(1000*wval), round(1000*q2val)),
                   title='Angular Distributions, W, Q2 = %.3f GeV,%.3f GeV2' % (wval, q2val))
     cmmp.Divide(2, 2)
     for ipad, h2 in enumerate(h2s):
@@ -357,23 +354,30 @@ def applyacc(wbin, q2bin, iedges, vedges, weights):
 
 def testme(wbin=15, q2bin=5):
     sigsbparms = fitbin(wbin, q2bin)
-    (haccdists, herrdists) = applythresholds(h4_a, 0.01)
-    haccdists.Draw()
-    wait()
-    # virtual photon flux factors and cc-cut efficiency factors
-    # already applied in h6maker.h!
-    h2e = applyacc(wbin, q2bin, *sigsbparms)
+    if sigsbparms:
+        (haccdists, herrdists) = applythresholds(h4_a, 0.01)
+        haccdists.Draw()
+        wait()
+        # virtual photon flux factors and cc-cut efficiency factors
+        # already applied in h6maker.h!
+        h2e = applyacc(wbin, q2bin, *sigsbparms)
 
-    vals = ibins2vals(wbin, q2bin)
-    (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
-    (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
+        vals = ibins2vals(wbin, q2bin)
+        (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
+        (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
 
-    d2wq2 = (whi-wlo)*(q2hi-q2lo)
-    branch = 0.891
-    lum = 19.844*(1e6)
-    h2e.Scale(1/(d2wq2*branch*lum))
-    h2e.Scale(1, 'width')
-    print(h2e.Integral('width'))
+        d2wq2 = (whi-wlo)*(q2hi-q2lo)
+        branch = 0.891
+        lum = 19.844*(1e6)
+        h2e.Scale(1/(d2wq2*branch*lum))
+        h2e.Scale(1/vgflux(wval, q2val))
+        hcost = h2e.ProjectionY(str(h2e.GetName().replace('h2costphi', 'hcost')), 0, -1, 'e')
+        hcost.Scale(1, 'width')
+        h2e.Scale(1, 'width')
+        hcost.SetDirectory(fout)
+        errh2e = r.Double(0)
+        inth2e = h2e.IntegralAndError(1, h2e.GetNbinsX(), 1, h2e.GetNbinsY(), errh2e, 'width')
+        foutrecs.write(',%.0f,%.0f,%s\n' % (inth2e, errh2e, hcost.GetName()))
     foutrecs.close()
     fout.Write()
     fout.Close()
@@ -381,14 +385,38 @@ def testme(wbin=15, q2bin=5):
 
 if __name__ == "__main__":
     r.gROOT.SetBatch(r.kTRUE)
+    hq2w_e = h6_e.Projection(idims.q2, idims.w, 'e')
+    hq2w_t = h4_t.Projection(1, 0, 'e')
     (haccdists, herrdists) = applythresholds(h4_a, 0.01)
-    for wbin in range(1, h6_e.GetAxis(idims.w).GetNbins()+1):
-        for q2bin in range(1, h6_e.GetAxis(idims.q2).GetNbins()+1):
-            sigsbparms = fitbin(wbin, q2bin)
-            # virtual photon flux factors and cc-cut efficiency factors
-            # already applied in h6maker.h!
-            applyacc(wbin, q2bin, *sigsbparms)
+    wstart, q2start = 1, 1  # vals2ibins(1.8, 1.7)
+    for wbin in range(wstart, h6_e.GetAxis(idims.w).GetNbins()+1):
+        for q2bin in range(q2start, h6_e.GetAxis(idims.q2).GetNbins()+1):
+            if hq2w_e.GetBinContent(wbin, q2bin) > 100 and hq2w_t.GetBinContent(wbin, q2bin) > 100:
+                sigsbparms = fitbin(wbin, q2bin)
+                if sigsbparms:
+                    (haccdists, herrdists) = applythresholds(h4_a, 0.01)
+                    haccdists.Draw()
+                    wait()
+                    # cc-cut efficiency factors already applied in h6maker.h!
+                    h2e = applyacc(wbin, q2bin, *sigsbparms)
 
+                    vals = ibins2vals(wbin, q2bin)
+                    (wval, wlo, whi) = (vals[0][0], vals[0][1], vals[0][2])
+                    (q2val, q2lo, q2hi) = (vals[1][0], vals[1][1], vals[1][2])
+
+                    d2wq2 = (whi-wlo)*(q2hi-q2lo)
+                    branch = 0.891
+                    lum = 19.844*(1e6)
+                    h2e.Scale(1/(d2wq2*branch*lum))
+                    h2e.Scale(1/vgflux(wval, q2val))
+                    hcost = h2e.ProjectionY(str(h2e.GetName().replace('h2costphi', 'hcost')), 0, -1, 'e')
+                    hcost.Scale(1, 'width')
+                    h2e.Scale(1, 'width')
+                    hcost.SetDirectory(fout)
+                    errh2e = r.Double(0)
+                    inth2e = h2e.IntegralAndError(1, h2e.GetNbinsX(), 1, h2e.GetNbinsY(), errh2e, 'width')
+                    # foutrecs.write(',%.0f,%.0f\n' % (inth2e, errh2e))
+                    foutrecs.write(',%.0f,%.0f,%s\n' % (inth2e, errh2e, hcost.GetName()))
     foutrecs.close()
     fout.Write()
     fout.Close()

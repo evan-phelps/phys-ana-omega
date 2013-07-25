@@ -18,7 +18,7 @@ public:
     bool issim, w8ed;
     Fid *fid;
     TFile *fout;
-    TH1 *ht1, *ht1w;
+    TH1 *ht1, *ht1w, *hcceff;
     THnSparseF *hbd;
     Double_t bdcoord[6];
     h6maker() : h10t3pi_sel() {
@@ -29,6 +29,7 @@ public:
         delete hbd;
         delete ht1;
         delete ht1w;
+        delete hcceff;
         delete fout;
     }
     virtual Int_t   GetEntry(Long64_t entry, Int_t getall = 0) {
@@ -58,6 +59,7 @@ public:
         fout = new TFile("h6maker-hn.root","create");
         ht1 = new TH1F("ht1","t' yield",800,0,8);
         ht1w = new TH1F("ht1simw","t' yield, weighted",800,0,8);
+        hcceff = new TH1F("hcceff", "cc eff dist", 100, 0, 1);
         Int_t bins2[] = { 80, 7, 8, 12, 18, 35 };
         Double_t xmin2[] = { 1.6, 1.5, 0, -1, -Pi(), 0.6 };
         Double_t xmax2[] = { 3.2, 3.1, 8,  1,  Pi(), 0.95 };
@@ -87,16 +89,18 @@ public:
         double weight = 1;
         //printf("ccw8(%d, %d, %d)\n", sector, segment, pmt_hit); //, ccw8(sector,segment,pmt_hit));
         if (issim) weight = simevtw(-kin.t1);
-        else if (w8ed) weight = 1/(kin.vgflux*ccw8(sector,segment,pmt_hit));
+        else if (w8ed) weight = 1/(kin.vgflux*ccw8(sector,segment,pmt_hit)); // 
 
         hbd->Fill(bdcoord,weight);
         ht1->Fill(-kin.t1);
         ht1w->Fill(-kin.t1,weight);
+        hcceff->Fill(1/weight);
     }
     void Finalize() {
         printf("in h6maker::Finalize()\n");
         hbd->Write();
         ht1->Write();
         ht1w->Write();
+        hcceff->Write();
     }
 };

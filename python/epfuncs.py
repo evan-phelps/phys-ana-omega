@@ -9,11 +9,29 @@ ROOT.  Function naming conventions:
 """
 import operator as op
 
-import ROOT
-from ROOT import TMath as m
+import ROOT as r
+from ROOT import TMath
 from ROOT import TF1
 
 from epxsectutils import MOMEGA, WOMEGA
+
+lms = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)]
+
+
+def d_legs(v, par):
+    retval = reduce(lambda x, y: x+y, [par[i]*r.Math.assoc_legendre(l, m, v[0]) for i, (l, m) in enumerate(lms)])
+    retval = retval + par[6]*r.TMath.Exp(-par[7]*v[0]) + par[8]*r.TMath.Exp(-par[9]*v[0])
+    return retval
+
+
+def f_legs(fn='flegs'):
+    f = TF1(fn, d_legs, -1, 1, len(lms)+4)
+    f.SetParLimits(f.GetNpar()-4, 0, 1000)
+    f.SetParLimits(f.GetNpar()-3, -3, 0)
+    f.SetParLimits(f.GetNpar()-2, 0, 1000)
+    f.SetParLimits(f.GetNpar()-1, 0, 3)
+    return f
+
 
 def d_gausexp(v, par):
     """Convolution of gauss and exponential using analytic expression.
@@ -27,10 +45,10 @@ def d_gausexp(v, par):
     assert mag > 0
     assert gsigma > 0
     assert ehl > 0
-    erate = m.Log(2)/ehl
-    erfcarg = (gmean + erate*gsigma**2 - x)/(gsigma*m.Sqrt(2))
-    factor = erate/2 * m.Exp(erate/2 * (2*gmean + erate*gsigma**2 - 2*x))
-    return mag * factor * m.Erfc(erfcarg)
+    erate = TMath.Log(2)/ehl
+    erfcarg = (gmean + erate*gsigma**2 - x)/(gsigma*TMath.Sqrt(2))
+    factor = erate/2 * TMath.Exp(erate/2 * (2*gmean + erate*gsigma**2 - 2*x))
+    return mag * factor * TMath.Erfc(erfcarg)
 
 
 def f_gausexp(fn='fgexp', funcrange=(0.4, 2), limsmag=(1, 100000),
@@ -62,7 +80,7 @@ def d_bw(v, par):
     mag = par[0]
     mean = par[1]
     gamma = par[2]
-    return mag*m.BreitWigner(mmp, mean, gamma)
+    return mag*TMath.BreitWigner(mmp, mean, gamma)
 
 
 def d_bwexpgaus(v, par):
@@ -78,10 +96,10 @@ def d_bwexpgaus(v, par):
     convstepsize = (convrange[1]-convrange[0])/nsteps
     summ = 0
     for x in [convrange[0] + step*convstepsize for step in range(0, nsteps+1)]:
-        bwpars = [ROOT.Double(1), par[1], WOMEGA]
-        egpars = [ROOT.Double(1), ROOT.Double(x), ROOT.Double(par[2]), ROOT.Double(par[3])]
-        gval = d_gausexp([ROOT.Double(v[0])], egpars)
-        summ += gval*d_bw([ROOT.Double(x)], bwpars)
+        bwpars = [r.Double(1), par[1], WOMEGA]
+        egpars = [r.Double(1), r.Double(x), r.Double(par[2]), r.Double(par[3])]
+        gval = d_gausexp([r.Double(v[0])], egpars)
+        summ += gval*d_bw([r.Double(x)], bwpars)
     return par[0]*convstepsize*summ
 
 
@@ -106,8 +124,8 @@ def f_bwexpgaus(fn='fbwexgaus', funcrange=(0.4, 2), limsmag=(1, 10000000),
 
 
 def d_bwexpgaus_pol4(v, par):
-    bwegpars = [ROOT.Double(par[i]) for i in range(0, 4)]
-    pol4pars = (ROOT.Double(par[i]) for i in range(4, 9))
+    bwegpars = [r.Double(par[i]) for i in range(0, 4)]
+    pol4pars = (r.Double(par[i]) for i in range(4, 9))
     sig = d_bwexpgaus(v, bwegpars)
     bg = reduce(op.add, [pol4par*v[0]**j for (j, pol4par) in enumerate(pol4pars)])
     return sig + bg
@@ -141,7 +159,7 @@ class RejectWrapper:
         self.tf1 = tf1
         if fname is None:
             fname = '%s_rej' % self.tf1.GetName()
-        lo, hi, nparms = ROOT.Double(0), ROOT.Double(0), self.tf1.GetNpar()
+        lo, hi, nparms = r.Double(0), r.Double(0), self.tf1.GetNpar()
         self.tf1.GetRange(lo, hi)
         self.newtf1 = TF1(fname, self.d_tf1, lo, hi, nparms)
 

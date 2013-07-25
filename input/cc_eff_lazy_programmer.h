@@ -20,10 +20,9 @@ double cceff(int sector, int pmt) {
 }
 
 float ccw8(int sector, int segm, int hit) {
-  int ipmt = -1;
   float w8 = 1;
   if (hit != 0) {
-    ipmt = segm*2 - (hit==1?0:1) - 1;
+    int ipmt = segm*2 - (hit==1?0:1) - 1;
     w8 = g_cceff[sector-1][ipmt];
   }
   return w8;
