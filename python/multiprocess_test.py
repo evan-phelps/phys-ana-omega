@@ -9,9 +9,9 @@ import numpy as np
 from root_numpy import root2rec, root2array
 import pandas as pd
 
-ar = root2rec('../testdata/genev100_a.root',
+ar = root2rec('../testdata/genev100.root', entries=1000,
           branches=['mcid', 'mcm', 'mcp', 'mctheta', 'mcphi'])
-nparts = root2array('../testdata/genev100_a.root',
+nparts = root2array('../testdata/genev100.root', entries=1000,
           branches=['mcnpart']).astype(int)
 df = pd.DataFrame(ar)
 
@@ -33,6 +33,9 @@ for p in ps:
 
 for p in ps:
     p.join()
+
+# <codecell>
+
 
 # <markdowncell>
 

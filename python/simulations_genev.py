@@ -21,7 +21,7 @@ np.set_printoptions(precision=4, suppress=True)
 plt.rc('text', usetex=True)
 
 d2r = pi/180
-nbins = 100
+nbins = 500
 
 # <markdowncell>
 
@@ -30,7 +30,6 @@ nbins = 100
 
 # <codecell>
 
-df = pd.DataFrame.load('../testdata/genev_df.p')
 dfkin = pd.DataFrame.load('../testdata/genev_dfkin.p')
 
 # <markdowncell>
@@ -45,15 +44,16 @@ dfkin = pd.DataFrame.load('../testdata/genev_dfkin.p')
 
 # tree data information for import
 branches = ['mcnpart', 'mcid', 'mcm', 'mcp', 'mctheta', 'mcphi']
-rootfiles = ['genev000.root', 'genev100.root', 'genev200.root']
+rootfiles = ['genev000.root', 'genev100.root', 'genev200.root', 'genev101.root', 'genev102.root']
 # data set names corresponding to each of rootfiles
-dfnames = ['000', '100', '200']
+dfnames = ['000', '100', '200', '101', '102']
 # import tree data as 3 numpy structured records
-treerecs = [root2rec('../testdata/%s' % fn, branches=branches)[0:10000] for fn in rootfiles]
+treerecs = [root2rec('../testdata/%s' % fn, branches=branches) for fn in rootfiles]
 # associate data sets with dfnames
 dfdict = dict(zip(dfnames, [pd.DataFrame(treerec) for treerec in treerecs]))
 # create single data frame with multi-index
 df = pd.Panel.from_dict(dfdict, orient='minor').swapaxes().to_frame()
+del treerecs
 
 # <markdowncell>
 
@@ -68,6 +68,9 @@ df['pz'] = df.mcp*dfcos.mctheta
 df['py'] = df.mcp*dfsin.mctheta*dfsin.mcphi
 df['px'] = df.mcp*dfsin.mctheta*dfcos.mcphi
 df['energy'] = (df.mcp*df.mcp + df.mcm*df.mcm).apply(lambda x: np.sqrt(x))
+del dfrad
+del dfcos
+del dfsin
 
 # <markdowncell>
 
@@ -95,6 +98,7 @@ arr2d = np.array(list(df.mcid.apply(pidxs).values))
 # of the particle type in the arrays of other columns/series in the df.
 for cn, vals in zip(cnames, [arr2d[:,icol] for icol in range(0,5)]):
     df[cn] = pd.Series(vals, name=cn, index=df.index)
+del arr2d
 
 # <markdowncell>
 
@@ -143,6 +147,7 @@ def getkin(x):
     s = np.sum(w4*g*w4)
     W = sqrt2(s)
     o4 = w4-p4
+    mmp = sqrt2(np.sum(o4*g*o4))
     t4 = p04-p4
     u4 = q4-p4
     t = np.sum(t4*g*t4)
@@ -155,7 +160,7 @@ def getkin(x):
     o3cm = o4cm[1:]
     costheta = o3cm[2]/la.norm(o3cm)
     phi = atan2(o3cm[1],o3cm[0])
-    return pd.Series(data=(rot4, W, Q2, costheta, phi, s, t, u, t0, t1, e04, p04, e4, p4, pip4, pim4, pi04, q4, w4))
+    return pd.Series(data=(rot4, W, Q2, costheta, phi, s, t, u, t0, t1, e04, p04, e4, p4, pip4, pim4, pi04, q4, w4, mmp))
 
 # <markdowncell>
 
@@ -165,87 +170,15 @@ def getkin(x):
 
 # apply to data frame
 dfkin = df.apply(getkin, axis=1)
-dfkin.columns = ['R', 'W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'e04', 'p04', 'e4', 'p4', 'pip4', 'pim4', 'pi04', 'q4', 'w4']
+dfkin.columns = ['R', 'W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'e04', 'p04', 'e4', 'p4', 'pip4', 'pim4', 'pi04', 'q4', 'w4', 'mmp']
 # convert non-4-vectors to floats
-dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1']] = dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1']].astype(float64)
-
-# <markdowncell>
-
-# # Missing mass of proton
-
-# <codecell>
-
-mmp4 = dfkin.w4-dfkin.p4
-v4inv = lambda x: sqrt2(x.dot(g*x))
-dfkin['mmp'] = mmp4.apply(v4inv)
-
-# <codecell>
-
+dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']] = dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']].astype(float64)
 dfkin['theta'] = np.arccos(dfkin.costheta)
-grpd = dfkin[['W', 'Q2', 'costheta', 'phi', 'mmp', 'theta']].groupby(level=0)
-hmmps = {}
-plt.figure(1, figsize=(15,5))
-for i, (k, v) in enumerate(grpd):
-    h = hmmps[k] = histogram(v.mmp, bins=nbins)
-    Y = h[0]
-    X = (h[1][1:]+h[1][:-1])/2
-    plt.subplot(1,3,i+1)
-    plt.errorbar(X, Y, yerr=np.sqrt(Y), fmt='ro', ms=2)
-    plt.xlim([0.765, 0.8])
-    plt.title(k, fontsize=24)
-    plt.xlabel('$m_\omega$ $(GeV)$', fontsize=15)
-plt.tight_layout()
-grpd['mmp'].agg([np.mean, np.std])
-
-# <codecell>
-
-# already did this once, so lets make a function
-def compareDists(cname, grpd=grpd, fnum=1, xlim=None, xlabel=None, yscale='linear'):
-    hs = {}
-    plt.figure(fnum, figsize=(12,4))
-    for i, (k, v) in enumerate(grpd):
-        xlim = [v[cname].min(), v[cname].max()] if xlim is None else xlim
-        xlabel = k if xlabel is None else xlabel
-        h = hs[k] = histogram(v[cname], bins=nbins)
-        Y = h[0]
-        X = (h[1][1:]+h[1][:-1])/2
-        plt.subplot(1,3,  i+1)
-        plt.errorbar(X, Y, yerr=np.sqrt(Y), fmt='ro', ms=2)
-        plt.xlim(xlim)
-        plt.title(k, fontsize=24)
-        plt.xlabel(xlabel, fontsize=15)
-        plt.yscale(yscale)
-    plt.tight_layout()
-    return hs
-
-hphis = compareDists('phi', xlabel=r'$\phi$ $(radians)$')
-hcoss = compareDists('costheta', xlabel=r'$cos(\theta)$', fnum=2, yscale='log')
-hthetas = compareDists('theta', xlabel=r'$\theta$ $(radians)$', fnum=3)
-
-# <codecell>
-
-h = hcoss['000']
-Y = h[0]
-X = (h[1][1:]+h[1][:-1])/2
-ymax4loX = 2*np.max(Y[0:len(Y)/2])
-ymax4hiX = 2*np.max(Y)
-xrs = [[0.5,1],[0.9,1],[-1,-0.5],[-1,-0.9]]
-yrs = [[20,ymax4hiX],[100,ymax4hiX],[1,ymax4loX],[1,ymax4loX]]
-plt.figure(figsize=(12, 8))
-for i, (xlims, ylims) in enumerate(zip(xrs,yrs)):
-    print ylims
-    plt.subplot(2, 2, i+1)
-    plt.errorbar(X, Y, yerr=np.sqrt(Y), fmt='ro', ms=4)
-    plt.xlim(xlims)
-    plt.yscale('log')
-    plt.ylim(ylims)
-    plt.title('000', fontsize=24)
-    plt.xlabel(r'$cos(\theta)$', fontsize=15)
-    plt.tight_layout()
-
-# <codecell>
-
-dfkin
+dfkin['px'] = df['px']
+dfkin['py'] = df['py']
+dfkin['pz'] = df['pz']
+dfkin['energy'] = df['energy']
+del df
 
 # <markdowncell>
 
@@ -253,85 +186,98 @@ dfkin
 
 # <codecell>
 
-df.save('../testdata/genev_df.p')
 dfkin.save('../testdata/genev_dfkin.p')
 
 # <markdowncell>
 
-# # Notes
+# # Group by simulation
 
 # <codecell>
 
-# fig = plt.figure(figsize=(12,8))
-# plt.yscale('log')
-ht = dfkin.t1.hist(by=dfkin.index.get_level_values(0), bins=100, figsize=(12,8))
+grpd = dfkin[['W', 'Q2', 'costheta', 'phi', 'mmp', 'theta', 't1']].groupby(level=0)
 
 # <codecell>
 
-ht[0][0]
+def compareDists(cname, groups=grpd, nbins=nbins, edges=None, figsize=(12,4), layout=[2,3], fnum=1, xlim=None, ylim=None, ymin=None, xlabel=None, yscale='linear'):
+    hs = {}
+    plt.figure(fnum, figsize=figsize)
+    for i, (k, v) in enumerate(groups):
+        xlim = [v[cname].min(), v[cname].max()] if xlim is None else xlim
+        xlabel = k if xlabel is None else xlabel
+        nbins = nbins if edges is None else edges
+        h = hs[k] = histogram(v[cname], bins=nbins, range=xlim)
+        Y = h[0]
+        X = (h[1][1:]+h[1][:-1])/2
+        plt.subplot(*(layout+[i+1]))
+        plt.errorbar(X, Y, yerr=np.sqrt(Y), fmt='ro', ms=2)
+        plt.xlim(xlim)
+        if ylim: plt.ylim(ylim)
+        plt.title(k, fontsize=24)
+        plt.xlabel(xlabel, fontsize=15)
+        plt.yscale(yscale)
+        if ymin is not None:
+            plt.ylim(ymin=ymin)
+    plt.tight_layout()
+    return hs
+
+# <markdowncell>
+
+# # Missing mass of proton
 
 # <codecell>
 
-plt.figure(1, figsize=(15, 5))
-plt.subplot(131)
-hphi = hist(dfkin.phi, bins=100)
-plt.subplot(132)
-hcos = hist(dfkin.costheta, bins=100)
-plt.subplot(133)
-hcos = hist(dfkin.costheta.apply(lambda x: np.arccos(x)), bins=100)
+grpd.mmp.agg([np.mean,np.std])
 
 # <codecell>
 
-class Parameter:
-    def __init__(self, value):
-            self.value = value
-
-    def set(self, value):
-            self.value = value
-
-    def __call__(self):
-            return self.value
-
-def fit(function, parameters, y, x = None):
-    def f(params, x, y):
-        i = 0
-        for p in parameters:
-            p.set(params[i])
-            i += 1
-        return y - function(x)
-
-    # if x is None: x = np.arange(y.shape[0])
-    p = [param() for param in parameters]
-    return optimize.leastsq(f, p, args=(x, y))
+fabove = lambda x: np.sum(x>=0.795)
+fbelow = lambda x: np.sum(x<0.795)
+smmry = grpd.mmp.agg({'> 0.795':fabove, '< 0.795':fbelow})
+smmry['%'] = 100*smmry['> 0.795']/(smmry['> 0.795']+smmry['< 0.795'])
+smmry
 
 # <codecell>
 
-mmp4 = dfkin.w4-dfkin.p4
-v4inv = lambda x: sqrt2(x.dot(g*x))
-mmp = mmp4.apply(v4inv)
-hmmp = histogram(mmp, bins=100)  # hist(mmp, bins=100)
+hmmps = compareDists('mmp', edges=np.arange(0.765,1.0,0.000235), xlim=[0.765,0.81], figsize=(12,8), ymin=0)
 
-# set initial parameters and define function
-mu = Parameter(0.77)  # mmp.mean())
-sigma = Parameter(0.01)  # mmp.std())
-height = Parameter(2000)  # hmmp[1].max())
-def gauss(x): return height() * exp(-((x-mu())/sigma())**2)
+# <markdowncell>
 
-# fit
-Y = hmmp[0]
-X = (hmmp[1][1:]+hmmp[1][:-1])/2
-fitresult = fit(gauss, [mu, sigma, height], Y, X)
-print(fitresult[0])
-print(fitresult[1])
-Xl = np.linspace(hmmp[1].min(), hmmp[1].max(), 1000)
-plt.figure(1, figsize=(9,6))
-plt.errorbar(X, Y, yerr=np.sqrt(Y), fmt='ro', ms=2)
-plt.plot(Xl, [gauss(x) for x in Xl], 'g-', lw=2)
+# # Missing momentum angles
 
 # <codecell>
 
-# 2*(MASS_P*MASS_P - e3pi->_p0->E()*e3pi->_p1->E() + e3pi->_p0->P()*e3pi->_p1->P());
-massp = 0.938272
+hphis = compareDists('phi', xlabel=r'$\phi$ $(radians)$', figsize=(12,8), ymin=0)
+hcoss = compareDists('costheta', xlabel=r'$cos(\theta)$', fnum=2, yscale='log', figsize=(12,8))
+hthetas = compareDists('theta', xlabel=r'$\theta$ $(radians)$', fnum=3, figsize=(12,8), ymin=0)
+
+# <codecell>
+
+hthetasZoom = compareDists('costheta', xlabel=r'$\theta$ $(radians)$', fnum=3,
+                           figsize=(12,8), xlim=[0.9,1], nbins=100, yscale='log')
+
+# <codecell>
+
+df10x = dfkin.ix['100':'102']
+hcts10xhi = compareDists('costheta', fnum=1, groups=df10x.loc[df10x.mmp>0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
+hcts10xlo = compareDists('costheta', fnum=2, groups=df10x.loc[df10x.mmp<=0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
+
+# <codecell>
+
+hphis10xhi = compareDists('phi', fnum=1, groups=df10x.loc[df10x.mmp>0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
+hphis10xlo = compareDists('phi', fnum=2, groups=df10x.loc[df10x.mmp<=0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
+
+# <markdowncell>
+
+# # t-slope
+
+# <codecell>
+
+ht1s = compareDists('t1', groups=grpd, xlabel=r'$t-t_{o}$', figsize=(14,10), nbins=500)
+
+# <codecell>
+
+grpd.mmp.hist(bins=np.arange(0.7, 1, 0.0005), pads=True)
+plt.autoscale(True, 'both')
 
 # <codecell>
 
