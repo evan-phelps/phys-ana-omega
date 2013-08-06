@@ -1,5 +1,6 @@
 import pandas as pd
 from rootpy.io import root_open as ropen
+from rootpy.interactive import wait
 import ROOT as r
 from functools import reduce
 
@@ -48,9 +49,9 @@ def get_f_legs_tu(order=7, ignore=[]):
     legs = [(i, 0) for i in range(0, order+1) if (i, 0) not in ignore]
     retf = r.TF1('flegstu', get_d_legs_tu(legs), -1, 1, npars)
     retf.SetParLimits(nlegs+0, 0, 500)
-    retf.SetParLimits(nlegs+1, 2, 8)
+    retf.SetParLimits(nlegs+1, 1, 8)
     retf.SetParLimits(nlegs+2, 0, 500)
-    retf.SetParLimits(nlegs+3, 2, 8)
+    retf.SetParLimits(nlegs+3, 1, 8)
     for ipar in range(0, nlegs):
         retf.SetParLimits(ipar, 0, 10000)
         retf.SetParName(ipar, 'L_%d_%d' % legs[ipar])
@@ -58,7 +59,8 @@ def get_f_legs_tu(order=7, ignore=[]):
     return retf
 
 leg_order = 8  # 2
-ignore = [(1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (8, 0)]  # []
+# ignore = [(1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (8, 0)]  # []
+ignore = [(4, 0), (5, 0), (6, 0), (7, 0), (8, 0)]
 f = get_f_legs_tu(leg_order, ignore)
 p0, p1 = r.Double(-1), r.Double(-1)
 for ipar in range(0, f.GetNpar()):
@@ -84,3 +86,4 @@ fu.SetParameters(f.GetParameter(len(f.legs)+2), f.GetParameter(len(f.legs)+3))
 fu.SetLineColor(r.kYellow+1)
 fu.SetLineStyle(2)
 fu.Draw('same')
+wait()
