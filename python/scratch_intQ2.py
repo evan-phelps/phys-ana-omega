@@ -105,6 +105,7 @@ def intQ2(wmid=1890):
     for i in range(1, len(hs)): htot.Add(hs[i])
     for i, h in enumerate(hs): h.Scale(1/dQ2.iloc[i])
     htot.Scale(1/dQ2.sum())
+    htot.SetTitle('W = %.3f GeV' % (wmid/1000.0))
     htot.Draw()
     return htot
 
