@@ -62,12 +62,12 @@ def get_f_legs_tu(order=7, ignore=[], tamp=200, uamp=200):
 def fitlegs(h, leg_order=3, ignore=[], tamp=0, uamp=0, trim=True):
     f = get_f_legs_tu(leg_order, ignore, tamp, uamp)
     p0, p1 = r.Double(-1), r.Double(-1)
-    for ipar in range(0, f.GetNpar()):
-        f.GetParLimits(ipar, p0, p1)
-        print(ipar, p0, p1)
+    # for ipar in range(0, f.GetNpar()):
+    #     f.GetParLimits(ipar, p0, p1)
+    #     print(ipar, p0, p1)
     h.SetMinimum(1)
     (rlo, rhi) = (-0.875, 0.875) if trim else (-1, 1)
-    h.Fit(f, 'ME', '', rlo, rhi)
+    h.Fit(f, 'QME', '', rlo, rhi)
 
     fl = get_f_legs(f.legs, f.GetParameters())
     fl.SetLineColor(r.kBlue+1)
@@ -110,10 +110,18 @@ def intQ2(wmid=1890):
     return htot
 
 
-def fitH(h, leg_order=3, ignore=[], tamp=0, uamp=0, trim=True):
+def fitH(h, leg_order=2, ignore=[], tamp=0, uamp=0, trim=True):
     res = fitlegs(h, leg_order, ignore, tamp, uamp, trim)
-    print(res[0].GetChisquare()/res[0].GetNDF())
+    # print(res[0].GetChisquare()/res[0].GetNDF())
     return res
+
+
+def doall():
+    chi2s = []
+    for W in [round(w*1000) for w in df.W.unique()]:
+        res = fitH(intQ2(W), trim=False)
+        chi2s.append(res)
+    return chi2s
 
 
 res = fitH(intQ2(1890))
