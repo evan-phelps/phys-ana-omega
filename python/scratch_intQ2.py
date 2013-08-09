@@ -2,6 +2,10 @@ import ROOT as r
 from ROOT import TMinuit
 from rootpy.io import root_open as ropen
 import pandas as pd
+import matplotlib
+matplotlib.use('gtkagg')
+import matplotlib.pylab as mplt
+cs = ['r', 'y', 'g', 'b', 'm']
 
 r.gSystem.Load('libMathMore.so')
 gMin = r.gMinuit
