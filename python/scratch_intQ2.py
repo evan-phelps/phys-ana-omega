@@ -1,9 +1,10 @@
 import ROOT as r
+from ROOT import TMinuit
 from rootpy.io import root_open as ropen
 import pandas as pd
 
 r.gSystem.Load('libMathMore.so')
-
+gMin = r.gMinuit
 
 def get_d_legs(legs):
     lms = legs
@@ -45,15 +46,17 @@ def get_f_legs_tu(order=7, ignore=[], tamp=200, uamp=200):
         retf.FixParameter(nlegs+1, 0)
     else:
         retf.SetParLimits(nlegs+0, 0, tamp)
-        retf.SetParLimits(nlegs+1, 1, 8)
+        # retf.SetParLimits(nlegs+1, 5, 10)
+        retf.SetParameter(nlegs+0, 0)
+        retf.FixParameter(nlegs+1, 7.3)
     if uamp == 0:
         retf.FixParameter(nlegs+2, uamp)
         retf.FixParameter(nlegs+3, 0)
     else:
         retf.SetParLimits(nlegs+2, 0, uamp)
-        retf.SetParLimits(nlegs+3, 1, 8)
+        retf.SetParLimits(nlegs+3, 1, 50)
     for ipar in range(0, nlegs):
-        retf.SetParLimits(ipar, 0, 10000)
+        retf.SetParLimits(ipar, 0, 1000)
         retf.SetParName(ipar, 'L_%d_%d' % legs[ipar])
     retf.legs = legs
     return retf
@@ -65,10 +68,10 @@ def fitlegs(h, leg_order=3, ignore=[], tamp=0, uamp=0, trim=True):
     # for ipar in range(0, f.GetNpar()):
     #     f.GetParLimits(ipar, p0, p1)
     #     print(ipar, p0, p1)
-    h.SetMinimum(1)
+    # h.SetMinimum(1)
     (rlo, rhi) = (-0.875, 0.875) if trim else (-1, 1)
-    h.Fit(f, 'QME', '', rlo, rhi)
-
+    h.Fit(f, 'Q', '', rlo, rhi)
+    status = gMin.fCstatu
     fl = get_f_legs(f.legs, f.GetParameters())
     fl.SetLineColor(r.kBlue+1)
     fl.SetLineStyle(2)
@@ -81,12 +84,14 @@ def fitlegs(h, leg_order=3, ignore=[], tamp=0, uamp=0, trim=True):
     ft.SetLineStyle(2)
     ft.Draw('same')
 
-    fu = r.TF1('fu', '[0]*TMath::Exp(-[1]*x)', -1, 1)
-    fu.SetParameters(f.GetParameter(len(f.legs)+2), f.GetParameter(len(f.legs)+3))
-    fu.SetLineColor(r.kYellow+1)
-    fu.SetLineStyle(2)
-    fu.Draw('same')
-    return (f, fl, ft, fu, h)
+    fu = None
+    if uamp > 0:
+        fu = r.TF1('fu', '[0]*TMath::Exp(-[1]*x)', -1, 1)
+        fu.SetParameters(f.GetParameter(len(f.legs)+2), f.GetParameter(len(f.legs)+3))
+        fu.SetLineColor(r.kYellow+1)
+        fu.SetLineStyle(2)
+        fu.Draw('same')
+    return (f, fl, ft, fu, h, status)
 
 
 fin = ropen('ana_bd.root')
@@ -101,7 +106,7 @@ def intQ2(wmid=1890):
 
     # unscale, add, scale
     for i, h in enumerate(hs): h.Scale(dQ2.iloc[i])
-    htot = hs[0].Clone('h1890')
+    htot = hs[0].Clone(wstr)
     for i in range(1, len(hs)): htot.Add(hs[i])
     for i, h in enumerate(hs): h.Scale(1/dQ2.iloc[i])
     htot.Scale(1/dQ2.sum())
@@ -116,12 +121,25 @@ def fitH(h, leg_order=2, ignore=[], tamp=0, uamp=0, trim=True):
     return res
 
 
-def doall():
+def doall(trim=True):
     chi2s = []
     for W in [round(w*1000) for w in df.W.unique()]:
-        res = fitH(intQ2(W), trim=False)
+        htot = intQ2(W)
+        #texpA = htot.Interpolate(0)
+        #texpA = 1.1*texpA if texpA > 0 else 10
+        texpA = 2
+        res = fitH(htot, trim=trim, tamp=texpA)
         chi2s.append(res)
     return chi2s
+
+
+def doeach(trim=True):
+    ress = []
+    for h in [fin.Get(hn) for hn in df.hcost]:
+        texpA = 2
+        res = fitH(h, trim=trim, tamp=texpA)
+        ress.append(res)
+    return ress
 
 
 res = fitH(intQ2(1890))
