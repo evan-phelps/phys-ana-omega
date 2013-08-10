@@ -2,9 +2,9 @@ import ROOT as r
 from ROOT import TMinuit
 from rootpy.io import root_open as ropen
 import pandas as pd
-import matplotlib
-matplotlib.use('gtkagg')
-import matplotlib.pylab as mplt
+# import matplotlib
+# matplotlib.use('gtkagg')
+# import matplotlib.pylab as mplt
 cs = ['r', 'y', 'g', 'b', 'm']
 
 r.gSystem.Load('libMathMore.so')
@@ -50,8 +50,9 @@ def get_f_legs_tu(order=7, ignore=[], tamp=200, uamp=200):
         retf.FixParameter(nlegs+1, 0)
     else:
         retf.SetParLimits(nlegs+0, 0, tamp)
-        # retf.SetParLimits(nlegs+1, 5, 10)
+        retf.SetParLimits(nlegs+1, 5, 15)
         retf.SetParameter(nlegs+0, 0)
+        # retf.SetParameter(nlegs+1, 7.3)
         retf.FixParameter(nlegs+1, 7.3)
     if uamp == 0:
         retf.FixParameter(nlegs+2, uamp)
@@ -74,19 +75,28 @@ def fitlegs(h, leg_order=3, ignore=[], tamp=0, uamp=0, trim=True):
     #     print(ipar, p0, p1)
     # h.SetMinimum(1)
     (rlo, rhi) = (-0.875, 0.875) if trim else (-1, 1)
-    h.Fit(f, 'Q', '', rlo, rhi)
+
+    #correction for drop in thrown event yield at forward angle
+    #lastbc = h.GetBinContent(h.GetNbinsX())
+    #if lastbc > 0: h.SetBinContent(h.GetNbinsX(), 1.15*lastbc)
+
+    h.Fit(f, 'QN0', 'goff', rlo, rhi)
+    f.SetRange(-1,1)
+    h.GetListOfFunctions().Add(f)
     status = gMin.fCstatu
     fl = get_f_legs(f.legs, f.GetParameters())
     fl.SetLineColor(r.kBlue+1)
     fl.SetLineStyle(2)
     fl.SetLineWidth(3)
-    fl.Draw("same")
+    #fl.Draw("same")
+    h.GetListOfFunctions().Add(fl)
 
     ft = r.TF1('ft', '[0]*TMath::Exp([1]*x)', -1, 1)
     ft.SetParameters(f.GetParameter(len(f.legs)), f.GetParameter(len(f.legs)+1))
     ft.SetLineColor(r.kGreen+1)
     ft.SetLineStyle(2)
-    ft.Draw('same')
+    #ft.Draw('same')
+    h.GetListOfFunctions().Add(ft)
 
     fu = None
     if uamp > 0:
@@ -94,7 +104,7 @@ def fitlegs(h, leg_order=3, ignore=[], tamp=0, uamp=0, trim=True):
         fu.SetParameters(f.GetParameter(len(f.legs)+2), f.GetParameter(len(f.legs)+3))
         fu.SetLineColor(r.kYellow+1)
         fu.SetLineStyle(2)
-        fu.Draw('same')
+        #fu.Draw('same')
     return (f, fl, ft, fu, h, status)
 
 
@@ -115,7 +125,7 @@ def intQ2(wmid=1890):
     for i, h in enumerate(hs): h.Scale(1/dQ2.iloc[i])
     htot.Scale(1/dQ2.sum())
     htot.SetTitle('W = %.3f GeV' % (wmid/1000.0))
-    htot.Draw()
+    #htot.Draw()
     return htot
 
 
@@ -139,8 +149,8 @@ def doall(trim=True):
 
 def doeach(trim=True):
     ress = []
-    for h in [fin.Get(hn) for hn in df.hcost]:
-        texpA = 2
+    for w, h in zip(df.W, [fin.Get(hn) for hn in df.hcost]):
+        texpA = 5 if w > 2 else 0
         res = fitH(h, trim=trim, tamp=texpA)
         ress.append(res)
     return ress

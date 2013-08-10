@@ -1,4 +1,4 @@
-# %run ../scratch_intQ2.py
+%run ../scratch_intQ2.py
 from rootpy.plotting import Hist, HistStack
 # ress = doeach()
 # dffits = pd.concat([df.W, df.Q2]+[ress[i] for i in [0,1,2,4,5]], axis=1)
@@ -22,7 +22,7 @@ for wbin, (f, status) in enumerate([(res[0], res[5]) for res in ress],1):
             h.SetBinError(wbin,err/norm)
 
 hstack = HistStack('leghists')
-for h in hists[0:3]+hrs:  # +hists[3:]:
+for h in hists[0:3]+hrs+hists[3:]:
     h.SetOption('pE')
     hstack.Add(h)
 hstack.Draw('pads')
