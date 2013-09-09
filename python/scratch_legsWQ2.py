@@ -1,11 +1,12 @@
 %run ../scratch_intQ2.py
+# %run /home/ephelps/lhcbstyle.py
 import ROOT as r
 r.gROOT.ProcessLine('.x /home/ephelps/Dropbox/Notebooks/omega/Miscellany/Linux_OS/styPUB.C')
 r.gROOT.SetStyle("PUB")
-import matplotlib as mplt
-mplt.use('TkAgg')
+# import matplotlib as mplt
+# mplt.use('TkAgg')
 import operator as op
-from rootpy.plotting import Hist, HistStack
+from rootpy.plotting import Hist, HistStack, Canvas
 import pandas as pd
 ress = pd.DataFrame(doeach(trim=False))
 dffits = pd.concat([df.W, df.Q2]+[ress[i] for i in [0,1,2,4,5]], axis=1)
@@ -17,9 +18,36 @@ dfQ2s = [dffits[['W','Q2','fitfunc','status']][dffits.Q2==Q2] for Q2 in dffits.Q
 wselect = [0,12,24]
 q2s = [dffits[(dffits.Q2==q2) & (dffits.W>1.78) & (dffits.W<2.28)].iloc[wselect] for q2 in dffits.Q2.unique()]
 
-def drawsamples():
-    c = r.TCanvas()
-    c.Divide(3,3, 0.005, 0.005)
+for q2_xxxx in op.itemgetter(1,3,5)(q2s):
+    for w, h in zip(q2_xxxx.W, q2_xxxx.h):
+        h.SetMinimum(-0.1*h.GetMaximum())
+        h.GetYaxis().SetTitle('#frac{d#sigma}{d(cos#theta*)} (nb)')
+        h.GetXaxis().SetTitle('cos #theta*')
+        h.GetXaxis().SetTitleSize(0.05)
+        h.GetYaxis().SetTitleSize(0.05)
+        h.SetTitle('')
+        h.GetListOfFunctions()[0].SetLineColor(r.kBlack)
+        h.GetListOfFunctions()[1].SetLineColor(r.kBlue)
+        h.GetListOfFunctions()[2].SetLineColor(r.kRed+1)
+        h.GetListOfFunctions()[2].SetLineWidth(1)
+        h.GetListOfFunctions()[2].SetLineStyle(1)
+        h.GetListOfFunctions()[2].SetFillStyle(3008)
+        h.GetListOfFunctions()[2].SetFillColor(r.kRed+1)
+
+        h.Draw()
+        h.GetListOfFunctions()[2].DrawCopy('FCsame')
+        h.GetListOfFunctions()[1].DrawCopy('same')
+        h.GetListOfFunctions()[0].DrawCopy('same')
+
+        r.gPad.Modified()
+        r.gPad.Update()
+        r.gPad.SaveAs('%s.pdf'%h.GetName())
+
+
+
+def drawsamples(c=None):
+    c = r.TCanvas('c1','c1',2100,1500) if c is None else c
+    c.Divide(3,3)
     pnum = 1
     hs = []
     for q2_xxxx in op.itemgetter(1,3,5)(q2s):  # 0:6]:
@@ -27,14 +55,11 @@ def drawsamples():
             c.cd(pnum)
             pnum += 1
             h.SetMinimum(-0.1*h.GetMaximum())
-            h.SetMarkerSize(0.5)
-            h.GetXaxis().SetLabelSize(0.05)
+            h.GetYaxis().SetTitle('#frac{d#sigma}{d(cos#theta*)} (nb)')
+            h.GetXaxis().SetTitle('cos #theta*')
             h.GetXaxis().SetTitleSize(0.05)
-            h.GetYaxis().SetLabelSize(0.05)
             h.GetYaxis().SetTitleSize(0.05)
-            h.GetYaxis().SetTitle('#frac{d#sigma}{d(cos#theta^{*})} (nb)')
             h.SetTitle('')
-            h.Draw()
             h.GetListOfFunctions()[0].SetLineColor(r.kBlack)
             h.GetListOfFunctions()[1].SetLineColor(r.kBlue)
             h.GetListOfFunctions()[2].SetLineColor(r.kRed+1)
@@ -42,11 +67,14 @@ def drawsamples():
             h.GetListOfFunctions()[2].SetLineStyle(1)
             h.GetListOfFunctions()[2].SetFillStyle(3008)
             h.GetListOfFunctions()[2].SetFillColor(r.kRed+1)
+            h.Draw()
             h.GetListOfFunctions()[2].DrawCopy('FCsame')
             h.GetListOfFunctions()[1].DrawCopy('same')
             h.GetListOfFunctions()[0].DrawCopy('same')
             hs.append(h)
     return (c, hs)
+
+(c, hs) = drawsamples(r.TCanvas('c1','c1',2100,1500))
 
 
 q2_1700 = dffits[(dffits.Q2==1.7) & (dffits.W>1.78) & (dffits.W<2.28)]
