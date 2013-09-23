@@ -7,6 +7,8 @@ class H10;
 
 class DataHandler
 {
+protected:
+	std::string fName;
 public:
 	DataHandler(std::string name) { fName = name; }
 	virtual ~DataHandler() { };
@@ -16,8 +18,6 @@ public:
 	virtual void Wrapup(H10 *d) = 0;
 	/* Finalize after all events processed */
 	virtual void Finalize(H10 *d) = 0;
-protected:
-	std::string fName;
-	
+	std::string GetName() { return fName; }
 };
 #endif // _DATA_HANDLER_H_

@@ -1,15 +1,18 @@
 #ifndef _MON_LUMINOSITY_H_
 #include "DH_RunQuality.h"
 #endif
+#include <iostream>
+#include <math.h>
+#include <stdlib.h>
+
+#ifndef H10CONSTANTS_H_
+#include "H10Constants.h"
+#endif
+
+using namespace H10Constants;
 
 DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(name)
 {
-	_evtnum = -1;
-	fAnum_last = -1;
-	fRun_last = 0;
-	fQl_last = 0;
-	a00exists = true; //first, assume complete data
-	firstfile = true;
 	if (pDir == NULL) {
 		std::string emsg = name;
 		emsg += ": no parent directory, and couldn't create file!";
@@ -27,98 +30,89 @@ DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(n
 		}
 	}
 	fDir->cd();
-	fLumBlocks = new TTree("lumblocks","Luminosity Block Information");
-	//fLumBlocks->Branch("lb",&fLb.gap,"gap/O:run/I:fileAnum:block:ntrigs:evt1:evt2:npassed:q1/F:q2:dq");
-	fLumBlocks->Branch("lb",&fLb.run,"run/I:fileAnum:block:ntrigs:evt1:evt2:npassed:q1/F:q2:dq");
-	fLumEvents = new TTree("lumevents","faraday cup charge accumulated in block, at event level");
-	//fLumEvents->Branch("lb",&fLb.gap,"gap/O:run/I:fileAnum:block:ntrigs:evt1:evt2:npassed:q1/F:q2:dq");
-	fLumEvents->Branch("lb",&fLb.run,"run/I:fileAnum:block:ntrigs:evt1:evt2:npassed:q1/F:q2:dq");
-	f_hLb_x0 = 37000.5;
-	f_hLb_x1 = 39000.5;
-	f_hLb_y0 = 0.0;
-	f_hLb_y1 = 0.12;
-	f_hLb_xn = f_hLb_x1-f_hLb_x0;
-	f_hLb_yn = 120;
-	f_hLb_name = "h_qlVrun";
-	f_hLb_title = "Accumulated Charge vs. Run";
-	f_hLb_xtitle = "run number";
-	f_hLb_ytitle = "Q_{fc} (Coulombs)";
-	hLb = new TH2I(f_hLb_name.c_str(), f_hLb_title.c_str(), f_hLb_xn, f_hLb_x0, f_hLb_x1, f_hLb_yn, f_hLb_y0, f_hLb_y1);
-	hLb->GetXaxis()->SetTitle(f_hLb_xtitle.c_str());
-	hLb->GetYaxis()->SetTitle(f_hLb_ytitle.c_str());
-	hLb->SetOption("colz");
-	_elist = new TEntryList("elist_lb_evts","luminosity info per event",fLumEvents);
+	/* CREATE TREES and HISTOGRAMS */
+	hq2_V_w = new TH2D("hq2_V_w", "hq2_V_w", 600, 0, 6, 800, 0, 8);
+	hq2_V_w_elast_exc = new TH2D("hq2_V_w_elast_exc", "hq2_V_w_elast_exc", 100, 0.5, 1.5, 600, 0, 6);
+	hmmppippim_V_mmp = new TH2D("hmmppippim_V_mmp", "hmmppippim_V_mmp", 180, 0.2, 2.0, 250, -0.5, 2);
+	lvE0 = new TLorentzVector();
+	lvP0 = new TLorentzVector(0, 0, 0, MASS_P);
+	lvE1 = new TLorentzVector();
+	lvP0 = new TLorentzVector();
+	lvP1 = new TLorentzVector();
+	lvPip = new TLorentzVector();
+	lvPim = new TLorentzVector();
 }
 
 DH_RunQuality::~DH_RunQuality()
 {
-	delete _elist;
-	delete hLb;
-	delete fLumBlocks;
-	delete fLumEvents;
+	delete hq2_V_w;
+	delete hq2_V_w_elast_exc;
+	delete hmmppippim_V_mmp;
 	delete fDir;
+	delete lvE0;
+	delete lvE1;
+	delete lvP0;
+	delete lvP1;
+	delete lvPip;
+	delete lvPim;
 }
 
-bool DH_RunQuality::Handle(H10 *data)
+bool DH_RunQuality::Handle(H10 *d)
 {
-	H10 *d = data;
-	fLb.ntrigs++;
 	bool passed = true;
-	bool newrun = (fRun_last != d->run);
-	bool newfile = (newrun || (fAnum_last != d->file_anum));
-	//if (newfile && !newrun) fLb.gap = (d->file_anum > fAnum_last+1);
-	bool newblock = (newrun || (fQl_last < d->q_l));
-	bool somethingswrong = (!newfile && (fQl_last > d->q_l));
-	/* Assume:
-	 * 	+ events are ordered in time and, therefore, by file Anumber and run;
-	 *	+ q_l always changes if file changes (verified for e1f data, where
-	 * 		leading events of each file have q_l = 0). */
-	/* Reject events of unkown luminosity. In e1-f case, these
-		result from missing A00 files, making the first non-zero q_l
-		in A01 the first known reference for accumulated charge. */
-	if ( newrun ) {
-		/* set flag for first file in run */
-		firstfile = true;
-		/* reset lum block data */
-		fLb.run = -1;
-		fLb.fileAnum = -1;
-		fLb.q1 = -1;
-		fLb.q2 = -1;
-		fLb.dq = 0;
-		fLb.qlo_run = -1;
-		fLb.qhi_run = -1;
-		/* does first file, A00, exist */
-		if(d->file_anum != 0) {
-			a00exists = false;
-		} else {
-			a00exists = true;
-		}
-	} else if(newfile) firstfile = false;
-	if (newblock) {
-		/* reject unknown-luminosity event */
-		if ( firstfile && !a00exists && (d->q_l == 0) ) passed = false;
-		else {
-			if (!newrun) {
-				hLb->Fill(d->run, d->q_l-fQl_last);
-				/* ****************** FILL PREVIOUS BLOCK *********************** */
-				fillPreviousBlock(d);
+	if (d->id[0]==ELECTRON) {
+		Double_t E0 = d->beamEnergy;
+		Double_t M = MASS_P;
+		Double_t p = d->p[0];
+		Double_t nu = E0-p;
+		Double_t pz = p*d->cz[0];
+		Double_t Q2 = -(nu*nu - p*p - E0*E0 + 2*E0*pz);
+		Double_t s = -Q2 + 2*M*nu + M*M;
+		Double_t W = s >= 0 ? sqrt(s) : -sqrt(-s);
+		hq2_V_w->Fill(W, Q2);
+		if (d->npart==2 && d->id[1]==PROTON) {
+			if (abs(-d->p[0]*d->cx[0]-d->p[1]*d->cx[1])<0.2
+				&& abs(-d->p[0]*d->cy[0]-d->p[1]*d->cy[1])<0.2) {
+				hq2_V_w_elast_exc->Fill(W, Q2);
 			}
-			/* ***************** HANDLE CURRENT BLOCK *********************** */
-			fLb.run = d->run;
-			fLb.fileAnum = d->file_anum;
-			//fLb.block++;
-			fLb.evt1 = d->evntid;
-			fLb.evt2 = -1;
-			fLb.q1 = d->q_l;
-			fLb.q2 = -1;
-			fLb.dq = -1;
-			nevtsLbPassed = 0;
-			fLb.ntrigs = 0;
-			fQl_last = d->q_l;
-			fAnum_last = d->file_anum;
-			fRun_last = d->run;
-			if (somethingswrong) {
-				std::cerr << "WARNING! Drop in accumulated charge." << std::endl;
+		}
+		int npart = d->npart;
+		int gpart = d->gpart;
+		if (npart>2 && gpart<8) {
+			int np, npip, npim, nothercharged;
+			np = npip = npim = nothercharged = 0;
+			int partsidx[] = {0, -1, -1, -1};
+			for (int ipart = 1; ipart < npart; ipart++) {
+				if (nothercharged>0) break;
+				switch(d->id[ipart]) {
+					case PROTON:
+						np++;
+						partsidx[1] = ipart;
+						break;
+					case PIP:
+						npip++;
+						partsidx[2] = ipart;
+						break;
+					case PIM:
+						npim++;
+						partsidx[3] = ipart;
+						break;
+					default:
+						if (d->q[ipart] != 0) nothercharged++;
+				}
+			}
+			if (np==1 && npip==1 && npim==1 && nothercharged==0) {
+				lvE0->SetXYZT(0, 0, E0, E0);
+				lvE1->SetXYZM(d->p[0]*d->cx[0], d->p[0]*d->cy[0], d->p[0]*d->cz[0], d->p[0]);
+				int ipart = partsidx[1];
+				lvP1->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], d->p[ipart]);
+				ipart = partsidx[2];
+				lvPip->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], d->p[ipart]);
+				ipart = partsidx[3];
+				lvPim->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], d->p[ipart]);
+				TLorentzVector lvMMP = (*lvE0 - *lvE1 + *lvP0 - *lvP1);
+				TLorentzVector lvMMPPIPPIM = lvMMP - *lvPip - *lvPim;
+				hmmppippim_V_mmp->Fill(lvMMP.M(), lvMMPPIPPIM.M());
 			}
 		}
 	}
@@ -127,30 +121,10 @@ bool DH_RunQuality::Handle(H10 *data)
 
 void DH_RunQuality::Wrapup(H10 *d)
 {
-	nevtsLbPassed++;
-	_elist->Enter(++_evtnum);
+
 }
 
 void DH_RunQuality::Finalize(H10 *d)
 {
-	/* process last block */
-	fillPreviousBlock(d);
 	fDir->cd();
-	hLb->SetDirectory(fDir);
-	hLb->Write();
-	fLumBlocks->Write();
-	fLumEvents->Write();
-	_elist->Write();
-}
-
-void DH_RunQuality::fillPreviousBlock(H10 *d)
-{
-	//std::cout << d->q_l << " - " << fQl_last << " = " << d->q_l-fQl_last << std::endl;
-	fLb.block++;
-	fLb.evt2 = d->evntid - 1;
-	fLb.q2 = d->q_l;
-	fLb.dq = fLb.q2 - fLb.q1;
-	fLb.npassed = nevtsLbPassed;
-	fLumBlocks->Fill();
-	for (int i = 0; i < nevtsLbPassed; i++) fLumEvents->Fill();
 }

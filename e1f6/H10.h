@@ -16,9 +16,14 @@
 #include <TEntryList.h>
 #include "HandlerChain.h"
 #include "DataHandler.h"
+#ifndef H10CONSTANTS_H_
+#include "H10Constants.h"
+#endif
+using namespace H10Constants;
 
 //class HandlerChain;
 //class DataHandler;
+
 
 class H10 {
 
@@ -57,6 +62,7 @@ public :
    int run;
    int file_anum;
    std::string filename;
+   Float_t beamEnergy;
 
    // Declaration of leaf types
    UChar_t         npart;
@@ -281,6 +287,7 @@ H10::H10(TTree *tree)
 {
    is_sim = kFALSE;
    run = -1;
+   beamEnergy = E1F_E0;
    file_anum = -1;
    filename = "";
    fHandlerChain = new HandlerChain();
@@ -334,7 +341,7 @@ void H10::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    TBranch *simTestBranch = fChain->GetBranch("mcnentr");
-   TBranch *expTestBranch = fChain->GetBranch("mcnentr");
+   TBranch *expTestBranch = fChain->GetBranch("gpart");
    if (simTestBranch) {
       is_sim = kTRUE;
      fChain->SetBranchAddress("mcnentr", &mcnentr, &b_mcnentr);
@@ -458,6 +465,9 @@ Bool_t H10::Notify()
       TObjString *tok = (TObjString*)tokens->At(tokens->GetLast());
       TString fn = tok->GetString();
       run = ((TString)fn(*fRegExp_run)).Atoi();
+      if (run < RUNSEP) beamEnergy = E16_E0;
+      else beamEnergy = E1F_E0;
+      //printf("opening run %d\n",run);
       file_anum = ((TString)((TString)fn(*fRegExp_Anum))(1,2)).Atoi();
       filename = fn.Data();
       delete tokens;
