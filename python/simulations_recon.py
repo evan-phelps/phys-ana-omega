@@ -26,6 +26,137 @@ nbins = 100
 
 # <markdowncell>
 
+# # Quick check
+
+# <codecell>
+
+# tree data information for import
+# branches = ['mcnpart', 'mcid', 'mcm', 'mcp', 'mctheta', 'mcphi']
+branches = ['gpart', 'id', 'p', 'cx', 'cy', 'cz']
+# import tree data as 3 numpy structured records
+treerec = root2rec('/data/e16/recon.root.24849_252_21_11_10.root', treename='h10', branches=branches)
+#, selection='id[0]==11 && id[1]==2212 && id[2]==211 && id[3]==-211')
+
+# <codecell>
+
+df = pd.DataFrame(treerec)
+df
+
+# <codecell>
+
+df['pz'] = df.p*df.cz
+df['py'] = df.p*df.cy
+df['px'] = df.p*df.cx
+masses = {11:0.000511, 211:0.13957, -211:0.13957, 2212:0.93827, 2112:0.939565, 0:0, 22:0, 321:0.493667, -321:0.493667, 45:0, 47:0, 49:0}
+getM2 = lambda x: [masses[pid]**2 for pid in x]
+df['energy'] = (df.p*df.p + df.id.apply(getM2)).apply(lambda x: np.sqrt(x))
+
+# <codecell>
+
+"""df.mcid is a series of arrays, where each array contains the particle ids of the
+event.  Other particle-level df columns contain arrays with particle property values
+in the same order."""
+# define curry function that takes as argument desired particle ids
+# pidxs_l = lambda partids: lambda x: [np.where(x==partid)[0][0] for partid in partids]
+def pidxs_l(partids):
+    def pidxs(x):
+        retval = np.empty(5)
+        for i, partid in enumerate(partids):
+            w = np.where(x==partid)[0]
+            retval[i] = w[0] if len(w) > 0 else -1
+        return retval
+            # yield w[0] if len(w) > 0 else -1
+    return pidxs
+# pidxs returns a list of particle indexes
+# in this case the order is...
+pidxs = pidxs_l(np.array([11, 2212, 211, -211, 111]))
+# to correpsond to column labels
+cnames = ['idxE', 'idxP', 'idxPip', 'idxPim', 'idxPi0']
+# apply pidxs to the mcid series; result is a series of lists, but I want a series
+# for each part id, so...
+# pull out the series of mcid lists as a 2d numpy array, which provides nice slicing
+# features (could have been another dataframe, I suppose?)
+arr2d = np.array(list(df.id.apply(pidxs).values), dtype=np.short)
+# each row corresponds to an event, each column to the ith particle in the event
+# so I'll add a column for each particle type; the values will be the position
+# of the particle type in the arrays of other columns/series in the df.
+for cn, vals in zip(cnames, [arr2d[:,icol] for icol in range(0,5)]):
+    df[cn] = pd.Series(vals, name=cn, index=df.index)
+del arr2d
+
+# <codecell>
+
+sqrt2 = lambda x: sqrt(x) if x >= 0 else -sqrt(-x)
+g = np.array([1, -1, -1, -1])
+boost = lambda beta, gamma: np.array([ [gamma,0,0,-beta*gamma], [0,1,0,0], [0,0,1,0], [-beta*gamma,0, 0, gamma] ])
+def R(e04, e14, p04):
+    e0, e1 = e04[1:], e14[1:]
+    q = (e0-e1)
+    v3 = q/la.norm(q)
+    v2 = ft.partial(lambda x: x/la.norm(x), np.cross(e0,e1))()
+    v1 = np.cross(v2, v3)
+    v = np.array([v1, v2, v3])
+    rot4_3rot = np.hstack(([[1], [0], [0], [0]], np.vstack(([[0, 0, 0]], v))))
+    w4 = e04-e14+p04
+    E, p = w4[0], la.norm(w4[1:])
+    m = sqrt2(E*E-p*p)
+    beta, gamma = p/E, E/m
+    return boost(beta, gamma).dot(rot4_3rot)
+
+# <codecell>
+
+e04 = np.array([5.497, 0, 0, 5.497], dtype=np.float16)
+p04 = np.array([0.938, 0, 0, 0], dtype=np.float16)
+v4idxs = ['energy', 'px', 'py', 'pz']
+def getkin(x):
+    [iE, iPx, iPy, iPz] = v4idxs
+    e4 = np.array([x[iE][0], x[iPx][0], x[iPy][0], x[iPz][0]], dtype=np.float16)
+    p4 = np.array([x[iE][1], x[iPx][1], x[iPy][1], x[iPz][1]], dtype=np.float16)
+    pip4 = np.array([x[iE][2], x[iPx][2], x[iPy][2], x[iPz][2]], dtype=np.float16)
+    pim4 = np.zeros(5, dtype=np.float16)  # np.array([x[iE][3], x[iPx][3], x[iPy][3], x[iPz][3]])
+    pi04 = np.zeros(5, dtype=np.float16)  # np.array([x[iE][4], x[iPx][4], x[iPy][4], x[iPz][4]])
+    q4 = e04-e4
+    w4 = q4+p04
+    Q2 = -np.sum(q4*g*q4)
+    s = np.sum(w4*g*w4)
+    W = sqrt2(s)
+    o4 = w4-p4
+    mmp = sqrt2(np.sum(o4*g*o4))
+    t4 = p04-p4
+    u4 = q4-p4
+    t = np.sum(t4*g*t4)
+    u = np.sum(u4*g*u4)
+    rot4 = R(e04, e4, p04)
+    p04cm, p4cm = rot4.dot(p04), rot4.dot(p4)
+    t0 = 2*(0.938**2 - p04cm[0]*p4cm[0] + la.norm(p04cm[1:])*la.norm(p4cm[1:]))
+    t1 = t-t0
+    o4cm = (rot4.dot(o4))
+    o3cm = o4cm[1:]
+    costheta = o3cm[2]/la.norm(o3cm)
+    phi = atan2(o3cm[1],o3cm[0])
+    return pd.Series(data=(rot4, float16(W), Q2, costheta, phi, s, t, u, t0, t1, e04, p04, e4, p4, pip4, pim4, pi04, q4, w4, mmp))
+
+# <codecell>
+
+# apply to data frame
+dfkin = df[(df.idxE==0) & (df.idxP>0) & (df.idxPip>0)].apply(getkin, axis=1)
+dfkin.columns = ['R', 'W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'e04', 'p04', 'e4', 'p4', 'pip4', 'pim4', 'pi04', 'q4', 'w4', 'mmp']
+# convert non-4-vectors to floats
+dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']] = dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']].astype(float16)
+dfkin['theta'] = np.arccos(dfkin.costheta)
+# dfkin['px'] = df['px']
+# dfkin['py'] = df['py']
+# dfkin['pz'] = df['pz']
+# dfkin['energy'] = df['energy']
+del df
+
+# <codecell>
+
+dfkin.costheta.hist(bins=10)
+dfkin
+
+# <markdowncell>
+
 # # Load data from pickle files
 # ## (if available)
 

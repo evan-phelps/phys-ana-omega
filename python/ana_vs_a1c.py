@@ -14,6 +14,7 @@ import numpy.linalg as la
 from scipy import optimize
 import pandas as pd
 import matplotlib.pyplot as plt
+from multiprocessing import Process
 
 from root_numpy import root2rec, root2array
 
@@ -21,7 +22,7 @@ np.set_printoptions(precision=4, suppress=True)
 plt.rc('text', usetex=True)
 
 d2r = pi/180
-nbins = 500
+nbins = 100
 
 # <markdowncell>
 
@@ -30,7 +31,7 @@ nbins = 500
 
 # <codecell>
 
-dfkin = pd.DataFrame.load('../testdata/genev_dfkin.p')
+dfkin = pd.DataFrame.load('../testdata/ana_vs_a1c.p')
 
 # <markdowncell>
 
@@ -43,19 +44,26 @@ dfkin = pd.DataFrame.load('../testdata/genev_dfkin.p')
 # <codecell>
 
 # tree data information for import
-branches = ['mcnpart', 'mcid', 'mcm', 'mcp', 'mctheta', 'mcphi']
-# rootfiles = ['genev000.root', 'genev100.root', 'genev200.root', 'genev101.root', 'genev102.root', 'genev_e16.root']
-rootfiles = ['genev_e16.root']
+# branches = ['mcnpart', 'mcid', 'mcm', 'mcp', 'mctheta', 'mcphi']
+branches = ['gpart', 'id', 'p', 'cx', 'cy', 'cz']
+rootfiles = ['a1c.10.runindex.root', 'a1c.38121.runindexe1f.root', 'ana.10.runindexe1f.root', 'ana.10.runindex.root']
 # data set names corresponding to each of rootfiles
-#dfnames = ['000', '100', '200', '101', '102', 'e16']
-dfnames = ['e16']
+dfnames = ['a1c10', 'a1c38121', 'ana10', 'ana10e1f']
 # import tree data as 3 numpy structured records
-treerecs = [root2rec('../testdata/%s' % fn, branches=branches) for fn in rootfiles]
+treerecs = [root2rec('/data/e1f/anaVa1c/%s' % fn, treename='h10', branches=branches, selection='id[0]==11 && id[1]==2212 && id[2]==211 && id[3]==-211') for fn in rootfiles]
 # associate data sets with dfnames
 dfdict = dict(zip(dfnames, [pd.DataFrame(treerec) for treerec in treerecs]))
 # create single data frame with multi-index
 df = pd.Panel.from_dict(dfdict, orient='minor').swapaxes().to_frame()
 del treerecs
+
+# <codecell>
+
+#for cname in ['gpart', 'id']:
+#    df[cname] = df[cname].astype(int)
+#for cname in ['p', 'cx', 'cy', 'cz']:
+#    df[cname] = df[cname].astype(float)
+df
 
 # <markdowncell>
 
@@ -63,16 +71,12 @@ del treerecs
 
 # <codecell>
 
-dfrad = df[['mctheta','mcphi']]*d2r
-dfcos = dfrad.applymap(np.cos)
-dfsin = dfrad.applymap(np.sin)
-df['pz'] = df.mcp*dfcos.mctheta
-df['py'] = df.mcp*dfsin.mctheta*dfsin.mcphi
-df['px'] = df.mcp*dfsin.mctheta*dfcos.mcphi
-df['energy'] = (df.mcp*df.mcp + df.mcm*df.mcm).apply(lambda x: np.sqrt(x))
-del dfrad
-del dfcos
-del dfsin
+df['pz'] = df.p*df.cz
+df['py'] = df.p*df.cy
+df['px'] = df.p*df.cx
+masses = {11:0.000511, 211:0.13957, -211:0.13957, 2212:0.93827, 2112:0.939565, 0:0, 22:0, 321:0.493667, -321:0.493667, 45:0, 47:0, 49:0}
+getM2 = lambda x: [masses[pid]**2 for pid in x]
+df['energy'] = (df.p*df.p + df.id.apply(getM2)).apply(lambda x: np.sqrt(x))
 
 # <markdowncell>
 
@@ -84,7 +88,16 @@ del dfsin
 event.  Other particle-level df columns contain arrays with particle property values
 in the same order."""
 # define curry function that takes as argument desired particle ids
-pidxs_l = lambda partids: lambda x: [np.where(x==partid)[0][0] for partid in partids]
+# pidxs_l = lambda partids: lambda x: [np.where(x==partid)[0][0] for partid in partids]
+def pidxs_l(partids):
+    def pidxs(x):
+        retval = np.empty(5)
+        for i, partid in enumerate(partids):
+            w = np.where(x==partid)[0]
+            retval[i] = w[0] if len(w) > 0 else -1
+        return retval
+            # yield w[0] if len(w) > 0 else -1
+    return pidxs
 # pidxs returns a list of particle indexes
 # in this case the order is...
 pidxs = pidxs_l(np.array([11, 2212, 211, -211, 111]))
@@ -94,7 +107,7 @@ cnames = ['idxE', 'idxP', 'idxPip', 'idxPim', 'idxPi0']
 # for each part id, so...
 # pull out the series of mcid lists as a 2d numpy array, which provides nice slicing
 # features (could have been another dataframe, I suppose?)
-arr2d = np.array(list(df.mcid.apply(pidxs).values))
+arr2d = np.array(list(df.id.apply(pidxs).values), dtype=np.short)
 # each row corresponds to an event, each column to the ith particle in the event
 # so I'll add a column for each particle type; the values will be the position
 # of the particle type in the arrays of other columns/series in the df.
@@ -133,17 +146,20 @@ def R(e04, e14, p04):
 
 # <codecell>
 
-#e04 = np.array([5.497, 0, 0, 5.497])
-e04 = np.array([5.754, 0, 0, 5.754])
-p04 = np.array([0.938, 0, 0, 0])
+df
+
+# <codecell>
+
+e04 = np.array([5.497, 0, 0, 5.497], dtype=np.float16)
+p04 = np.array([0.938, 0, 0, 0], dtype=np.float16)
 v4idxs = ['energy', 'px', 'py', 'pz']
 def getkin(x):
     [iE, iPx, iPy, iPz] = v4idxs
-    e4 = np.array([x[iE][0], x[iPx][0], x[iPy][0], x[iPz][0]])
-    p4 = np.array([x[iE][1], x[iPx][1], x[iPy][1], x[iPz][1]])
-    pip4 = np.array([x[iE][2], x[iPx][2], x[iPy][2], x[iPz][2]])
-    pim4 = np.array([x[iE][3], x[iPx][3], x[iPy][3], x[iPz][3]])
-    pi04 = np.array([x[iE][4], x[iPx][4], x[iPy][4], x[iPz][4]])
+    e4 = np.array([x[iE][0], x[iPx][0], x[iPy][0], x[iPz][0]], dtype=np.float16)
+    p4 = np.array([x[iE][1], x[iPx][1], x[iPy][1], x[iPz][1]], dtype=np.float16)
+    pip4 = np.array([x[iE][2], x[iPx][2], x[iPy][2], x[iPz][2]], dtype=np.float16)
+    pim4 = np.zeros(5, dtype=np.float16)  # np.array([x[iE][3], x[iPx][3], x[iPy][3], x[iPz][3]])
+    pi04 = np.zeros(5, dtype=np.float16)  # np.array([x[iE][4], x[iPx][4], x[iPy][4], x[iPz][4]])
     q4 = e04-e4
     w4 = q4+p04
     Q2 = -np.sum(q4*g*q4)
@@ -163,7 +179,7 @@ def getkin(x):
     o3cm = o4cm[1:]
     costheta = o3cm[2]/la.norm(o3cm)
     phi = atan2(o3cm[1],o3cm[0])
-    return pd.Series(data=(rot4, W, Q2, costheta, phi, s, t, u, t0, t1, e04, p04, e4, p4, pip4, pim4, pi04, q4, w4, mmp))
+    return pd.Series(data=(rot4, float16(W), Q2, costheta, phi, s, t, u, t0, t1, e04, p04, e4, p4, pip4, pim4, pi04, q4, w4, mmp))
 
 # <markdowncell>
 
@@ -171,16 +187,20 @@ def getkin(x):
 
 # <codecell>
 
+df
+
+# <codecell>
+
 # apply to data frame
-dfkin = df.apply(getkin, axis=1)
+dfkin = df[(df.idxE==0) & (df.idxP>0) & (df.idxPip>0)].apply(getkin, axis=1)
 dfkin.columns = ['R', 'W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'e04', 'p04', 'e4', 'p4', 'pip4', 'pim4', 'pi04', 'q4', 'w4', 'mmp']
 # convert non-4-vectors to floats
-dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']] = dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']].astype(float64)
+dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']] = dfkin[['W', 'Q2', 'costheta', 'phi', 's', 't', 'u', 't0', 't1', 'mmp']].astype(float16)
 dfkin['theta'] = np.arccos(dfkin.costheta)
-dfkin['px'] = df['px']
-dfkin['py'] = df['py']
-dfkin['pz'] = df['pz']
-dfkin['energy'] = df['energy']
+# dfkin['px'] = df['px']
+# dfkin['py'] = df['py']
+# dfkin['pz'] = df['pz']
+# dfkin['energy'] = df['energy']
 del df
 
 # <markdowncell>
@@ -189,7 +209,7 @@ del df
 
 # <codecell>
 
-dfkin.save('../testdata/genev_dfkin.p')
+dfkin.save('../testdata/ana_vs_a1c.p')
 
 # <markdowncell>
 
@@ -229,6 +249,10 @@ def compareDists(cname, groups=grpd, nbins=nbins, edges=None, figsize=(12,4), la
 
 # <codecell>
 
+grpd.mmp.agg(np.mean)
+
+# <codecell>
+
 grpd.mmp.agg([np.mean,np.std])
 
 # <codecell>
@@ -241,7 +265,15 @@ smmry
 
 # <codecell>
 
-hmmps = compareDists('mmp', edges=np.arange(0.765,1.0,0.000235), xlim=[0.765,0.81], figsize=(12,8), ymin=0)
+fabove = lambda x: np.sum(x>=0.84)
+fbelow = lambda x: np.sum(x<0.84)
+smmry = grpd.mmp.agg({'> 0.84':fabove, '< 0.84':fbelow})
+smmry['%'] = 100*smmry['> 0.84']/(smmry['> 0.84']+smmry['< 0.84'])
+smmry
+
+# <codecell>
+
+hmmps = compareDists('mmp', nbins=100, xlim=[0.7,0.866], figsize=(12,8), ymin=0)
 
 # <markdowncell>
 
@@ -249,25 +281,14 @@ hmmps = compareDists('mmp', edges=np.arange(0.765,1.0,0.000235), xlim=[0.765,0.8
 
 # <codecell>
 
-hphis = compareDists('phi', xlabel=r'$\phi$ $(radians)$', figsize=(12,8), ymin=0)
-hcoss = compareDists('costheta', xlabel=r'$cos(\theta)$', fnum=2, yscale='log', figsize=(12,8))
-hthetas = compareDists('theta', xlabel=r'$\theta$ $(radians)$', fnum=3, figsize=(12,8), ymin=0)
+hphis = compareDists('phi', xlabel=r'$\phi$ $(radians)$', figsize=(12,8), ymin=0, nbins=40)
+hcoss = compareDists('costheta', xlabel=r'$cos(\theta)$', fnum=2, yscale='log', figsize=(12,8), nbins=40)
+hthetas = compareDists('theta', xlabel=r'$\theta$ $(radians)$', fnum=3, figsize=(12,8), ymin=0, nbins=40)
 
 # <codecell>
 
 hthetasZoom = compareDists('costheta', xlabel=r'$\theta$ $(radians)$', fnum=3,
-                           figsize=(12,8), xlim=[0.9,1], nbins=100, yscale='log')
-
-# <codecell>
-
-df10x = dfkin.ix['100':'102']
-hcts10xhi = compareDists('costheta', fnum=1, groups=df10x.loc[df10x.mmp>0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
-hcts10xlo = compareDists('costheta', fnum=2, groups=df10x.loc[df10x.mmp<=0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
-
-# <codecell>
-
-hphis10xhi = compareDists('phi', fnum=1, groups=df10x.loc[df10x.mmp>0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
-hphis10xlo = compareDists('phi', fnum=2, groups=df10x.loc[df10x.mmp<=0.797].groupby(level=0), layout=[1,3], nbins=100, ymin=0)
+                           figsize=(12,8), xlim=[0.9,1], nbins=20, yscale='linear')
 
 # <markdowncell>
 
@@ -275,12 +296,11 @@ hphis10xlo = compareDists('phi', fnum=2, groups=df10x.loc[df10x.mmp<=0.797].grou
 
 # <codecell>
 
-ht1s = compareDists('t1', groups=grpd, xlabel=r'$t-t_{o}$', figsize=(14,10), nbins=500)
+ht1s = compareDists('t1', groups=grpd, xlabel=r'$t-t_{o}$', figsize=(14,8), nbins=40)
 
 # <codecell>
 
-grpd.mmp.hist(bins=np.arange(0.7, 1, 0.0005), pads=True)
-plt.autoscale(True, 'both')
+dfkin.t1
 
 # <codecell>
 

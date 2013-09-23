@@ -54,14 +54,15 @@ mpi0, mpi, mrho0, mphi, mk = 0.1349766, 0.139570, 0.77549, 1.019445, 0.493677
 h10.SetEntryList(el1)
 cut_1bin  = cuts( ('W',1.98,2.00), ('Q2',1.8,2.1) )
 cut_5bins = cuts( ('W',1.98,2.08), ('Q2',1.8,2.1) )
+n2proc = None
 
 # <codecell>
 
 ostrs = ['lf.omega.'+ostr for ostr in ['E()', 'Px()', 'Py()', 'Pz()']]
 pipstrs = ['sqrt(p[h10idx_pip]^2+%f^2)' % mk, 'p[h10idx_pip]*cx[h10idx_pip]', 'p[h10idx_pip]*cy[h10idx_pip]', 'p[h10idx_pip]*cz[h10idx_pip]']
-dstr = 'sqrt((%s+%s)^2-(%s+%s)^2-(%s+%s)^2-(%s+%s)^2)' % (ostrs[0], pipstrs[0], ostrs[1], pipstrs[1], ostrs[2], pipstrs[2], ostrs[3], pipstrs[3])
+dstr = 'sqrt((%s-%s)^2-(%s-%s)^2-(%s-%s)^2-(%s-%s)^2)' % (ostrs[0], pipstrs[0], ostrs[1], pipstrs[1], ostrs[2], pipstrs[2], ostrs[3], pipstrs[3])
 print(dstr)
-htop1_k = rh1('%s:mmp' % dstr, cut_5bins, 'htop1_k', binning=(80, 0.4, 1.2, 80, 1.2, 2.0))
+htop1_k = rh1('%s:mmp' % dstr, cut_5bins, 'htop1_k', binning=(80, 0.4, 1.2, 110, -0.2, 2.0), N=n2proc)
 
 # <codecell>
 
@@ -69,9 +70,9 @@ htop1_k.Draw('colz')
 
 # <codecell>
 
-htop1 = rh1('k.mmppip:k.mmp', '', 'htop1', binning=(160, 0.4, 2.0, 180, 0.2, 2.0))
-htop1_20MeV = rh1('k.mmppip:k.mmp', cut_1bin, 'htop1_1bin', binning=(80, 0.4, 1.2, 80, 0.2, 1.0))
-htop1_100MeV = rh1('k.mmppip:k.mmp', cut_5bins, 'htop1_5bins', binning=(80, 0.4, 1.2, 80, 0.2, 1.0))
+htop1 = rh1('k.mmppip:k.mmp', '', 'htop1', binning=(160, 0.4, 2.0, 180, 0.2, 2.0), N=n2proc)
+htop1_20MeV = rh1('k.mmppip:k.mmp', cut_1bin, 'htop1_1bin', binning=(80, 0.4, 1.2, 80, 0.2, 1.0), N=n2proc)
+htop1_100MeV = rh1('k.mmppip:k.mmp', cut_5bins, 'htop1_5bins', binning=(80, 0.4, 1.2, 80, 0.2, 1.0), N=n2proc)
 
 # <codecell>
 
@@ -84,14 +85,32 @@ plt.axvline(mphi, color='red', lw=2.0, ls='dashed')
 fig_top_20_100 = draw(htop1_20MeV, 3, 2, 3, fig_top_20_100)
 (hmmp, hmmp_100MeV, hmmp_20MeV) = [asrootpy(h.ProjectionX()) for h in [htop1, htop1_100MeV, htop1_20MeV]]
 fig_top_20_100 = draw(hmmp, 3, 2, 4, fig_top_20_100)
+plt.axvline(0.547, color='purple', lw=2.0, ls='dashed')
+plt.axvline(0.783, color='green', lw=2.0, ls='dashed')
+plt.axvline(0.958, color='blue', lw=2.0, ls='dashed')
 plt.axvline(mphi, color='red', lw=2.0, ls='dashed')
+plt.axvline(1.285, color='yellow', lw=2.0, ls='dashed')
 fig_top_20_100 = draw(hmmp_100MeV, 3, 2, 5, fig_top_20_100)
+plt.axvline(0.547, color='purple', lw=2.0, ls='dashed')
+plt.axvline(0.783, color='green', lw=2.0, ls='dashed')
+plt.axvline(0.958, color='blue', lw=2.0, ls='dashed')
 plt.axvline(mphi, color='red', lw=2.0, ls='dashed')
 fig_top_20_100 = draw(hmmp_20MeV, 3, 2, 6, fig_top_20_100)
+plt.axvline(0.547, color='purple', lw=2.0, ls='dashed')
+plt.axvline(0.783, color='green', lw=2.0, ls='dashed')
+plt.axvline(0.958, color='blue', lw=2.0, ls='dashed')
 plt.axvline(mphi, color='red', lw=2.0, ls='dashed')
 for ax in fig_top_20_100.axes[:3]:
     ax.set_ylabel("$MM_{p\pi^{+}}$ (GeV)") #, horizontalalignment="right", x=1, labelpad=20)
     ax.set_xlabel("$MM_{p}$ (GeV)") #, horizontalalignment="right", y=1, labelpad=32)
+
+# <markdowncell>
+
+# * purple: eta
+# * green: omega
+# * blue: eta'
+# * red: phi
+# * yellow: f2
 
 # <codecell>
 
@@ -114,8 +133,8 @@ phist(hphi_100MeV)
 # <codecell>
 
 hang = rh1('ct:phi', '', 'hang', binning=(25, -pi, pi, 25, -1, 1))
-hang_20MeV = rh1('ct:phi', cut_1bin, 'hang_1bin', binning=(15, -pi, pi, 25, -1, 1))
-hang_100MeV = rh1('ct:phi', cut_5bins, 'hang_5bins', binning=(15, -pi, pi, 25, -1, 1))
+hang_20MeV = rh1('ct:phi', cut_1bin, 'hang_1bin', binning=(15, -pi, pi, 20, -1, 1))
+hang_100MeV = rh1('ct:phi', cut_5bins, 'hang_5bins', binning=(15, -pi, pi, 20, -1, 1))
 
 # <codecell>
 
@@ -202,6 +221,10 @@ for ax in fig.axes:
     ax.set_ylim([0,ax.get_ylim()[1]])
     ax.set_xlabel('$MM_{p}$ (GeV)')
 
+# <codecell>
+
+hmmp_20MeV_bgs.Draw()
+
 # <markdowncell>
 
 # Note the small jump around 1 GeV:  Could this be $\phi(1020)$?
@@ -240,22 +263,92 @@ for ax in fig_top_20_100.axes:
 
 # <codecell>
 
-b0, b1 = hmmp_100MeV.FindBin(0.6), hmmp_100MeV.FindBin(0.7)
-x0, x1 = hmmp_100MeV.GetBinLowEdge(b0), hmmp_100MeV.GetBinLowEdge(b1+1)
-print('integrating over values = [%.3f, %.3f]\n                   bins = [%d, %d]' % (x0, x1, b0, b1))
-print('functional: %.3f' % fbg_100.Integral(x0, x1))
-print('    binned: %.3f' % hmmp_100MeV.Integral(b0, b1, 'width'))
-print('functional: %.3f' % fbg_20.Integral(x0, x1))
-print('    binned: %.3f' % hmmp_20MeV.Integral(b0, b1, 'width'))
+def bgInt(x0, x1, f=fbg_100, h=hmmp_100MeV):
+    b0, b1 = h.FindBin(x0), h.FindBin(x1)
+    x0, x1 = h.GetBinLowEdge(b0), h.GetBinLowEdge(b1+1)
+    return (f.Integral(x0, x1), h.Integral(b0, b1, 'width'))
+
+gsig = 0.0135 # sigma of gauss fit on 20MeV hist from 0.76 to 0.805
+cwidth = 3
+x0, x1, x2, x3 = 0.6, 0.783 - cwidth*gsig, 0.783 + cwidth*gsig, 0.95
+print(x0,x1,x2,x3)
+int01, int12, int23 = bgInt(x0, x1)[0], bgInt(x1, x2)[0], bgInt(x2, x3)[0]
+print(int01)
+print(int12)
+print(int23)
+factorSB = (int01 + int23)/int12
+print(factorSB) # need this for each q2, w bin
 
 # <codecell>
 
-h10.GetEntryList().GetName()
+cut_5bins_SB = cut_5bins + ' && ((' + cuts(('mmp',x0,x1)) + ') || (' + cuts(('mmp',x2,x3)) + '))'
+cut_5bins_sig = cut_5bins + ' && (' + cuts(('mmp',x1,x2)) + ')'
+print(cut_5bins_SB)
+print(cut_5bins_sig)
 
 # <codecell>
 
-tkin.AddFriend(h10, "h10")
-tkin.AddFriend(tpipf, "tpi")
+hang_5bins_SB = rh1('ct:phi', cut_5bins_SB, 'hang_5bins_SB', binning=(15, -pi, pi, 15, -1, 1))
+hang_5bins_sig = rh1('ct:phi', cut_5bins_sig, 'hang_5bins_sig', binning=(15, -pi, pi, 15, -1, 1))
+
+# <codecell>
+
+fig = draw(hang_5bins_SB, 2, 1, 1, figsize=(10, 5))
+fig = draw(hang_5bins_sig, 2, 1, 2, fig)
+
+# <codecell>
+
+c1 = r.TCanvas()
+c1.Divide(2)
+c1.cd(1)
+hang_5bins_SB.Draw('colz')
+c1.cd(2)
+hang_5bins_sig.Draw('colz')
+
+# <codecell>
+
+hang_sbs = hang_5bins_sig.Clone('hang_sbs')
+hang_sb = hang_5bins_SB.Clone('hang_sb')
+weight_sb = 1/3.2
+hang_sb.Scale(weight_sb)
+hang_sbs.Add(hang_sb, -1)
+c2 = r.TCanvas()
+c2.Divide(3)
+c2.cd(1)
+hang_sb.Draw('colz')
+c2.cd(2)
+hang_5bins_sig.Draw('colz')
+c2.cd(3)
+hang_sbs.Draw('colz')
+
+# <codecell>
+
+import rootplot
+import rootplot.root2matplotlib as r2m
+
+def draw(hist, ncols=1, nrows=1, cell=1, fig=None, figsize=(10, 5)):
+    if fig is None:
+        fig = plt.figure(figsize=figsize, dpi=100, facecolor='white')
+    else:
+        plt.figure(fig.number)
+    subplot = fig.add_subplot(nrows, ncols, cell)
+    subplot.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    if isinstance(hist, r.TH2):
+        # rplt.hist2d(hist, axes=subplot)
+        r2m.Hist2D(hist).colz()
+    else:
+        rplt.errorbar([hist], xerr=False, emptybins=False)
+    # plt.show()
+    return fig
+
+# <codecell>
+
+fig = draw(hang_sb, 3, 1, 1, figsize=(18, 5))
+fig = draw(hang_5bins_sig, 3, 1, 2, fig)
+fig = draw(hang_sbs, 3, 1, 3, fig)
+
+# <codecell>
+
 
 # <markdowncell>
 
