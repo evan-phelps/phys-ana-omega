@@ -1,7 +1,8 @@
 *
 */
 *.so
-
+*.d
+*.cxx
 !.gitignore
 !*.sh
 !*.h
@@ -21,3 +22,4 @@ input/*.so
 !scripts/*.h
 !scripts/*.py
 !README.md
+!e1f6/

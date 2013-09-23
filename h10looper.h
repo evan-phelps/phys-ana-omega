@@ -49,6 +49,5 @@ protected:
 			_swmain.Start(kFALSE);
 		}
 	}
-
 };
 #endif
