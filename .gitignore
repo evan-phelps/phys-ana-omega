@@ -23,3 +23,6 @@ input/*.so
 !scripts/*.py
 !README.md
 !e1f6/
+!e1f6/*.C
+!e1f6/*.h
+!e1f6/*.cpp
