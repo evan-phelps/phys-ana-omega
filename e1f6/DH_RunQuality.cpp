@@ -37,7 +37,6 @@ DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(n
 	lvE0 = new TLorentzVector();
 	lvP0 = new TLorentzVector(0, 0, 0, MASS_P);
 	lvE1 = new TLorentzVector();
-	lvP0 = new TLorentzVector();
 	lvP1 = new TLorentzVector();
 	lvPip = new TLorentzVector();
 	lvPim = new TLorentzVector();
@@ -103,13 +102,13 @@ bool DH_RunQuality::Handle(H10 *d)
 			}
 			if (np==1 && npip==1 && npim==1 && nothercharged==0) {
 				lvE0->SetXYZT(0, 0, E0, E0);
-				lvE1->SetXYZM(d->p[0]*d->cx[0], d->p[0]*d->cy[0], d->p[0]*d->cz[0], d->p[0]);
+				lvE1->SetXYZT(d->p[0]*d->cx[0], d->p[0]*d->cy[0], d->p[0]*d->cz[0], d->p[0]);
 				int ipart = partsidx[1];
-				lvP1->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], d->p[ipart]);
+				lvP1->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], MASS_P);
 				ipart = partsidx[2];
-				lvPip->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], d->p[ipart]);
+				lvPip->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], MASS_PIP);
 				ipart = partsidx[3];
-				lvPim->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], d->p[ipart]);
+				lvPim->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], MASS_PIM);
 				TLorentzVector lvMMP = (*lvE0 - *lvE1 + *lvP0 - *lvP1);
 				TLorentzVector lvMMPPIPPIM = lvMMP - *lvPip - *lvPim;
 				hmmppippim_V_mmp->Fill(lvMMP.M(), lvMMPPIPPIM.M());
