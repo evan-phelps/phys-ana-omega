@@ -301,6 +301,7 @@ H10::H10(TTree *tree)
 H10::~H10()
 {
    if (fChain) delete fChain->GetCurrentFile();
+   delete fHandlerChain;
    delete fRegExp_run;
    delete fRegExp_Anum;
 }
