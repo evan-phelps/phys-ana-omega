@@ -208,9 +208,13 @@ void DH_RunQuality::FillHists(H10 *d)
 				lvPip->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], MASS_PIP);
 				ipart = partsidx[3];
 				lvPim->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], MASS_PIM);
-				TLorentzVector lvMMP = (*lvE0 - *lvE1 + *lvP0 - *lvP1);
-				TLorentzVector lvMMPPIPPIM = lvMMP - *lvPip - *lvPim;
-				hmmppippim_V_mmp->Fill(lvMMP.M(), lvMMPPIPPIM.M());
+				TLorentzVector lvMMPPIP = lvMMP - *lvPip;
+                TLorentzVector lvMMPPIM = lvMMP - *lvPim;
+                if (lvMMPPIP.M()>0.139*2 && lvMMPPIM.M()>0.139*2) {
+                	TLorentzVector lvMMP = (*lvE0 - *lvE1 + *lvP0 - *lvP1);
+                    TLorentzVector lvMMPPIPPIM = lvMMP - *lvPip - *lvPim;
+                    hmmppippim_V_mmp->Fill(lvMMP.M(), lvMMPPIPPIM.M());
+                }
 			}
 		}
 	}
