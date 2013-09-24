@@ -50,6 +50,7 @@ public :
    HandlerChain *fHandlerChain;
    virtual void Add(DataHandler *dhandler) {
       fHandlerChain->Add(dhandler);
+      dhandler->SetH10Looper(this);
    }
 
    Int_t fTreeNumber;

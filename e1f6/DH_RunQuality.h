@@ -1,27 +1,28 @@
 #ifndef _MON_LUMINOSITY_H_
 #define _MON_LUMINOSITY_H_
 
+#include <iostream>
+#include <stdexcept>
+
+#include "TFile.h"
+#include "TTree.h"
+#include "TEntryList.h"
+#include "TH2.h"
+#include "TLorentzVector.h"
+
 #ifndef _DATA_HANDLER_H_
 #include "DataHandler.h"
 #endif
 
-#include <iostream>
-#include <stdexcept>
-#include "TFile.h"
-#include "TH2.h"
-#include "TTree.h"
-#include "TEntryList.h"
 #ifndef H10_h
 #include "H10.h"
 #endif
-#include <TLorentzVector.h>
 class H10;
 
 class DH_RunQuality: public DataHandler
 {
 public:
-	TDirectory *fDir;
-	DH_RunQuality(std::string name = "unnamed", TDirectory *pDir = NULL);
+	DH_RunQuality(std::string name = "RunQuality", TDirectory *pDir = NULL);
 	virtual ~DH_RunQuality();
 	virtual bool Handle(H10 *d);
 	virtual void Wrapup(H10 *d);

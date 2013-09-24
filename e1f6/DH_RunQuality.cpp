@@ -11,28 +11,12 @@
 
 using namespace H10Constants;
 
-DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(name)
+DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(name, pDir)
 {
 	fLb.lumblock_num = 0;
 	Clear();
 	firstfile = true;
 	a00exists = true;
-	if (pDir == NULL) {
-		std::string emsg = name;
-		emsg += ": no parent directory, and couldn't create file!";
-		std::string newfilename = name += ".root";
-		fDir = new TFile(newfilename.c_str(),"create");
-		if (fDir == NULL) throw new std::runtime_error(emsg.c_str());
-	} else {
-		int nexisting = 0;
-		std::string emsg = name;
-		emsg += ": more than five folders!";
-		while ( (fDir = pDir->mkdir(name.c_str())) == 0 ) {
-			if (++nexisting>5) {
-				throw new std::runtime_error(emsg.c_str());
-			}
-		}
-	}
 	fDir->cd();
 	/* CREATE TREES and HISTOGRAMS */
 	hq2_V_w = new TH2D("hq2_V_w", "hq2_V_w", 600, 0, 6, 800, 0, 8);
@@ -76,7 +60,6 @@ DH_RunQuality::~DH_RunQuality()
 	delete hq2_V_w_elast_exc;
 	delete hmmppippim_V_mmp;
 	delete lumblocks;
-	delete fDir;
 	delete lvE0;
 	delete lvE1;
 	delete lvP0;
@@ -91,6 +74,7 @@ bool DH_RunQuality::Handle(H10 *d)
 	PrepBlock(d);
 	FillHists(d);
 	passed = passed & CountAll(d);  //count regardless of block
+	passed = false;
 	return passed;
 }
 
@@ -103,6 +87,7 @@ void DH_RunQuality::Finalize(H10 *d)
 {
 	FillPreviousBlock(d);
 	fDir->cd();
+	lumblocks->Write();
 }
 
 void DH_RunQuality::Clear() {

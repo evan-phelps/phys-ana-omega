@@ -17,10 +17,8 @@ public:
 	h10looper *_h10looper;
 	int treenumber;
 	TDirectory *fDir;
-	DhTmH10clone(h10looper *h10l, std::string name = "h10clone", TDirectory *pDir = NULL) : DataHandler(name) {
-		treenumber = -1;
-		h10 = NULL;
-		_h10looper = h10l;
+	DhTmH10clone(h10looper *h10l, std::string name = "h10clone", TDirectory *pDir = NULL) : DataHandler(name)
+	{
 		if (pDir == NULL) {
 			std::string emsg = name;
 			emsg += ": no parent directory, and couldn't create file!";
@@ -42,6 +40,9 @@ public:
 				}
 			}
 		}
+		treenumber = -1;
+		h10 = NULL;
+		_h10looper = h10l;
 		fDir->cd();
 	}
 	virtual ~DhTmH10clone() {
