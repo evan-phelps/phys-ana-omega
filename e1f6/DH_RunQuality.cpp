@@ -242,13 +242,13 @@ bool DH_RunQuality::CountAll(H10 *d)
 		}
 	}
 	fLb.nevts_Neg1st += negfirst;
-	fLb.nevts_Neg1st_2Pos_exc += (negfirst && npos==2);
+	fLb.nevts_Neg1st_2Pos_exc += (negfirst && npos==2 && nneg==0);
 	fLb.nevts_Neg1st_1Pos1Neg_exc += (negfirst && npos==1 && nneg==1);
 	fLb.nevts_Neg1st_2Pos1Neg_exc += (negfirst && npos==2 && nneg==1);
 
-	bool passed = fLb.nevts_Neg1st_2Pos_exc
-					|| fLb.nevts_Neg1st_1Pos1Neg_exc
-					|| fLb.nevts_Neg1st_2Pos1Neg_exc;
+	bool passed = negfirst && ((npos==2 && nneg==0)
+								|| (npos==1 && nneg==1)
+								|| (npos==2 && nneg==1));
 	return passed;
 }
 
