@@ -74,7 +74,6 @@ bool DH_RunQuality::Handle(H10 *d)
 	PrepBlock(d);
 	FillHists(d);
 	passed = passed & CountAll(d);  //count regardless of block
-	passed = false;
 	return passed;
 }
 

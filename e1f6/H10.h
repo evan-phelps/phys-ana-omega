@@ -21,10 +21,10 @@
 #endif
 using namespace H10Constants;
 
-//class HandlerChain;
-//class DataHandler;
-
-
+/*
+TODO: Separate run conditions into separate class
+rather than testing for run number (see, e.g., beamEnergy).
+*/
 class H10 {
 
 protected :
