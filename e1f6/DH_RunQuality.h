@@ -32,6 +32,8 @@ public:
 		UShort_t run_num;
 		UChar_t file_num;
 		UInt_t lumblock_num;
+		Float_t q_l_first;
+		Float_t q_l_last;
 		ULong64_t evt_num_first;
 		ULong64_t evt_num_last;
 		Float_t fc_charge_ltcorr;
@@ -46,10 +48,18 @@ public:
 		ULong64_t nevts_Neg1st_1Pos1Neg_exc;
 		ULong64_t nevts_Neg1st_2Pos1Neg_exc;
 	} fLb;
+	TTree *lumblocks;
 	TH2 *hq2_V_w;
 	TH2 *hq2_V_w_elast_exc;
 	TH2 *hmmppippim_V_mmp;
 protected:
+	float fQl_last = 0, fAnum_last = 0, fRun_last = -1;
+	bool firstfile, a00exists;
 	TLorentzVector *lvE0, *lvE1, *lvP0, *lvP1, *lvPip, *lvPim;
+	void Clear();
+	bool PrepBlock(H10 *d);
+	void FillHists(H10 *d);
+	bool CountAll(H10 *d);
+	void FillPreviousBlock(H10 *d);
 };
 #endif // _MON_LUMINOSITY_H_
