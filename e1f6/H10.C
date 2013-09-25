@@ -8,7 +8,8 @@
 void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryList *elist/* = 0 */)
 {
     if (fChain == 0) return;
-    if (ntoproc == -1) {
+    if (ntoproc == -1)
+    {
         if (fastcount) ntoproc = fChain->GetEntriesFast();
         else ntoproc = elist ? elist->GetN() : fChain->GetEntries();
     }
@@ -17,7 +18,8 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
     //Long64_t nbytes = 0, nb = 0;
     _swmain.Start();
     _swgroup.Start();
-    for (Long64_t jentry_el=0; jentry_el<ntoproc; jentry_el++) {
+    for (Long64_t jentry_el=0; jentry_el<ntoproc; jentry_el++)
+    {
         jentry = elist ? elist->GetEntry(jentry_el) : jentry_el;
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;

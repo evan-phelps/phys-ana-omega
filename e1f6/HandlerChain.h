@@ -10,14 +10,14 @@ class H10;
 
 class HandlerChain
 {
-public:
-	HandlerChain() { };
-	virtual ~HandlerChain();
-	virtual void Add(DataHandler *dh);
-	virtual bool Process(H10 *d);
-	virtual void Finalize(H10 *d);
-protected:
-	std::vector< DataHandler* > _handlers;
+    public:
+        HandlerChain() { };
+        virtual ~HandlerChain();
+        virtual void Add(DataHandler *dh);
+        virtual bool Process(H10 *d);
+        virtual void Finalize(H10 *d);
+    protected:
+        std::vector< DataHandler* > _handlers;
 
 };
-#endif // _PROCESS_CHAIN_H_
+#endif                           // _PROCESS_CHAIN_H_

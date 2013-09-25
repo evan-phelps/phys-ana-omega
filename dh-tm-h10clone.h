@@ -1,5 +1,5 @@
 #ifndef DHTMH10CLONE_H
-#define DHTM10CLONE_H
+#define DHTMH10CLONE_H
 #include "data-handler.h" // Base class: DataHandler
 #include <stdio.h>
 #include <stdexcept>
