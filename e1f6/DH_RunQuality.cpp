@@ -20,8 +20,9 @@ DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(n
     a00exists = true;
     fDir->cd();
     /* CREATE TREES and HISTOGRAMS */
-    hq2_V_w = new TH2D("hq2_V_w", "hq2_V_w", 340, 0, 3.4, 800, 0, 8);
-    hq2_V_w_elast_exc = new TH2D("hq2_V_w_elast_exc", "hq2_V_w_elast_exc", 100, 0.5, 1.5, 600, 0, 6);
+    hq2_V_wS = MakeHists(NSECTS, "hq2_V_w_%d", "Q^{2} vs. W, Sector %d", 340, 0.0, 3.4, 800, 0.0, 8.0);
+    hq2_V_w_elast_excS = MakeHists(NSECTS, "hq2_V_w_elast_exc_%d", "Q^{2} vs. W, elastic, Sector %d", 100, 0.5, 1.5, 600, 0.0, 6.0);
+
     hmmppippim_V_mmp = new TH2D("hmmppippim_V_mmp", "hmmppippim_V_mmp", 220, 0.2, 2.4, 250, -0.5, 2);
     lvE0 = new TLorentzVector();
     lvP0 = new TLorentzVector(0, 0, 0, MASS_P);
@@ -50,16 +51,16 @@ DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(n
     lumblocks->Branch("nevts_Neg1st_2Pos_exc", &fLb.nevts_Neg1st_2Pos_exc);
     lumblocks->Branch("nevts_Neg1st_1Pos1Neg_exc", &fLb.nevts_Neg1st_1Pos1Neg_exc);
     lumblocks->Branch("nevts_Neg1st_2Pos1Neg_exc", &fLb.nevts_Neg1st_2Pos1Neg_exc);
-    lumblocks->Branch("hq2_V_w", hq2_V_w);
-    lumblocks->Branch("hq2_V_w_elast_exc", hq2_V_w_elast_exc);
-    lumblocks->Branch("hmmppippim_V_mmp", hmmppippim_V_mmp);
+    // lumblocks->Branch("hq2_V_w", hq2_V_w);
+    // lumblocks->Branch("hq2_V_w_elast_exc", hq2_V_w_elast_exc);
+    // lumblocks->Branch("hmmppippim_V_mmp", hmmppippim_V_mmp);
 }
 
 
 DH_RunQuality::~DH_RunQuality()
 {
-    delete hq2_V_w;
-    delete hq2_V_w_elast_exc;
+    delete hq2_V_wS;
+    delete hq2_V_w_elast_excS;
     delete hmmppippim_V_mmp;
     delete lumblocks;
     delete lvE0;
@@ -93,6 +94,8 @@ void DH_RunQuality::Finalize(H10 *d)
     FillPreviousBlock(d);
     fDir->cd();
     lumblocks->Write("", TObject::kOverwrite);
+    hq2_V_wS->Write();
+    hq2_V_w_elast_excS->Write();
 }
 
 
@@ -186,13 +189,16 @@ void DH_RunQuality::FillHists(H10 *d)
         Double_t Q2 = -(nu*nu - p*p - E0*E0 + 2*E0*pz);
         Double_t s = -Q2 + 2*M*nu + M*M;
         Double_t W = s >= 0 ? sqrt(s) : -sqrt(-s);
-        hq2_V_w->Fill(W, Q2);
+        Int_t scidx = d->sc[0]-1;
+        TH2 *hq2_V_w = (TH2*)(*hq2_V_wS)[d->sc_sect[scidx]-1];
+        TH2 *hq2_V_w_elast_exc = (TH2*)(*hq2_V_w_elast_excS)[d->sc_sect[scidx]-1];
+        if (scidx>=0) hq2_V_w->Fill(W, Q2);
         if (d->npart==2 && d->id[1]==PROTON)
         {
             if (abs(-d->p[0]*d->cx[0]-d->p[1]*d->cx[1])<0.05
                 && abs(-d->p[0]*d->cy[0]-d->p[1]*d->cy[1])<0.05)
             {
-                hq2_V_w_elast_exc->Fill(W, Q2);
+                if (scidx>=0) hq2_V_w_elast_exc->Fill(W, Q2);
             }
         }
         int npart = d->npart;

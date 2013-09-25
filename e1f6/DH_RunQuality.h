@@ -8,6 +8,7 @@
 #include "TTree.h"
 #include "TEntryList.h"
 #include "TH2.h"
+#include "TObjArray.h"
 #include "TLorentzVector.h"
 
 #ifndef _DATA_HANDLER_H_
@@ -51,8 +52,8 @@ class DH_RunQuality: public DataHandler
             ULong64_t nevts_Neg1st_2Pos1Neg_exc;
         } fLb;
         TTree *lumblocks;
-        TH2 *hq2_V_w;
-        TH2 *hq2_V_w_elast_exc;
+        TObjArray *hq2_V_wS;
+        TObjArray *hq2_V_w_elast_excS;
         TH2 *hmmppippim_V_mmp;
     protected:
         float fQl_last = 0, fAnum_last = 0, fRun_last = -1;
