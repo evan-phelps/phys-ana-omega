@@ -30,6 +30,7 @@ class DH_EC_Hists : public DataHandler
         TObjArray *hsf_V_p_1stIsNegCcS;
         TObjArray *heo_V_ei_1stIsnegCcS;
         TObjArray *hsf_V_p_1stIsNegCcEiS;
+        TObjArray *hsf_V_p_1stIsNegCcEiAntiS;
         DH_EC_Hists(std::string name = "EC_Hists", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
             fDir->cd();
