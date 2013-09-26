@@ -18,6 +18,5 @@ class HandlerChain
         virtual void Finalize(H10 *d);
     protected:
         std::vector< DataHandler* > _handlers;
-
 };
 #endif                           // _PROCESS_CHAIN_H_

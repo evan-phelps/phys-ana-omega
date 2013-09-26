@@ -73,5 +73,8 @@ class DataHandler
         	}
         	return ret;
         }
+        Bool_t IsElastic() {
+        	return kFALSE;
+        }
 };
 #endif                           // _DATA_HANDLER_H_
