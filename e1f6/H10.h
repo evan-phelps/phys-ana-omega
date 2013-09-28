@@ -7,6 +7,9 @@
 #ifndef H10_h
 #define H10_h
 
+#include <stdexcept>
+#include <string>
+
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
@@ -19,6 +22,7 @@
 #ifndef H10CONSTANTS_H_
 #include "H10Constants.h"
 #endif
+#include "Config.h"
 using namespace H10Constants;
 
 /*
@@ -68,6 +72,7 @@ class H10
         int file_anum;
         std::string filename;
         Float_t beamEnergy;
+        Config *cfg;
 
         // Declaration of leaf types
         UChar_t         npart;
@@ -274,7 +279,7 @@ class H10
         TBranch        *b_mcp;            //!
         TBranch        *b_mcm;            //!
 
-        H10(TTree *tree);
+        H10(TTree *tree, std::string experiment);
         virtual ~H10();
         virtual Int_t    Cut(Long64_t entry);
         virtual Int_t    GetEntry(Long64_t entry);
@@ -287,11 +292,18 @@ class H10
 #endif
 
 #ifdef H10_cxx
-H10::H10(TTree *tree)
+H10::H10(TTree *tree, std::string experiment)
 {
+    // cfg = new Config("input.e16.exp.parms");
+    if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
+    else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
+    else {
+        std::string emsg = "experiment not recognized! must be e1f or e16";
+        throw new std::runtime_error(emsg.c_str());
+    }
     is_sim = kFALSE;
     run = -1;
-    beamEnergy = E1F_E0;
+    beamEnergy = cfg->GetFloat("beam_energy");
     file_anum = -1;
     filename = "";
     fHandlerChain = new HandlerChain();
@@ -309,6 +321,7 @@ H10::~H10()
     delete fHandlerChain;
     delete fRegExp_run;
     delete fRegExp_Anum;
+    delete cfg;
 }
 
 
@@ -480,8 +493,6 @@ Bool_t H10::Notify()
         TObjString *tok = (TObjString*)tokens->At(tokens->GetLast());
         TString fn = tok->GetString();
         run = ((TString)fn(*fRegExp_run)).Atoi();
-        if (run < RUNSEP) beamEnergy = E16_E0;
-        else beamEnergy = E1F_E0;
         //printf("opening run %d\n",run);
         file_anum = ((TString)((TString)fn(*fRegExp_Anum))(1,2)).Atoi();
         filename = fn.Data();

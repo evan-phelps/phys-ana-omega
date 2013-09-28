@@ -2,7 +2,7 @@
 
 import ROOT as r
 
-for dep in ['DataHandler.h', 'HandlerChain.cpp', 'H10.C',
+for dep in ['Config.cpp', 'DataHandler.h', 'HandlerChain.cpp', 'H10.C',
             'DH_RunQuality.cpp', 'DH_CloneH10.h', 'DH_EC_Hists.h']:
     r.gROOT.ProcessLine('.L %s+' % dep)
 
@@ -14,7 +14,7 @@ handlers = [r.DH_EC_Hists('echists', fout)]
 chain = r.TChain('h10clone/h10')
 chain.Add('/data/e1f/skim/3812?.root')
 
-processor = r.H10(chain)
+processor = r.H10(chain, "e1f")
 
 for dh in handlers:
     processor.Add(dh)
