@@ -77,10 +77,10 @@ class DH_EC_Hists : public DataHandler
                 }
                 if (critnphe && critsf) {
                     TH2 *h = (TH2*)heo_V_ei_clean->At(sectidx);
-                    h->Fill(d->ec_eo[ecidx], d->ec_ei[ecidx]);
+                    h->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
                 } else {
                     TH2 *h = (TH2*)heo_V_ei_clean_anti->At(sectidx);
-                    h->Fill(d->ec_eo[ecidx], d->ec_ei[ecidx]);
+                    h->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
                 }
             }
             return passed;
