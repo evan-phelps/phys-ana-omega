@@ -5,13 +5,13 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
-
 H10::H10(TTree *tree, std::string experiment)
 {
     // cfg = new Config("input.e16.exp.parms");
     if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
     else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
-    else {
+    else
+    {
         std::string emsg = "experiment not recognized! must be e1f or e16";
         throw new std::runtime_error(emsg.c_str());
     }
@@ -37,6 +37,7 @@ H10::~H10()
     delete fRegExp_Anum;
     delete cfg;
 }
+
 
 void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryList *elist/* = 0 */)
 {

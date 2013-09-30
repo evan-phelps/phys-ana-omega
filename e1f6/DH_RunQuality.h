@@ -52,8 +52,8 @@ class DH_RunQuality: public DataHandler
             ULong64_t nevts_Neg1st_2Pos1Neg_exc;
         } fLb;
         TTree *lumblocks;
-        TObjArray *hq2_V_wS;
-        TObjArray *hq2_V_w_elast_excS;
+        vector<TH2*> hq2_V_wS;
+        vector<TH2*> hq2_V_w_elast_excS;
         TH2 *hmmppippim_V_mmp;
     protected:
         float fQl_last = 0, fAnum_last = 0, fRun_last = -1;

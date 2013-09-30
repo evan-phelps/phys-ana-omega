@@ -9,6 +9,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <math.h>
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -75,209 +76,209 @@ class H10
         Config *cfg;
 
         // Declaration of leaf types
-        UChar_t         npart;
-        UChar_t         evstat;
-        UInt_t          evntid;
-        Char_t          evtype;
-        Char_t          evntclas;
-        Char_t          evthel;
-        Int_t           evntclas2;
-        Float_t         q_l;
-        Float_t         t_l;
-        Float_t         tr_time;
-        Float_t         rf_time1;
-        Float_t         rf_time2;
-        Int_t           gpart;
-        Short_t         id[40];  
-        Char_t          stat[40];
-        UChar_t         dc[40];  
-        UChar_t         cc[40];  
-        UChar_t         sc[40];  
-        UChar_t         ec[40];  
-        UChar_t         lec[40]; 
-        Float_t         p[40];   
-        Float_t         m[40];   
-        Char_t          q[40];   
-        Float_t         beta[40];
-        Float_t         cx[40];  
-        Float_t         cy[40];  
-        Float_t         cz[40];  
-        Float_t         vx[40];  
-        Float_t         vy[40];  
-        Float_t         vz[40];  
-        Int_t           dc_part;  
-        UChar_t         dc_sect[40];  
-        UChar_t         dc_trk[40];  
-        Char_t          dc_stat[40];  
-        Float_t         dc_xsc[40];  
-        Float_t         dc_ysc[40];  
-        Float_t         dc_zsc[40];  
-        Float_t         dc_cxsc[40];  
-        Float_t         dc_cysc[40];  
-        Float_t         dc_czsc[40];  
-        Float_t         dc_xec[40];  
-        Float_t         dc_yec[40];  
-        Float_t         dc_zec[40];  
-        Float_t         dc_thcc[40];  
-        Float_t         dc_c2[40];
-        Int_t           ec_part;  
-        UShort_t        ec_stat[40];  
-        UChar_t         ec_sect[40];  
-        Int_t           ec_whol[40];  
-        Int_t           ec_inst[40];  
-        Int_t           ec_oust[40];
-        Float_t         etot[40];
-        Float_t         ec_ei[40];
-        Float_t         ec_eo[40];
-        Float_t         ec_t[40];
-        Float_t         ec_r[40];
-        Float_t         ech_x[40];
-        Float_t         ech_y[40];
-        Float_t         ech_z[40];
-        Float_t         ec_m2[40];
-        Float_t         ec_m3[40];
-        Float_t         ec_m4[40];
-        Float_t         ec_c2[40];
-        Int_t           sc_part;
-        UChar_t         sc_sect[40];
-        UChar_t         sc_hit[40];
-        UChar_t         sc_pd[40];
-        UChar_t         sc_stat[40];
-        Float_t         edep[40];
-        Float_t         sc_t[40];
-        Float_t         sc_r[40];
-        Float_t         sc_c2[40];
-        Int_t           cc_part;
-        UChar_t         cc_sect[40];
-        UChar_t         cc_hit[40];
-        Int_t           cc_segm[40];
-        UShort_t        nphe[40];
-        Float_t         cc_t[40];
-        Float_t         cc_r[40];
-        Float_t         cc_c2[40];
-        Int_t           lac_part;
-        Int_t           lec_sect[50];
-        Int_t           lec_hit[50];
-        Int_t           lec_stat[50];
-        Float_t         lec_etot[50];
-        Float_t         lec_t[50];
-        Float_t         lec_r[50];
-        Float_t         lec_x[50];
-        Float_t         lec_y[50];
-        Float_t         lec_z[50];
-        Float_t         lec_c2[50];
+        UChar_t   npart;
+        UChar_t   evstat;
+        UInt_t    evntid;
+        Char_t    evtype;
+        Char_t    evntclas;
+        Char_t    evthel;
+        Int_t     evntclas2;
+        Float_t   q_l;
+        Float_t   t_l;
+        Float_t   tr_time;
+        Float_t   rf_time1;
+        Float_t   rf_time2;
+        Int_t     gpart;
+        Short_t   id[40];
+        Char_t    stat[40];
+        UChar_t   dc[40];
+        UChar_t   cc[40];
+        UChar_t   sc[40];
+        UChar_t   ec[40];
+        UChar_t   lec[40];
+        Float_t   p[40];
+        Float_t   m[40];
+        Char_t    q[40];
+        Float_t   beta[40];
+        Float_t   cx[40];
+        Float_t   cy[40];
+        Float_t   cz[40];
+        Float_t   vx[40];
+        Float_t   vy[40];
+        Float_t   vz[40];
+        Int_t     dc_part;
+        UChar_t   dc_sect[40];
+        UChar_t   dc_trk[40];
+        Char_t    dc_stat[40];
+        Float_t   dc_xsc[40];
+        Float_t   dc_ysc[40];
+        Float_t   dc_zsc[40];
+        Float_t   dc_cxsc[40];
+        Float_t   dc_cysc[40];
+        Float_t   dc_czsc[40];
+        Float_t   dc_xec[40];
+        Float_t   dc_yec[40];
+        Float_t   dc_zec[40];
+        Float_t   dc_thcc[40];
+        Float_t   dc_c2[40];
+        Int_t     ec_part;
+        UShort_t  ec_stat[40];
+        UChar_t   ec_sect[40];
+        Int_t     ec_whol[40];
+        Int_t     ec_inst[40];
+        Int_t     ec_oust[40];
+        Float_t   etot[40];
+        Float_t   ec_ei[40];
+        Float_t   ec_eo[40];
+        Float_t   ec_t[40];
+        Float_t   ec_r[40];
+        Float_t   ech_x[40];
+        Float_t   ech_y[40];
+        Float_t   ech_z[40];
+        Float_t   ec_m2[40];
+        Float_t   ec_m3[40];
+        Float_t   ec_m4[40];
+        Float_t   ec_c2[40];
+        Int_t     sc_part;
+        UChar_t   sc_sect[40];
+        UChar_t   sc_hit[40];
+        UChar_t   sc_pd[40];
+        UChar_t   sc_stat[40];
+        Float_t   edep[40];
+        Float_t   sc_t[40];
+        Float_t   sc_r[40];
+        Float_t   sc_c2[40];
+        Int_t     cc_part;
+        UChar_t   cc_sect[40];
+        UChar_t   cc_hit[40];
+        Int_t     cc_segm[40];
+        UShort_t  nphe[40];
+        Float_t   cc_t[40];
+        Float_t   cc_r[40];
+        Float_t   cc_c2[40];
+        Int_t     lac_part;
+        Int_t     lec_sect[50];
+        Int_t     lec_hit[50];
+        Int_t     lec_stat[50];
+        Float_t   lec_etot[50];
+        Float_t   lec_t[50];
+        Float_t   lec_r[50];
+        Float_t   lec_x[50];
+        Float_t   lec_y[50];
+        Float_t   lec_z[50];
+        Float_t   lec_c2[50];
         //MC banks
-        Int_t           mcnentr;
-        UChar_t         mcnpart;
-        Int_t           mcst[20];
-        Int_t           mcid[20];
-        Int_t           mcpid[20];
-        Float_t         mctheta[20];
-        Float_t         mcphi[20];
-        Float_t         mcp[20]; 
-        Float_t         mcm[20]; 
+        Int_t     mcnentr;
+        UChar_t   mcnpart;
+        Int_t     mcst[20];
+        Int_t     mcid[20];
+        Int_t     mcpid[20];
+        Float_t   mctheta[20];
+        Float_t   mcphi[20];
+        Float_t   mcp[20];
+        Float_t   mcm[20];
 
         // List of branches
-        TBranch        *b_npart;          //!
-        TBranch        *b_evstat;         //!
-        TBranch        *b_evntid;         //!
-        TBranch        *b_evtype;         //!
-        TBranch        *b_evntclas;       //!
-        TBranch        *b_evthel;         //!
-        TBranch        *b_evntclas2;      //!
-        TBranch        *b_q_l;            //!
-        TBranch        *b_t_l;            //!
-        TBranch        *b_tr_time;        //!
-        TBranch        *b_rf_time1;       //!
-        TBranch        *b_rf_time2;       //!
-        TBranch        *b_gpart;          //!
-        TBranch        *b_id;             //!
-        TBranch        *b_stat;           //!
-        TBranch        *b_dc;             //!
-        TBranch        *b_cc;             //!
-        TBranch        *b_sc;             //!
-        TBranch        *b_ec;             //!
-        TBranch        *b_lec;            //!
-        TBranch        *b_p;              //!
-        TBranch        *b_m;              //!
-        TBranch        *b_q;              //!
-        TBranch        *b_beta;           //!
-        TBranch        *b_cx;             //!
-        TBranch        *b_cy;             //!
-        TBranch        *b_cz;             //!
-        TBranch        *b_vx;             //!
-        TBranch        *b_vy;             //!
-        TBranch        *b_vz;             //!
-        TBranch        *b_dc_part;        //!
-        TBranch        *b_dc_sect;        //!
-        TBranch        *b_dc_trk;         //!
-        TBranch        *b_dc_stat;        //!
-        TBranch        *b_dc_xsc;         //!
-        TBranch        *b_dc_ysc;         //!
-        TBranch        *b_dc_zsc;         //!
-        TBranch        *b_dc_cxsc;        //!
-        TBranch        *b_dc_cysc;        //!
-        TBranch        *b_dc_czsc;        //!
-        TBranch        *b_dc_xec;         //!
-        TBranch        *b_dc_yec;         //!
-        TBranch        *b_dc_zec;         //!
-        TBranch        *b_dc_thcc;        //!
-        TBranch        *b_dc_c2;          //!
-        TBranch        *b_ec_part;        //!
-        TBranch        *b_ec_stat;        //!
-        TBranch        *b_ec_sect;        //!
-        TBranch        *b_ec_whol;        //!
-        TBranch        *b_ec_inst;        //!
-        TBranch        *b_ec_oust;        //!
-        TBranch        *b_etot;           //!
-        TBranch        *b_ec_ei;          //!
-        TBranch        *b_ec_eo;          //!
-        TBranch        *b_ec_t;           //!
-        TBranch        *b_ec_r;           //!
-        TBranch        *b_ech_x;          //!
-        TBranch        *b_ech_y;          //!
-        TBranch        *b_ech_z;          //!
-        TBranch        *b_ec_m2;          //!
-        TBranch        *b_ec_m3;          //!
-        TBranch        *b_ec_m4;          //!
-        TBranch        *b_ec_c2;          //!
-        TBranch        *b_sc_part;        //!
-        TBranch        *b_sc_sect;        //!
-        TBranch        *b_sc_hit;         //!
-        TBranch        *b_sc_pd;          //!
-        TBranch        *b_sc_stat;        //!
-        TBranch        *b_edep;           //!
-        TBranch        *b_sc_t;           //!
-        TBranch        *b_sc_r;           //!
-        TBranch        *b_sc_c2;          //!
-        TBranch        *b_cc_part;        //!
-        TBranch        *b_cc_sect;        //!
-        TBranch        *b_cc_hit;         //!
-        TBranch        *b_cc_segm;        //!
-        TBranch        *b_nphe;           //!
-        TBranch        *b_cc_t;           //!
-        TBranch        *b_cc_r;           //!
-        TBranch        *b_cc_c2;          //!
-        TBranch        *b_lac_part;       //!
-        TBranch        *b_lec_sect;       //!
-        TBranch        *b_lec_hit;        //!
-        TBranch        *b_lec_stat;       //!
-        TBranch        *b_lec_etot;       //!
-        TBranch        *b_lec_t;          //!
-        TBranch        *b_lec_r;          //!
-        TBranch        *b_lec_x;          //!
-        TBranch        *b_lec_y;          //!
-        TBranch        *b_lec_z;          //!
-        TBranch        *b_lec_c2;         //!
-        TBranch        *b_mcnentr;        //!
-        TBranch        *b_mcnpart;        //!
-        TBranch        *b_mcst;           //!
-        TBranch        *b_mcid;           //!
-        TBranch        *b_mcpid;          //!
-        TBranch        *b_mctheta;        //!
-        TBranch        *b_mcphi;          //!
-        TBranch        *b_mcp;            //!
-        TBranch        *b_mcm;            //!
+        TBranch   *b_npart;      //!
+        TBranch   *b_evstat;     //!
+        TBranch   *b_evntid;     //!
+        TBranch   *b_evtype;     //!
+        TBranch   *b_evntclas;   //!
+        TBranch   *b_evthel;     //!
+        TBranch   *b_evntclas2;  //!
+        TBranch   *b_q_l;        //!
+        TBranch   *b_t_l;        //!
+        TBranch   *b_tr_time;    //!
+        TBranch   *b_rf_time1;   //!
+        TBranch   *b_rf_time2;   //!
+        TBranch   *b_gpart;      //!
+        TBranch   *b_id;         //!
+        TBranch   *b_stat;       //!
+        TBranch   *b_dc;         //!
+        TBranch   *b_cc;         //!
+        TBranch   *b_sc;         //!
+        TBranch   *b_ec;         //!
+        TBranch   *b_lec;        //!
+        TBranch   *b_p;          //!
+        TBranch   *b_m;          //!
+        TBranch   *b_q;          //!
+        TBranch   *b_beta;       //!
+        TBranch   *b_cx;         //!
+        TBranch   *b_cy;         //!
+        TBranch   *b_cz;         //!
+        TBranch   *b_vx;         //!
+        TBranch   *b_vy;         //!
+        TBranch   *b_vz;         //!
+        TBranch   *b_dc_part;    //!
+        TBranch   *b_dc_sect;    //!
+        TBranch   *b_dc_trk;     //!
+        TBranch   *b_dc_stat;    //!
+        TBranch   *b_dc_xsc;     //!
+        TBranch   *b_dc_ysc;     //!
+        TBranch   *b_dc_zsc;     //!
+        TBranch   *b_dc_cxsc;    //!
+        TBranch   *b_dc_cysc;    //!
+        TBranch   *b_dc_czsc;    //!
+        TBranch   *b_dc_xec;     //!
+        TBranch   *b_dc_yec;     //!
+        TBranch   *b_dc_zec;     //!
+        TBranch   *b_dc_thcc;    //!
+        TBranch   *b_dc_c2;      //!
+        TBranch   *b_ec_part;    //!
+        TBranch   *b_ec_stat;    //!
+        TBranch   *b_ec_sect;    //!
+        TBranch   *b_ec_whol;    //!
+        TBranch   *b_ec_inst;    //!
+        TBranch   *b_ec_oust;    //!
+        TBranch   *b_etot;       //!
+        TBranch   *b_ec_ei;      //!
+        TBranch   *b_ec_eo;      //!
+        TBranch   *b_ec_t;       //!
+        TBranch   *b_ec_r;       //!
+        TBranch   *b_ech_x;      //!
+        TBranch   *b_ech_y;      //!
+        TBranch   *b_ech_z;      //!
+        TBranch   *b_ec_m2;      //!
+        TBranch   *b_ec_m3;      //!
+        TBranch   *b_ec_m4;      //!
+        TBranch   *b_ec_c2;      //!
+        TBranch   *b_sc_part;    //!
+        TBranch   *b_sc_sect;    //!
+        TBranch   *b_sc_hit;     //!
+        TBranch   *b_sc_pd;      //!
+        TBranch   *b_sc_stat;    //!
+        TBranch   *b_edep;       //!
+        TBranch   *b_sc_t;       //!
+        TBranch   *b_sc_r;       //!
+        TBranch   *b_sc_c2;      //!
+        TBranch   *b_cc_part;    //!
+        TBranch   *b_cc_sect;    //!
+        TBranch   *b_cc_hit;     //!
+        TBranch   *b_cc_segm;    //!
+        TBranch   *b_nphe;       //!
+        TBranch   *b_cc_t;       //!
+        TBranch   *b_cc_r;       //!
+        TBranch   *b_cc_c2;      //!
+        TBranch   *b_lac_part;   //!
+        TBranch   *b_lec_sect;   //!
+        TBranch   *b_lec_hit;    //!
+        TBranch   *b_lec_stat;   //!
+        TBranch   *b_lec_etot;   //!
+        TBranch   *b_lec_t;      //!
+        TBranch   *b_lec_r;      //!
+        TBranch   *b_lec_x;      //!
+        TBranch   *b_lec_y;      //!
+        TBranch   *b_lec_z;      //!
+        TBranch   *b_lec_c2;     //!
+        TBranch   *b_mcnentr;    //!
+        TBranch   *b_mcnpart;    //!
+        TBranch   *b_mcst;       //!
+        TBranch   *b_mcid;       //!
+        TBranch   *b_mcpid;      //!
+        TBranch   *b_mctheta;    //!
+        TBranch   *b_mcphi;      //!
+        TBranch   *b_mcp;        //!
+        TBranch   *b_mcm;        //!
 
         H10(TTree *tree, std::string experiment);
         virtual ~H10();
@@ -288,6 +289,11 @@ class H10
         virtual void     Loop(Long64_t ntoproc = -1, Bool_t fastcount = kTRUE, TEntryList *elist = 0);
         virtual Bool_t   Notify();
         virtual void     Show(Long64_t entry = -1);
+        Float_t          E0() { return beamEnergy; };
+        Float_t          nu() { return E0()-p[0]; };
+        Float_t          Q2() { return -(nu()*nu()-p[0]*p[0]-E0()*E0()+2*E0()*p[0]*cz[0]); };
+        Float_t          s()  { return -Q2()+2*MASS_P*nu()+MASS_P*MASS_P; };
+        Float_t          W()  { return s() >= 0 ? sqrt(s()) : -sqrt(-s()); };
 };
 #endif
 

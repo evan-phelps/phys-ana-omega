@@ -14,7 +14,7 @@ class H10;
 class DataHandler
 {
     protected:
-    	static const Int_t NSECTS = 6;
+        static const Int_t NSECTS = 6;
         std::string fName;
         TDirectory *fDir;
         H10 *_h10looper;
@@ -62,19 +62,24 @@ class DataHandler
         /* Finalize after all events processed */
         virtual void Finalize(H10 *d) = 0;
         std::string GetName() { return fName; }
-        TObjArray* MakeHists(Int_t N, const char* nametmpl, const char* titletmpl,
-        				Int_t nbinsx, Float_t xlo, Float_t xhi,
-        				Int_t nbinsy, Float_t ylo, Float_t yhi) {
-        	TObjArray *ret = new TObjArray(N);
-        	for (int n = 1; n <= N; n++) {
-        		TString name = TString::Format(nametmpl,n);
-        		TString title = TString::Format(titletmpl,n);
-        		ret->Add(new TH2D(name.Data(), title.Data(), nbinsx, xlo, xhi, nbinsy, ylo, yhi));
-        	}
-        	return ret;
+        vector<TH2*> MakeHists(Int_t N, const char* nametmpl, const char* titletmpl,
+            Int_t nbinsx, Float_t xlo, Float_t xhi,
+            Int_t nbinsy, Float_t ylo, Float_t yhi)
+        {
+            vector<TH2*> ret(N);
+            for (int n = 1; n <= N; n++)
+            {
+                TString name = TString::Format(nametmpl,n);
+                TString title = TString::Format(titletmpl,n);
+                ret.push_back(new TH2D(name.Data(), title.Data(), nbinsx, xlo, xhi, nbinsy, ylo, yhi));
+            }
+            return ret;
         }
-        Bool_t IsElastic() {
-        	return kFALSE;
+        static void WriteObj(TObject *o) { o->Write(); };
+
+        Bool_t IsElastic()
+        {
+            return kFALSE;
         }
 };
 #endif                           // _DATA_HANDLER_H_

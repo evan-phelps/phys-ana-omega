@@ -4,6 +4,8 @@
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
+#include <vector>
+#include <algorithm>
 #include "TObject.h"
 
 #ifndef H10CONSTANTS_H_
@@ -11,6 +13,7 @@
 #endif
 
 using namespace H10Constants;
+using namespace std;
 
 DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(name, pDir)
 {
@@ -59,8 +62,8 @@ DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(n
 
 DH_RunQuality::~DH_RunQuality()
 {
-    delete hq2_V_wS;
-    delete hq2_V_w_elast_excS;
+    // delete hq2_V_wS;
+    // delete hq2_V_w_elast_excS;
     delete hmmppippim_V_mmp;
     delete lumblocks;
     delete lvE0;
@@ -94,8 +97,7 @@ void DH_RunQuality::Finalize(H10 *d)
     FillPreviousBlock(d);
     fDir->cd();
     lumblocks->Write("", TObject::kOverwrite);
-    hq2_V_wS->Write();
-    hq2_V_w_elast_excS->Write();
+    for_each(hq2_V_wS.begin(), hq2_V_wS.end(), WriteObj);
 }
 
 
@@ -181,17 +183,17 @@ void DH_RunQuality::FillHists(H10 *d)
 {
     if (d->id[0]==ELECTRON)
     {
-        Double_t E0 = d->beamEnergy;
-        Double_t M = MASS_P;
-        Double_t p = d->p[0];
-        Double_t nu = E0-p;
-        Double_t pz = p*d->cz[0];
-        Double_t Q2 = -(nu*nu - p*p - E0*E0 + 2*E0*pz);
-        Double_t s = -Q2 + 2*M*nu + M*M;
-        Double_t W = s >= 0 ? sqrt(s) : -sqrt(-s);
+        // Double_t E0 = d->E0();
+        // Double_t M = MASS_P;
+        // Double_t p = d->p[0];
+        // Double_t nu = d->nu();
+        // Double_t pz = p*d->cz[0];
+        Double_t Q2 = d->Q2();
+        // Double_t s = d->s();
+        Double_t W = d->W();
         Int_t scidx = d->sc[0]-1;
-        TH2 *hq2_V_w = (TH2*)(*hq2_V_wS)[d->sc_sect[scidx]-1];
-        TH2 *hq2_V_w_elast_exc = (TH2*)(*hq2_V_w_elast_excS)[d->sc_sect[scidx]-1];
+        TH2 *hq2_V_w = hq2_V_wS[d->sc_sect[scidx]-1];
+        TH2 *hq2_V_w_elast_exc = hq2_V_w_elast_excS[d->sc_sect[scidx]-1];
         if (scidx>=0) hq2_V_w->Fill(W, Q2);
         if (d->npart==2 && d->id[1]==PROTON)
         {
@@ -235,7 +237,7 @@ void DH_RunQuality::FillHists(H10 *d)
             }
             if (np==1 && npip==1 && npim==1 && nothercharged==0)
             {
-                lvE0->SetXYZT(0, 0, E0, E0);
+                lvE0->SetXYZT(0, 0, d->E0(), d->E0());
                 lvE1->SetXYZT(d->p[0]*d->cx[0], d->p[0]*d->cy[0], d->p[0]*d->cz[0], d->p[0]);
                 int ipart = partsidx[1];
                 lvP1->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], MASS_P);

@@ -36,4 +36,4 @@ namespace H10Constants
     static const float MASS_G = 0.0;
     static const float MASS_OMEGA = 0.78265;
 }
-#endif /* H10CONSTANTS_H_ */
+#endif                           /* H10CONSTANTS_H_ */
