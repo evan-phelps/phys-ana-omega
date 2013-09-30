@@ -5,6 +5,39 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
+
+H10::H10(TTree *tree, std::string experiment)
+{
+    // cfg = new Config("input.e16.exp.parms");
+    if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
+    else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
+    else {
+        std::string emsg = "experiment not recognized! must be e1f or e16";
+        throw new std::runtime_error(emsg.c_str());
+    }
+    is_sim = kFALSE;
+    run = -1;
+    beamEnergy = cfg->GetFloat("beam_energy");
+    file_anum = -1;
+    filename = "";
+    fHandlerChain = new HandlerChain();
+    fTreeNumber = -1;
+    eventnum = 0;
+    fRegExp_run = new TRegexp("[0-9][0-9][0-9][0-9][0-9]");
+    fRegExp_Anum = new TRegexp("[Aa][0-9][0-9]");
+    Init(tree);
+}
+
+
+H10::~H10()
+{
+    if (fChain) delete fChain->GetCurrentFile();
+    delete fHandlerChain;
+    delete fRegExp_run;
+    delete fRegExp_Anum;
+    delete cfg;
+}
+
 void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryList *elist/* = 0 */)
 {
     if (fChain == 0) return;
