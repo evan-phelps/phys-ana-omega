@@ -19,6 +19,8 @@
 #include <TObjString.h>
 #include <TEntryList.h>
 #include <TLorentzVector.h>
+#include <TRotation.h>
+#include <TLorentzRotation.h>
 #include "HandlerChain.h"
 #include "DataHandler.h"
 #ifndef H10CONSTANTS_H_
@@ -293,8 +295,9 @@ class H10
 
         TLorentzVector  lvE0, lvE1, lvP0, lvP1, lvPip, lvPim,
                         lvW, lvq, lvMMp, lvMMppip, lvMMppim, lvMMppippim;
-        Float_t E0, nu, Q2,  s,  W, MMp, MMppip, MMppim, MMppippim,
-                cosTheta, phi, t, t0, t1;
+        Float_t E0, nu, Q2,  W,  s, t, t0, t1,
+                MMp, MMppip, MMppim, MMppippim,
+                cosTheta, phi;
 };
 #endif
 

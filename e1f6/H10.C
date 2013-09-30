@@ -1,6 +1,7 @@
 #define H10_cxx
 #include "H10.h"
 #include <iostream>
+#include <math.h>
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -36,7 +37,9 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         /* Very inefficient to do this for all events.  Could refactor
         by moving lv's to DataHandler and allow subclasses to flag for
         population and check for already-populated state before
-        proceeding.  For now, I'm just populating the lv's here. */
+        proceeding.  For now, I'm just populating the lv's here.
+        More simply, it could be pulled into separate data handler
+        to be added into the chain of data handlers when needed! */
         lvE1.SetXYZM(p[0]*cx[0], p[0]*cy[0], p[0]*cz[0], MASS_E);
         nu = lvE1[3]-lvE0[3];
         lvq = lvE0-lvE1;
@@ -82,6 +85,21 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
                     MMppim = lvMMppim.M();
                 }
                 //4-rotate into boosted frame and get CM variables
+                TVector3 uz = lvq.Vect().Unit();
+                TVector3 ux = (lvE0.Vect().Cross(lvE1.Vect())).Unit();
+                ux.Rotate(-PI/2,uz);
+                TRotation _3rot;
+                _3rot.SetZAxis(uz,ux).Invert();
+                TLorentzRotation _4rot(_3rot);
+                TVector3 _boost(-1*lvW.BoostVector());
+                _4rot *= _boost;
+                TLorentzVector _mmp = lvMMp;
+                _mmp.Transform(_4rot);
+                cosTheta = _mmp.CosTheta();
+                phi = _mmp.Phi();
+                t = (lvP1-lvP0).M2();
+                t0 = pow(lvP0.E()-lvP1.E(),2)-pow(lvP0.P()-lvP1.P(),2);
+                t1 = t-t0;
             }
         }
         fHandlerChain->Process(this);
