@@ -1,5 +1,7 @@
 #include "Config.h"
 
+#include <vector>
+
 #include "TObjString.h"
 #include "TString.h"
 

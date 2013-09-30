@@ -5,40 +5,6 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
-H10::H10(TTree *tree, std::string experiment)
-{
-    // cfg = new Config("input.e16.exp.parms");
-    if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
-    else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
-    else
-    {
-        std::string emsg = "experiment not recognized! must be e1f or e16";
-        throw new std::runtime_error(emsg.c_str());
-    }
-    is_sim = kFALSE;
-    run = -1;
-    beamEnergy = cfg->GetFloat("beam_energy");
-    file_anum = -1;
-    filename = "";
-    fHandlerChain = new HandlerChain();
-    fTreeNumber = -1;
-    eventnum = 0;
-    fRegExp_run = new TRegexp("[0-9][0-9][0-9][0-9][0-9]");
-    fRegExp_Anum = new TRegexp("[Aa][0-9][0-9]");
-    Init(tree);
-}
-
-
-H10::~H10()
-{
-    if (fChain) delete fChain->GetCurrentFile();
-    delete fHandlerChain;
-    delete fRegExp_run;
-    delete fRegExp_Anum;
-    delete cfg;
-}
-
-
 void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryList *elist/* = 0 */)
 {
     if (fChain == 0) return;
@@ -60,6 +26,64 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         PrintProgress(jentry);
         //data->CheapPop(ientry);
         GetEntry(jentry);
+
+        E0 = beamEnergy;
+        //nu = E0-p[0];
+        //Q2 = -(nu*nu-p[0]*p[0]-E0*E0+2*E0*p[0]*cz[0]);
+        //s = -Q2+2*MASS_P*nu+MASS_P*MASS_P;
+        //W = s >= 0 ? sqrt(s) : -sqrt(-s);
+
+        /* Very inefficient to do this for all events.  Could refactor
+        by moving lv's to DataHandler and allow subclasses to flag for
+        population and check for already-populated state before
+        proceeding.  For now, I'm just populating the lv's here. */
+        lvE1.SetXYZM(p[0]*cx[0], p[0]*cy[0], p[0]*cz[0], MASS_E);
+        nu = lvE1[3]-lvE0[3];
+        lvq = lvE0-lvE1;
+        lvW = lvq+lvP0;
+        Q2 = -lvq.M2();
+        s = lvW.M2();
+        W = lvW.M();
+
+        int idx[] = {0,0,0};    // h10 idx of proton, pip, pim
+        if (gpart>1) {
+            for (int ipart = 1; ipart < gpart; ipart++) {
+                switch(id[ipart]) {
+                    case 2212:
+                        if (idx[0]==0) idx[0]=ipart;
+                        break;
+                    case 211:
+                        if (idx[1]==0) idx[1]=ipart;
+                        break;
+                    case -211:
+                        if (idx[2]==0) idx[2]=ipart;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (idx[0]>0) {
+                lvP1.SetXYZM(p[0]*cx[0], p[0]*cy[0], p[0]*cz[0], MASS_P);
+                t = (lvP1-lvP0).M2();
+                lvMMp = lvW-lvP1;
+                MMp = lvMMp.M();
+                if (idx[1]>0) {
+                    lvPip.SetXYZM(p[0]*cx[idx[1]], p[idx[1]]*cy[idx[1]], p[idx[1]]*cz[idx[1]], MASS_PIP);
+                    lvMMppip = lvMMp-lvPip;
+                    MMppip = lvMMppip.M();
+                    if (idx[2]>0) {
+                        lvMMppippim = lvMMppip-lvPim;
+                        MMppippim = lvMMppippim.M();
+                    }
+                }
+                if (idx[2]>0) {
+                    lvPim.SetXYZM(p[idx[2]]*cx[idx[2]], p[idx[2]]*cy[idx[2]], p[idx[2]]*cz[idx[2]], MASS_PIM);
+                    lvMMppim = lvMMp-lvPim;
+                    MMppim = lvMMppim.M();
+                }
+                //4-rotate into boosted frame and get CM variables
+            }
+        }
         fHandlerChain->Process(this);
     }
 

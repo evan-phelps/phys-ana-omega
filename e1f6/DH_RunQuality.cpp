@@ -188,9 +188,9 @@ void DH_RunQuality::FillHists(H10 *d)
         // Double_t p = d->p[0];
         // Double_t nu = d->nu();
         // Double_t pz = p*d->cz[0];
-        Double_t Q2 = d->Q2();
+        Double_t Q2 = d->Q2;
         // Double_t s = d->s();
-        Double_t W = d->W();
+        Double_t W = d->W;
         Int_t scidx = d->sc[0]-1;
         TH2 *hq2_V_w = hq2_V_wS[d->sc_sect[scidx]-1];
         TH2 *hq2_V_w_elast_exc = hq2_V_w_elast_excS[d->sc_sect[scidx]-1];
@@ -237,7 +237,7 @@ void DH_RunQuality::FillHists(H10 *d)
             }
             if (np==1 && npip==1 && npim==1 && nothercharged==0)
             {
-                lvE0->SetXYZT(0, 0, d->E0(), d->E0());
+                lvE0->SetXYZT(0, 0, d->E0, d->E0);
                 lvE1->SetXYZT(d->p[0]*d->cx[0], d->p[0]*d->cy[0], d->p[0]*d->cz[0], d->p[0]);
                 int ipart = partsidx[1];
                 lvP1->SetXYZM(d->p[ipart]*d->cx[ipart], d->p[ipart]*d->cy[ipart], d->p[ipart]*d->cz[ipart], MASS_P);

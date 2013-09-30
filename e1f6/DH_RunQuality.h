@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -19,6 +20,8 @@
 #include "H10.h"
 #endif
 class H10;
+
+using namespace std;
 
 class DH_RunQuality: public DataHandler
 {

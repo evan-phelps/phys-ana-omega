@@ -20,6 +20,7 @@ class H10;
 #endif
 
 using namespace H10Constants;
+using namespace std;
 
 class DH_EC_Hists_PreEid : public DataHandler
 {

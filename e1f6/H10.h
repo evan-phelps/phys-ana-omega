@@ -18,6 +18,7 @@
 #include <TStopwatch.h>
 #include <TObjString.h>
 #include <TEntryList.h>
+#include <TLorentzVector.h>
 #include "HandlerChain.h"
 #include "DataHandler.h"
 #ifndef H10CONSTANTS_H_
@@ -289,15 +290,53 @@ class H10
         virtual void     Loop(Long64_t ntoproc = -1, Bool_t fastcount = kTRUE, TEntryList *elist = 0);
         virtual Bool_t   Notify();
         virtual void     Show(Long64_t entry = -1);
-        Float_t          E0() { return beamEnergy; };
-        Float_t          nu() { return E0()-p[0]; };
-        Float_t          Q2() { return -(nu()*nu()-p[0]*p[0]-E0()*E0()+2*E0()*p[0]*cz[0]); };
-        Float_t          s()  { return -Q2()+2*MASS_P*nu()+MASS_P*MASS_P; };
-        Float_t          W()  { return s() >= 0 ? sqrt(s()) : -sqrt(-s()); };
+
+        TLorentzVector  lvE0, lvE1, lvP0, lvP1, lvPip, lvPim,
+                        lvW, lvq, lvMMp, lvMMppip, lvMMppim, lvMMppippim;
+        Float_t E0, nu, Q2,  s,  W, MMp, MMppip, MMppim, MMppippim,
+                cosTheta, phi, t, t0, t1;
 };
 #endif
 
 #ifdef H10_cxx
+
+H10::H10(TTree *tree, std::string experiment)
+{
+    // cfg = new Config("input.e16.exp.parms");
+    if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
+    else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
+    else
+    {
+        std::string emsg = "experiment not recognized! must be e1f or e16";
+        throw new std::runtime_error(emsg.c_str());
+    }
+    is_sim = kFALSE;
+    run = -1;
+    beamEnergy = cfg->GetFloat("beam_energy");
+    file_anum = -1;
+    filename = "";
+    fHandlerChain = new HandlerChain();
+    fTreeNumber = -1;
+    eventnum = 0;
+    fRegExp_run = new TRegexp("[0-9][0-9][0-9][0-9][0-9]");
+    fRegExp_Anum = new TRegexp("[Aa][0-9][0-9]");
+    E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
+    lvE0.SetXYZM(0,0,beamEnergy,MASS_E);
+    lvP0.SetXYZM(0,0,0,MASS_P);
+    Init(tree);
+}
+
+
+H10::~H10()
+{
+    if (fChain) delete fChain->GetCurrentFile();
+    delete fHandlerChain;
+    delete fRegExp_run;
+    delete fRegExp_Anum;
+    delete cfg;
+}
+
+
 Int_t H10::GetEntry(Long64_t entry)
 {
     // Read contents of entry.

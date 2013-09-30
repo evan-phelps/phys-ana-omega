@@ -2,6 +2,8 @@
 #define _DATA_HANDLER_H_
 #include <iostream>
 #include <stdexcept>
+#include <vector>
+#include <algorithm>
 #include <string>
 #include "TFile.h"
 #include "TDirectory.h"
@@ -10,6 +12,8 @@
 #include "TH2.h"
 
 class H10;
+
+using namespace std;
 
 class DataHandler
 {
@@ -62,11 +66,11 @@ class DataHandler
         /* Finalize after all events processed */
         virtual void Finalize(H10 *d) = 0;
         std::string GetName() { return fName; }
-        vector<TH2*> MakeHists(Int_t N, const char* nametmpl, const char* titletmpl,
+        std::vector<TH2*> MakeHists(Int_t N, const char* nametmpl, const char* titletmpl,
             Int_t nbinsx, Float_t xlo, Float_t xhi,
             Int_t nbinsy, Float_t ylo, Float_t yhi)
         {
-            vector<TH2*> ret(N);
+            std::vector<TH2*> ret(N);
             for (int n = 1; n <= N; n++)
             {
                 TString name = TString::Format(nametmpl,n);
