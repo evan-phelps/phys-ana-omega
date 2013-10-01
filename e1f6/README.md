@@ -41,32 +41,36 @@ Produces common histograms that are interesting to look at between various event
 
 ## Procedures
 
-* Determine electron identification parameters
-** jget selection of cooked data files for selected experiment
-*** /mss/clas/e1f/production/pass2/v1/data/
-*** /mss/clas/e1-6a/production/pass2/v1/data/
-** convert to hbook and root
-    for fn in $(ls run*.1); do nt10maker -t1 -o$fn.hbook $fn && h2root $fn.hbook; done
-** in root/CInt, create histograms for parameter extraction
-    .L Config.cpp+
-    .L DataHandler.h+
-    .L HandlerChain.cpp+
-    .L H10.C+
-    .L DH_EC_Hists_PreEid.h+
-    TFile *fout = new TFile("EC_Hists_e16.root","create")
-    TChain *c = new TChain("h10")
-    c->Add("*.root")
-    H10 *h10proc = new H10(c, "e16")
-    h10proc->Add(new DH_EC_Hists_PreEid("ecpreeid", fout))
-    h10proc->Loop()
-** copy root file to local computer
-** use ../worksheets/eid.ipynb to generate figures and get parameters
-** copy parameters into appropriate input file:
-*** input.e16.exp.parms
-*** input.e1f.exp.parms
-* Create data skim
-** perform several data handling tasks on this process:
-*** run quality
-*** electron identification
-*** accumulate histograms for momentum corrections
-*** clone h10 for skimmed events
+1. Determine electron identification parameters
+    + jget selection of cooked data files for selected experiment
+        - /mss/clas/e1f/production/pass2/v1/data/
+        - /mss/clas/e1-6a/production/pass2/v1/data/
+    + convert to hbook and root
+        <pre><code>for fn in $(ls run*.1); do nt10maker -t1 -o$fn.hbook $fn && h2root $fn.hbook; done</code></pre>
+    + in root/CInt, create histograms for parameter extraction
+        <pre><code>.L Config.cpp+
+        .L DataHandler.h+
+        .L HandlerChain.cpp+
+        .L H10.C+
+        .L DH_EC_Hists_PreEid.h+
+        TFile *fout = new TFile("EC_Hists_e16.root","create")
+        TChain *c = new TChain("h10")
+        c->Add("*.root")
+        H10 *h10proc = new H10(c, "e16")
+        h10proc->Add(new DH_EC_Hists_PreEid("ecpreeid", fout))
+        h10proc->Loop()</code></pre>
+    + copy root file to local computer
+    + use ../worksheets/eid.ipynb to generate figures and get parameters
+    + copy parameters into appropriate input file:
+        - input.e16.exp.parms
+        - input.e1f.exp.parms
+1. Create data skim
+    + perform several data handling tasks on this process:
+        - run quality
+        - electron identification
+        - accumulate histograms for momentum corrections
+        - clone h10 for skimmed events
+1. Determine or use existing electron momentum corrections
+1. Determine electron fiducial cut parameters
+1. Determine hadron identification parameters
+1. Determine hadron fiducial cut parameters
