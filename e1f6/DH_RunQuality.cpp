@@ -2,18 +2,17 @@
 #include "DH_RunQuality.h"
 #endif
 #include <iostream>
-#include <math.h>
-#include <stdlib.h>
 #include <vector>
 #include <algorithm>
 #include "TObject.h"
+#include "TMath.h"
 
 #ifndef H10CONSTANTS_H_
 #include "H10Constants.h"
 #endif
 
 using namespace H10Constants;
-using namespace std;
+//using namespace std;
 
 DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(name, pDir)
 {
@@ -202,8 +201,8 @@ void DH_RunQuality::FillHists(H10 *d)
         if (scidx>=0) hq2_V_w->Fill(W, Q2);
         if (d->npart==2 && d->id[1]==PROTON)
         {
-            if (abs(-d->p[0]*d->cx[0]-d->p[1]*d->cx[1])<0.05
-                && abs(-d->p[0]*d->cy[0]-d->p[1]*d->cy[1])<0.05)
+            if (TMath::Abs(-d->p[0]*d->cx[0]-d->p[1]*d->cx[1])<0.05
+                && TMath::Abs(-d->p[0]*d->cy[0]-d->p[1]*d->cy[1])<0.05)
             {
                 if (scidx>=0) hq2_V_w_elast_exc->Fill(W, Q2);
             }
