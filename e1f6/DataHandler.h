@@ -75,11 +75,12 @@ class DataHandler
             {
                 TString name = TString::Format(nametmpl,n);
                 TString title = TString::Format(titletmpl,n);
-                ret.push_back(new TH2D(name.Data(), title.Data(), nbinsx, xlo, xhi, nbinsy, ylo, yhi));
+                ret[n-1] = new TH2D(name.Data(), title.Data(), nbinsx, xlo, xhi, nbinsy, ylo, yhi);
             }
             return ret;
         }
         static void WriteObj(TObject *o) { o->Write(); };
+        static void DeleteObj(TObject *o) { delete o; };
 
         Bool_t IsElastic()
         {

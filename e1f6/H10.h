@@ -298,6 +298,7 @@ class H10
         Float_t E0, nu, Q2,  W,  s, t, t0, t1,
                 MMp, MMppip, MMppim, MMppippim,
                 cosTheta, phi;
+        Int_t np, npip, npim, npos, nneg;
 };
 #endif
 
@@ -324,6 +325,7 @@ H10::H10(TTree *tree, std::string experiment)
     fRegExp_run = new TRegexp("[0-9][0-9][0-9][0-9][0-9]");
     fRegExp_Anum = new TRegexp("[Aa][0-9][0-9]");
     E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
+    np = npip = npim = npos = nneg = 0;
     lvE0.SetXYZM(0,0,beamEnergy,MASS_E);
     lvP0.SetXYZM(0,0,0,MASS_P);
     Init(tree);

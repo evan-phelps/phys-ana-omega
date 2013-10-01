@@ -45,6 +45,10 @@ class DH_EC_Hists_PreEid : public DataHandler
         virtual ~DH_EC_Hists_PreEid()
         {
             fDir->cd();
+            for_each(hsf_V_p_clean.begin(), hsf_V_p_clean.end(), DeleteObj);
+            for_each(heo_V_ei_clean.begin(), heo_V_ei_clean.end(), DeleteObj);
+            for_each(hsf_V_p_clean_anti.begin(), hsf_V_p_clean_anti.end(), DeleteObj);
+            for_each(heo_V_ei_clean_anti.begin(), heo_V_ei_clean_anti.end(), DeleteObj);
         }
         virtual void Finalize(H10* d)
         {

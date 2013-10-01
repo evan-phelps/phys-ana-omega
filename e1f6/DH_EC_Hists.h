@@ -45,6 +45,11 @@ class DH_EC_Hists : public DataHandler
         virtual ~DH_EC_Hists()
         {
             fDir->cd();
+            for_each(hsf_V_p.begin(), hsf_V_p.end(), DeleteObj);
+            for_each(hsf_V_p.begin(), hsf_V_p.end(), DeleteObj);
+            for_each(heo_V_ei.begin(), heo_V_ei.end(), DeleteObj);
+            for_each(hsf_V_p_anti.begin(), hsf_V_p_anti.end(), DeleteObj);
+            for_each(heo_V_ei_anti.begin(), heo_V_ei_anti.end(), DeleteObj);
         }
         virtual void Finalize(H10* d)
         {

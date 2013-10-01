@@ -18,6 +18,8 @@ using namespace std;
 DH_RunQuality::DH_RunQuality(std::string name, TDirectory *pDir) : DataHandler(name, pDir)
 {
     fLb.lumblock_num = 0;
+    fQl_last = fAnum_last = 0;
+    fRun_last = -1;
     Clear();
     firstfile = true;
     a00exists = true;
@@ -72,6 +74,8 @@ DH_RunQuality::~DH_RunQuality()
     delete lvP1;
     delete lvPip;
     delete lvPim;
+    for_each(hq2_V_wS.begin(), hq2_V_wS.end(), DeleteObj);
+    for_each(hq2_V_w_elast_excS.begin(), hq2_V_w_elast_excS.end(), DeleteObj);
 }
 
 
@@ -98,6 +102,7 @@ void DH_RunQuality::Finalize(H10 *d)
     fDir->cd();
     lumblocks->Write("", TObject::kOverwrite);
     for_each(hq2_V_wS.begin(), hq2_V_wS.end(), WriteObj);
+    for_each(hq2_V_w_elast_excS.begin(), hq2_V_w_elast_excS.end(), WriteObj);
 }
 
 

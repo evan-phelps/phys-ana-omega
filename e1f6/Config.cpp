@@ -82,8 +82,6 @@ vector< vector<float> > Config::GetSectorParms(const char* label)
         TObjArray *toks = tmp.Tokenize(",");
         Int_t sector = ((TObjString*)toks->At(0))->GetString().Atoi();
         vector<float> parms;
-        parms.resize(6);
-        parms.reserve(6);
         //iterate over tokens 1..N pushing back onto parms
         TIter next(toks);
         while (TObjString *parmstr = (TObjString*)next())

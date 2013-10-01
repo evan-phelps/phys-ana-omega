@@ -27,3 +27,4 @@ input/*.so
 !e1f6/*.h
 !e1f6/*.cpp
 !e1f6/*.py
+!e1f6/README.md

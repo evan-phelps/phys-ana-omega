@@ -26,6 +26,19 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         if (ientry < 0) break;
         PrintProgress(jentry);
         //data->CheapPop(ientry);
+        E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
+        np = npip = npim = 0;
+        lvE1.SetXYZM(0,0,0,0);
+        lvP1.SetXYZM(0,0,0,0);
+        lvPip.SetXYZM(0,0,0,0);
+        lvPim.SetXYZM(0,0,0,0);
+        lvW.SetXYZM(0,0,0,0);
+        lvq.SetXYZM(0,0,0,0);
+        lvMMp.SetXYZM(0,0,0,0);
+        lvMMppip.SetXYZM(0,0,0,0);
+        lvMMppim.SetXYZM(0,0,0,0);
+        lvMMppippim.SetXYZM(0,0,0,0);
+
         GetEntry(jentry);
 
         E0 = beamEnergy;
@@ -53,12 +66,15 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
             for (int ipart = 1; ipart < gpart; ipart++) {
                 switch(id[ipart]) {
                     case 2212:
+                        np++;
                         if (idx[0]==0) idx[0]=ipart;
                         break;
                     case 211:
+                        npip++;
                         if (idx[1]==0) idx[1]=ipart;
                         break;
                     case -211:
+                        npim++;
                         if (idx[2]==0) idx[2]=ipart;
                         break;
                     default:
@@ -66,7 +82,7 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
                 }
             }
             if (idx[0]>0) {
-                lvP1.SetXYZM(p[0]*cx[0], p[0]*cy[0], p[0]*cz[0], MASS_P);
+                lvP1.SetXYZM(p[idx[0]]*cx[idx[0]], p[idx[0]]*cy[idx[0]], p[idx[0]]*cz[idx[0]], MASS_P);
                 t = (lvP1-lvP0).M2();
                 lvMMp = lvW-lvP1;
                 MMp = lvMMp.M();
@@ -97,8 +113,13 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
                 _mmp.Transform(_4rot);
                 cosTheta = _mmp.CosTheta();
                 phi = _mmp.Phi();
+                //printf("(%.2f, %.2f)\n", phi, cosTheta);
                 t = (lvP1-lvP0).M2();
-                t0 = pow(lvP0.E()-lvP1.E(),2)-pow(lvP0.P()-lvP1.P(),2);
+                TLorentzVector _p0 = lvP0;
+                TLorentzVector _p1 = lvP1;
+                _p0.Transform(_4rot);
+                _p1.Transform(_4rot);
+                t0 = pow(_p0.E()-_p1.E(),2)-pow(_p0.P()-_p1.P(),2);
                 t1 = t-t0;
             }
         }

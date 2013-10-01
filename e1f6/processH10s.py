@@ -3,7 +3,8 @@
 import ROOT as r
 
 for dep in ['Config.cpp', 'DataHandler.h', 'HandlerChain.cpp', 'H10.C',
-            'DH_RunQuality.cpp', 'DH_CloneH10.h', 'DH_EC_Hists.h']:
+            'DH_RunQuality.cpp', 'DH_CloneH10.h', 'DH_EC_Hists.h',
+            'DH_EC_Hists_PreEid.h', 'DH_Hists_Monitor.h']:
     r.gROOT.ProcessLine('.L %s+' % dep)
 
 fout = r.TFile('test.root', 'RECREATE')

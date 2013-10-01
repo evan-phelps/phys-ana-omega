@@ -59,7 +59,7 @@ class DH_RunQuality: public DataHandler
         vector<TH2*> hq2_V_w_elast_excS;
         TH2 *hmmppippim_V_mmp;
     protected:
-        float fQl_last = 0, fAnum_last = 0, fRun_last = -1;
+        float fQl_last, fAnum_last, fRun_last;
         bool firstfile, a00exists;
         TLorentzVector *lvE0, *lvE1, *lvP0, *lvP1, *lvPip, *lvPim;
         void Clear();
