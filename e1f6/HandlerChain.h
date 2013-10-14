@@ -14,6 +14,7 @@ class HandlerChain
         HandlerChain() { };
         virtual ~HandlerChain();
         virtual void Add(DataHandler *dh);
+        virtual void Setup(H10 *d);
         virtual bool Process(H10 *d);
         virtual void Finalize(H10 *d);
     protected:

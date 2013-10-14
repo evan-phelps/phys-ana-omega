@@ -9,6 +9,7 @@ using namespace std;
 
 Config::Config(const char* filename)
 {
+    cout << "Loading configuration from " << filename << endl;
     propfile.open(filename);
     string commentchar = "#";
     string line, key, value;
@@ -17,12 +18,10 @@ Config::Config(const char* filename)
         while (propfile.good())
         {
             propfile >> key;
-            if (key.compare(0, 1, commentchar) == 0)
-            {
-                propfile.ignore(1024);
-            }
-            else
-            {
+            if (key.compare(0, 1, commentchar) == 0) {
+                //cout << "ignoring comment line" << endl;
+                propfile.ignore(1024, '\n');
+            } else {
                 propfile >> value;
                 propsmap.insert(pair<string,string>(key,value));
                 cout << key << ":" << value << endl;
@@ -48,6 +47,7 @@ TObjArray* Config::GetProperties(const char* label)
         TString tmp(it->second.data());
         propvals->Add(tmp.Tokenize(","));
     }
+    propvals->Compress();
     return propvals;
 }
 
@@ -73,7 +73,7 @@ Float_t Config::GetFloat(const char* label)
 
 vector< vector<float> > Config::GetSectorParms(const char* label)
 {
-    vector< vector<float> > ret;
+    vector< vector<float> > ret(6);
     pair <multimap<string,string>::iterator,multimap<string,string>::iterator> its;
     its = propsmap.equal_range((string)label);
     for (multimap<string,string>::iterator it = its.first; it != its.second; ++it)
@@ -83,6 +83,8 @@ vector< vector<float> > Config::GetSectorParms(const char* label)
         Int_t sector = ((TObjString*)toks->At(0))->GetString().Atoi();
         vector<float> parms;
         //iterate over tokens 1..N pushing back onto parms
+        toks->RemoveAt(0);
+        toks->Compress();
         TIter next(toks);
         while (TObjString *parmstr = (TObjString*)next())
         {

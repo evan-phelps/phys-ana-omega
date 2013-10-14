@@ -16,6 +16,41 @@ Produces histograms for first particle of each event with overly strong electron
 
 Should perhaps be called DH_RunQuality_and_ChargeSkimmer.  It not only builds a luminosity-block-level tree of event counts and accumulated Faraday-cup charge, but it also picks out events that have a negative first detected particle plus either (a) 2 positive, 0 negative, (b) 1 positive, 1 negative, or (c) 2 positive, 1 negative particles (any number of neutrals are allowed).
 
+For each run, block entries are accumulated.  Each entry includes block-level values.
+
+        file_name
+        run_num
+        file_num
+        lumblock_num
+        evt_num_first
+        evt_num_last
+        fc_charge_ltcorr
+        livetime
+        ntrigs
+        ne
+        np
+        npip
+        npim
+        nevts_Neg1st
+        nevts_Neg1st_2Pos_exc
+        nevts_Neg1st_1Pos1Neg_exc
+        nevts_Neg1st_2Pos1Neg_exc
+
+Two electron-sector-specific histograms are filled:
+
+* hq2_V_w
+* hq2_V_w_elast_exc
+
+And one histogram of fully exclusive events:
+
+* hmmppippim_V_mmp
+
+In the same event loop, an "h10" skimmed event tree is populated for events that have
+
+1. gpart < 8
+1. negative particle first
+1. exactly 2 positive OR 1 positive, 1 negative OR 2 positive, 1 negative
+
 ### DH_Eid
 
 Side effect:  etot = etot > ec_ei+ec_eo ? etot : ec_ei+ec_eo
@@ -34,7 +69,6 @@ The last two items depend on parameters from output parameters of ../worksheets/
 ### DH_CloneH10
 
 Clones the h10 tree for events surviving cuts imposed by previous data handlers.
-
 ### DH_Hists_Monitor
 
 Produces common histograms that are interesting to look at between various event selection schemes.

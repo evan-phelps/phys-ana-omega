@@ -10,6 +10,7 @@
 #include "TObjArray.h"
 #include "TString.h"
 #include "TH2.h"
+#include "TH1.h"
 
 class H10;
 
@@ -59,6 +60,7 @@ class DataHandler
             delete fDir;
         };
         void SetH10Looper(H10 *h10looper) { _h10looper = h10looper; }
+        virtual void Setup(H10 *d) {  };
         /* Handle event */
         virtual bool Handle(H10 *d) = 0;
         /* Wrapup event if event passes all filters/handlers */
@@ -76,6 +78,18 @@ class DataHandler
                 TString name = TString::Format(nametmpl,n);
                 TString title = TString::Format(titletmpl,n);
                 ret[n-1] = new TH2D(name.Data(), title.Data(), nbinsx, xlo, xhi, nbinsy, ylo, yhi);
+            }
+            return ret;
+        }
+        std::vector<TH1*> MakeHists(Int_t N, const char* nametmpl, const char* titletmpl,
+            Int_t nbinsx, Float_t xlo, Float_t xhi)
+        {
+            std::vector<TH1*> ret(N);
+            for (int n = 1; n <= N; n++)
+            {
+                TString name = TString::Format(nametmpl,n);
+                TString title = TString::Format(titletmpl,n);
+                ret[n-1] = new TH1D(name.Data(), title.Data(), nbinsx, xlo, xhi);
             }
             return ret;
         }

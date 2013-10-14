@@ -298,6 +298,7 @@ class H10
         Float_t E0, nu, Q2,  W,  s, t, t0, t1,
                 MMp, MMppip, MMppim, MMppippim,
                 cosTheta, phi;
+        int sector;
         Int_t np, npip, npim, npos, nneg;
 };
 #endif
@@ -314,6 +315,7 @@ H10::H10(TTree *tree, std::string experiment)
         std::string emsg = "experiment not recognized! must be e1f or e16";
         throw new std::runtime_error(emsg.c_str());
     }
+    sector = 0;
     is_sim = kFALSE;
     run = -1;
     beamEnergy = cfg->GetFloat("beam_energy");

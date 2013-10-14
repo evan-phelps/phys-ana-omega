@@ -5,6 +5,15 @@ void HandlerChain::Add(DataHandler *dh)
     _handlers.push_back(dh);
 }
 
+void HandlerChain::Setup(H10 *d)
+{
+    unsigned int hnum = 0;
+    for (hnum = 0; hnum < _handlers.size(); hnum++)
+    {
+        DataHandler *h = _handlers[hnum];
+        h->Setup(d);
+    }   
+}
 
 bool HandlerChain::Process(H10 *d)
 {

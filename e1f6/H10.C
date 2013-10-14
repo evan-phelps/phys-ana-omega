@@ -17,6 +17,9 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
     std::cout << "ntoproc = " << ntoproc << std::endl;
     _ntoprocess = ntoproc;
     //Long64_t nbytes = 0, nb = 0;
+
+    fHandlerChain->Setup(this);
+
     _swmain.Start();
     _swgroup.Start();
     for (Long64_t jentry_el=0; jentry_el<ntoproc; jentry_el++)
@@ -60,7 +63,11 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         Q2 = -lvq.M2();
         s = lvW.M2();
         W = lvW.M();
-
+        double phi = lvE1.Phi();        //returns -pi to pi
+        if (phi <= -PI/6) phi += 2*PI;  //sector 1 is between -30 and 30 degrees
+        phi += PI/6;                    //shift so that sector 1 relates to 0 to 60
+        sector = phi/(PI/3)+1;          //divide by 60, truncate to int add one
+        if (sector == 7) sector = 1;    //identify 360 with 0
         int idx[] = {0,0,0};    // h10 idx of proton, pip, pim
         if (gpart>1) {
             for (int ipart = 1; ipart < gpart; ipart++) {
