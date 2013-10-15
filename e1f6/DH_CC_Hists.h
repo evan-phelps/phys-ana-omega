@@ -30,7 +30,7 @@ class DH_CC_Hists : public DataHandler
         DH_CC_Hists(std::string name = "CC_Hists", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
             fDir->cd();
-            hnphe_V_pmtS = MakeHists(NPMTS, "hnphe_V_pmt_s%d", "sector %d", NPMTS, 0.5, NPMTS+0.5, 401, -0.5, 400.5);
+            hnphe_V_pmtS = MakeHists(NPMTS, "hnphe_V_pmt_s%d", "sector %d", NPMTS, 0.5, NPMTS+0.5, 175, -0.5, 349.5);
         }
         virtual ~DH_CC_Hists()
         {

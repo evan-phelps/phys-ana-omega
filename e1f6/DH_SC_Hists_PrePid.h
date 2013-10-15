@@ -43,9 +43,9 @@ class DH_SC_Hists_PrePid : public DataHandler
             hdt_V_p_neg_eS.resize(NSECTS);
             hdt_V_p_neg_e_part1S.resize(NSECTS);
             hm_V_pdlS = MakeHists(NSECTS, "hm_V_pdl_s%d", "hadron mass spectrum per paddle, sector %d",
-                48, 0.5, 48.5, 1800, -0.4, 1.4);
+                48, 0.5, 48.5, 450, -0.4, 1.4);
             hetime_V_pdlS = MakeHists(NSECTS, "hetime_V_pdl_s%d", "electron time per paddle, sector %d",
-                24, 0.5, 24.5, 600, -3, 3);
+                24, 0.5, 24.5, 50, -1, 1);
             for (int isect = 0; isect < NSECTS; isect++) {
                 TString title = TString::Format("particle id, positive, assume p, sector %d, paddle %s",isect+1, "%d");
                 TString name = TString::Format("hdt_V_p_pos_p_s%d_p%s",isect+1, "%d");
