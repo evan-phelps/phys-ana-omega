@@ -104,6 +104,31 @@ Produces common histograms that are interesting to look at between various event
         - electron identification
         - accumulate histograms for momentum corrections
         - clone h10 for skimmed events
+        <pre><code>.L Config.cpp+
+        .L DataHandler.h+
+        .L HandlerChain.cpp+
+        .L H10.C+
+        .L DH_EC_Hists_PreEid.h+
+        .L DH_RunQuality.cpp+
+        .L DH_EC_Hists.h+
+        .L DH_CloneH10.h+
+        .L DH_Hists_Monitor.h+
+        .L DH_Eid.h+
+        .L DH_SC_Hists_PrePid.h+
+        TFile *fout = new TFile("test.root","recreate")
+        TChain *c = new TChain("h10clone/h10")
+        c->Add("/data/e1f/skim/3812?.root")
+        H10 *h10proc = new H10(c, "e1f")
+        h10proc->Add(new DH_Hists_Monitor("mon_raw", fout))
+        h10proc->Add(new DH_EC_Hists("echists_raw", fout))
+        h10proc->Add(new DH_RunQuality("runquality", fout))
+        h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
+        h10proc->Add(new DH_Hists_Monitor("mon_qskim", fout))
+        h10proc->Add(new DH_Eid("eid", fout))
+        h10proc->Add(new DH_EC_Hists("echists_eskim", fout))
+        h10proc->Add(new DH_Hists_Monitor("mon_eskim", fout))
+        h10proc->Add(new DH_SC_Hists_PrePid("scpid", fout))
+        h10proc->Loop(-1,kFALSE)</code></pre>
 1. Determine or use existing electron momentum corrections
 1. Determine electron fiducial cut parameters
 1. Determine hadron identification parameters
