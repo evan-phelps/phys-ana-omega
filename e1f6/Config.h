@@ -1,8 +1,12 @@
+#ifndef CONFIG_H_
+#define CONFIG_H_
 #include <iostream>
 #include <map>
 #include <fstream>
-#include "TObjArray.h"
 #include <vector>
+#include "TObjArray.h"
+
+using namespace std;
 
 class Config
 {
@@ -16,3 +20,4 @@ class Config
         ifstream propfile;
         multimap<std::string,std::string> propsmap;
 };
+#endif //CONFIG_H_
