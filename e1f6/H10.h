@@ -305,16 +305,16 @@ class H10
 
 #ifdef H10_cxx
 
-H10::H10(TTree *tree, std::string experiment)
+H10::H10(TTree *tree, std::string fn_config)
 {
-    // cfg = new Config("input.e16.exp.parms");
-    if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
-    else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
-    else
-    {
-        std::string emsg = "experiment not recognized! must be e1f or e16";
-        throw new std::runtime_error(emsg.c_str());
-    }
+    cfg = new Config(fn_config);
+    // if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
+    // else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
+    // else
+    // {
+    //     std::string emsg = "experiment not recognized! must be e1f or e16";
+    //     throw new std::runtime_error(emsg.c_str());
+    // }
     sector = 0;
     is_sim = kFALSE;
     run = -1;
