@@ -8,30 +8,28 @@ for dep in ['Config.cpp', 'DataHandler.h', 'HandlerChain.cpp', 'H10.C',
             'DH_SC_Hists_PrePid.h', 'DH_CC_Hists.h']:
     r.gROOT.ProcessLine('.L %s+' % dep)
 
+handlers = {
+    "mon_raw": r.DH_Hists_Monitor,
+    "echists_raw": r.DH_EC_Hists_PreEid,
+    "cchists_raw": r.DH_CC_Hists,
+    "runquality": r.DH_RunQuality,
+    "cchists_qskim": r.DH_CC_Hists,
+    "echists_qskim": r.DH_EC_Hists,
+    "mon_qskim": r.DH_Hists_Monitor,
+    "eid": r.DH_Eid,
+    "echists_eskim": r.DH_EC_Hists,
+    "cchists_eskim": r.DH_CC_Hists,
+    "mon_eskim": r.DH_Hists_Monitor,
+    "h10_eskim": r.DH_CloneH10,
+    "scpid_eskim": r.DH_SC_Hists_PrePid
+}
+
 fout = r.TFile('test.root', 'RECREATE')
-
-#handlers = [r.DH_RunQuality('dhrq', fout), r.DH_CloneH10('h10', fout)]
-# handlers = [r.DH_EC_Hists('echists', fout)]
-
 chain = r.TChain('h10')
 chain.Add('~/w/2013_sept/e16_test/*.root')
-processor = r.H10(chain, "e16")
+processor = r.H10(chain, "input.e16.exp.parms")
 
-# for dh in handlers:
-#     processor.Add(dh)
-
-processor.Add(r.DH_Hists_Monitor("mon_raw", fout))
-processor.Add(r.DH_EC_Hists_PreEid("echists_raw", fout))
-processor.Add(r.DH_CC_Hists("cchists_raw", fout))
-processor.Add(r.DH_RunQuality("runquality", fout))
-processor.Add(r.DH_CC_Hists("cchists_qskim", fout))
-processor.Add(r.DH_EC_Hists("echists_qskim", fout))
-processor.Add(r.DH_Hists_Monitor("mon_qskim", fout))
-processor.Add(r.DH_Eid("eid", fout))
-processor.Add(r.DH_EC_Hists("echists_eskim", fout))
-processor.Add(r.DH_CC_Hists("cchists_eskim", fout))
-processor.Add(r.DH_Hists_Monitor("mon_eskim", fout))
-processor.Add(r.DH_CloneH10("h10_eskim", fout));
-processor.Add(r.DH_SC_Hists_PrePid("scpid_eskim", fout))
+for name, handler in handlers.items():
+    processor.Add(handler(name, fout))
 
 processor.Loop(1000, False)

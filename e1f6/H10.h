@@ -307,7 +307,7 @@ class H10
 
 H10::H10(TTree *tree, std::string fn_config)
 {
-    cfg = new Config(fn_config);
+    cfg = new Config(fn_config.c_str());
     // if (experiment == "e1f") cfg = new Config("input.e16.exp.parms");
     // else if(experiment == "e16") cfg = new Config("input.e1f.exp.parms");
     // else
