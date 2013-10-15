@@ -28,14 +28,18 @@ class DH_Eid : public DataHandler
         vector< vector<float> > parms_sf_hi_pol3;
         vector< vector<float> > parms_sf_lo_pol3;
         vector< vector<float> > parms_ei_lo_pol0;
+        float ec_pmom_lo;
         vector<TH1*> heidS;
         vector<TH1*> heidindS;
+        int nconditions;
 
         DH_Eid(std::string name = "DH_EC_Eid", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
+            nconditions = 12;
+            ec_pmom_lo = 0;
             fDir->cd();
-            heidS = MakeHists(NSECTS, "heid_%d", "electron id summary, sector %d", 11, -0.5, 10.5);
-            heidindS = MakeHists(NSECTS, "heidind_%d", "electron id summary, independent, sector %d", 11, -0.5, 10.5);
+            heidS = MakeHists(NSECTS, "heid_%d", "electron id summary, sector %d", nconditions, -0.5, nconditions-0.5);
+            heidindS = MakeHists(NSECTS, "heidind_%d", "electron id summary, independent, sector %d", nconditions, -0.5, nconditions-0.5);
         }
         virtual ~DH_Eid()
         {
@@ -48,6 +52,7 @@ class DH_Eid : public DataHandler
             parms_sf_lo_pol3 = d->cfg->GetSectorParms("ec_sf_lo_pol3");
             parms_sf_hi_pol3 = d->cfg->GetSectorParms("ec_sf_hi_pol3");
             parms_ei_lo_pol0 = d->cfg->GetSectorParms("ec_ei_lo");
+            ec_pmom_lo = d->cfg->GetFloat("ec_pmom_lo");
             // printf("read parameters:\n");
             // for (int isect = 0; isect < NSECTS; isect++) {
             //     printf("%.3f, %.3f, %.3f, %.3f\n", parms_sf_lo_pol3[isect][0], parms_sf_lo_pol3[isect][1], parms_sf_lo_pol3[isect][2], parms_sf_lo_pol3[isect][3]);
@@ -81,19 +86,20 @@ class DH_Eid : public DataHandler
             if (dcidx >= 0) dcsect = d->dc_sect[dcidx];
             
             bool isE = d->id[0] == ELECTRON, isSC = d->sc[0]>0, isCC = d->cc[0]>0, isEC = d->ec[0]>0, isDC = d->dc[0]>0,
-                 isStatGood = d->stat[0]>0, isDcStatGood = (dcidx>=0 && d->dc_stat[dcidx]>0);
+                 isStatGood = d->stat[0]>0, isDcStatGood = (dcidx>=0 && d->dc_stat[dcidx]>0), isPmom = d->p[0]>ec_pmom_lo;
 
             bool isSameSector = (isSC && isCC && isDC && isEC && d->sector==scsect && d->sector==ccsect && d->sector==dcsect && d->sector==ecsect);
             bool isEi = (isEC && d->ec_ei[ecidx] > parms_ei_lo_pol0[ecsect-1][0]);
             bool isSF = (isEC && sf > sflo && sf < sfhi);
             
-            bool barr[] = {true, isE, isSC, isCC, isEC, isDC, isSameSector, isStatGood, isDcStatGood, isEi, isSF};
-            for (int i = 0; i < 11; i++) {
+            bool barr[] = {true, isE, isSC, isCC, isEC, isDC, isSameSector, isStatGood, isDcStatGood, isPmom, isEi, isSF};
+            for (int i = 0; i < nconditions; i++) {
                 if (barr[i]) heidindS[d->sector-1]->Fill(i);
                 passed = passed ? barr[i] : false;          //if false, don't switch back to true
                 if (passed && barr[i]) heidS[d->sector-1]->Fill(i);
             }
 
+            if (passed) d->id[0] = 11;
             return passed;
         }
         virtual void Wrapup(H10* d)
