@@ -5,7 +5,7 @@ import ROOT as r
 import getopt
 
 def usage():
-    print('processH10s [-f] [-c <parmsfilepath>] [-i <inputstring>] [-N <numtoproc>]')
+    print('processH10s [-f] [-c <parmsfilepath>] [-i <inputstring>] [-N <numtoproc>] [-t treepath] [-o outfile]')
     print('     -f  activate fast count at expense of accurate progress.')
 
 def main(argv):
@@ -32,6 +32,8 @@ def main(argv):
             numproc = arg
         elif opt == '-t':
             treepath = arg
+        elif opt == '-o':
+            outfile = arg
         elif opt == '-f':
             fastcount = True
 
