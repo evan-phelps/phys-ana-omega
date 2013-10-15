@@ -45,7 +45,7 @@ class DH_SC_Hists_PrePid : public DataHandler
             hm_V_pdlS = MakeHists(NSECTS, "hm_V_pdl_s%d", "hadron mass spectrum per paddle, sector %d",
                 48, 0.5, 48.5, 450, -0.4, 1.4);
             hetime_V_pdlS = MakeHists(NSECTS, "hetime_V_pdl_s%d", "electron time per paddle, sector %d",
-                24, 0.5, 24.5, 50, -1, 1);
+                24, 0.5, 24.5, 40, -1, 1);
             for (int isect = 0; isect < NSECTS; isect++) {
                 TString title = TString::Format("particle id, positive, assume p, sector %d, paddle %s",isect+1, "%d");
                 TString name = TString::Format("hdt_V_p_pos_p_s%d_p%s",isect+1, "%d");
@@ -61,7 +61,7 @@ class DH_SC_Hists_PrePid : public DataHandler
                 hdt_V_p_neg_eS[isect] = MakeHists(NPDLS, name.Data(), title.Data(), 500, 0, 5, 400, -10, 10);
                 title = TString::Format("particle id, negitive, assume e, 1st part, sector %d, paddle %s",isect+1, "%d");
                 name = TString::Format("hdt_V_p_neg_e_part1_s%d_p%s",isect+1, "%d");
-                hdt_V_p_neg_e_part1S[isect] = MakeHists(NPDLS, name.Data(), title.Data(), 500, 0, 5, 400, -10, 10);
+                hdt_V_p_neg_e_part1S[isect] = MakeHists(NPDLS, name.Data(), title.Data(), 500, 0, 5, 40, -1, 1);
             }
         }
         virtual ~DH_SC_Hists_PrePid()
