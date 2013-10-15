@@ -15,7 +15,7 @@ def main(argv):
     treepath = 'h10'
 
     try:
-        opts, args = getopt.getopt(argv, "hc:i:N:ft:", ['help', 'config=', 'input='])
+        opts, args = getopt.getopt(argv, "hc:i:N:ft:o:", ['help', 'config=', 'input='])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -29,7 +29,7 @@ def main(argv):
         elif opt in ('-i', '--input'):
             rootfilepattern = arg
         elif opt == '-N':
-            numproc = arg
+            numproc = int(arg)
         elif opt == '-t':
             treepath = arg
         elif opt == '-o':
@@ -66,7 +66,6 @@ def main(argv):
 
     for name, handler in handlers.items():
         processor.Add(handler(name, fout))
-    print('******* ', numproc)
     processor.Loop(numproc, fastcount)
 
 if __name__ == "__main__":
