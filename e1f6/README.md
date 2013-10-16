@@ -99,6 +99,13 @@ Produces common histograms that are interesting to look at between various event
         - input.e16.exp.parms
         - input.e1f.exp.parms
 1. Create data skim
+    + see worksheet "run_list" to produce xml submission files
+        - CDATA execution line reads
+            <pre><code>bash -l -c "python ~/omega/src/processH10s.py -b -o out.root -w ~/omega/src -c ~/omega/src/input.e16.exp.parms"</code></pre>
+        - sequential folder/handler names in pipeline:
+            <pre>mon_raw, echists_raw, cchists_raw, runquality, cchists_qskim, echists_qskim, mon_qskim, eid, echists_eskim, cchists_eskim, mon_eskim, h10_eskim, scpid_eskim</pre>
+            <pre>DH_Hists_Monitor, DH_EC_Hists_PreEid, DH_CC_Hists, DH_RunQuality, DH_CC_Hists, DH_EC_Hists,
+        DH_Hists_Monitor, DH_Eid, DH_EC_Hists, DH_CC_Hists, DH_Hists_Monitor, DH_CloneH10, DH_SC_Hists_PrePid</pre>
     + perform several data handling tasks on this process:
         - run quality
         - electron identification
