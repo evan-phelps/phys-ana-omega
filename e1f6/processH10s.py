@@ -3,6 +3,7 @@
 import sys
 import ROOT as r
 import getopt
+from subprocess import call
 
 
 def usage():
@@ -17,10 +18,11 @@ def main(argv):
     numproc, fastcount = -1, False
     treepath = 'h10'
     wdir = '.'
+    bos = False
 
     try:
         opts, args = getopt.getopt(
-            argv, "hc:i:N:ft:o:w:", ['help', 'config=', 'input='])
+            argv, "hc:i:N:ft:o:w:b", ['help', 'config=', 'input='])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -43,6 +45,18 @@ def main(argv):
             wdir = arg
         elif opt == '-f':
             fastcount = True
+        elif opt == '-b':
+            bos = True
+
+    if bos:
+        try:
+            retcode = call("for bosfile in $(ls *.bos); do nt10maker -t1 $bosfile -o${bosfile}.hbook && h2root ${bosfile}.hbook && rm $bosfile $bosfile.hbook; done", shell=True)
+            if retcode < 0:
+                print >>sys.stderr, "Child was terminated by signal", -retcode
+            else:
+                print >>sys.stderr, "Child returned", retcode
+        except OSError as e:
+            print >>sys.stderr, "Execution failed:", e
 
     for dep in ['Config.cpp', 'DataHandler.h', 'HandlerChain.cpp', 'H10.C',
                 'DH_EC_Hists_PreEid.h', 'DH_RunQuality.cpp', 'DH_EC_Hists.h',
