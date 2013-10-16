@@ -72,15 +72,15 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         if (gpart>1) {
             for (int ipart = 1; ipart < gpart; ipart++) {
                 switch(id[ipart]) {
-                    case 2212:
+                    case PROTON:
                         np++;
                         if (idx[0]==0) idx[0]=ipart;
                         break;
-                    case 211:
+                    case PIP:
                         npip++;
                         if (idx[1]==0) idx[1]=ipart;
                         break;
-                    case -211:
+                    case PIM:
                         npim++;
                         if (idx[2]==0) idx[2]=ipart;
                         break;
