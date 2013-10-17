@@ -292,6 +292,7 @@ class H10
         virtual void     Loop(Long64_t ntoproc = -1, Bool_t fastcount = kTRUE, TEntryList *elist = 0);
         virtual Bool_t   Notify();
         virtual void     Show(Long64_t entry = -1);
+        void GetUVW(double xyz[3], double uvw[3]);
 
         TLorentzVector  lvE0, lvE1, lvP0, lvP1, lvPip, lvPim,
                         lvW, lvq, lvMMp, lvMMppip, lvMMppim, lvMMppippim;
