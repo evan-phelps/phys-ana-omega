@@ -45,92 +45,8 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
 
         GetEntry(jentry);
 
-        E0 = beamEnergy;
-        //nu = E0-p[0];
-        //Q2 = -(nu*nu-p[0]*p[0]-E0*E0+2*E0*p[0]*cz[0]);
-        //s = -Q2+2*MASS_P*nu+MASS_P*MASS_P;
-        //W = s >= 0 ? sqrt(s) : -sqrt(-s);
+        CalcLVs();
 
-        /* Very inefficient to do this for all events.  Could refactor
-        by moving lv's to DataHandler and allow subclasses to flag for
-        population and check for already-populated state before
-        proceeding.  For now, I'm just populating the lv's here.
-        More simply, it could be pulled into separate data handler
-        to be added into the chain of data handlers when needed! */
-        lvE1.SetXYZM(p[0]*cx[0], p[0]*cy[0], p[0]*cz[0], MASS_E);
-        nu = lvE1[3]-lvE0[3];
-        lvq = lvE0-lvE1;
-        lvW = lvq+lvP0;
-        Q2 = -lvq.M2();
-        s = lvW.M2();
-        W = lvW.M();
-        double _phi = lvE1.Phi();        //returns -pi to pi
-        if (_phi <= -PI/6) _phi += 2*PI;  //sector 1 is between -30 and 30 degrees
-        _phi += PI/6;                    //shift so that sector 1 relates to 0 to 60
-        sector = _phi/(PI/3)+1;          //divide by 60, truncate to int add one
-        if (sector == 7) sector = 1;    //identify 360 with 0
-        int idx[] = {0,0,0};    // h10 idx of proton, pip, pim
-        if (gpart>1) {
-            for (int ipart = 1; ipart < gpart; ipart++) {
-                switch(id[ipart]) {
-                    case PROTON:
-                        np++;
-                        if (idx[0]==0) idx[0]=ipart;
-                        break;
-                    case PIP:
-                        npip++;
-                        if (idx[1]==0) idx[1]=ipart;
-                        break;
-                    case PIM:
-                        npim++;
-                        if (idx[2]==0) idx[2]=ipart;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            if (idx[0]>0) {
-                lvP1.SetXYZM(p[idx[0]]*cx[idx[0]], p[idx[0]]*cy[idx[0]], p[idx[0]]*cz[idx[0]], MASS_P);
-                t = (lvP1-lvP0).M2();
-                lvMMp = lvW-lvP1;
-                MMp = lvMMp.M();
-                if (idx[1]>0) {
-                    lvPip.SetXYZM(p[0]*cx[idx[1]], p[idx[1]]*cy[idx[1]], p[idx[1]]*cz[idx[1]], MASS_PIP);
-                    lvMMppip = lvMMp-lvPip;
-                    MMppip = lvMMppip.M();
-                    if (idx[2]>0) {
-                        lvMMppippim = lvMMppip-lvPim;
-                        MMppippim = lvMMppippim.M();
-                    }
-                }
-                if (idx[2]>0) {
-                    lvPim.SetXYZM(p[idx[2]]*cx[idx[2]], p[idx[2]]*cy[idx[2]], p[idx[2]]*cz[idx[2]], MASS_PIM);
-                    lvMMppim = lvMMp-lvPim;
-                    MMppim = lvMMppim.M();
-                }
-                //4-rotate into boosted frame and get CM variables
-                TVector3 uz = lvq.Vect().Unit();
-                TVector3 ux = (lvE0.Vect().Cross(lvE1.Vect())).Unit();
-                ux.Rotate(-PI/2,uz);
-                TRotation _3rot;
-                _3rot.SetZAxis(uz,ux).Invert();
-                TLorentzRotation _4rot(_3rot);
-                TVector3 _boost(-1*lvW.BoostVector());
-                _4rot *= _boost;
-                TLorentzVector _mmp = lvMMp;
-                _mmp.Transform(_4rot);
-                cosTheta = _mmp.CosTheta();
-                phi = _mmp.Phi();
-                //printf("(%.2f, %.2f)\n", phi, cosTheta);
-                t = (lvP1-lvP0).M2();
-                TLorentzVector _p0 = lvP0;
-                TLorentzVector _p1 = lvP1;
-                _p0.Transform(_4rot);
-                _p1.Transform(_4rot);
-                t0 = pow(_p0.E()-_p1.E(),2)-pow(_p0.P()-_p1.P(),2);
-                t1 = t-t0;
-            }
-        }
         fHandlerChain->Process(this);
     }
 
@@ -140,6 +56,94 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
     printf("Total: (%.2f) %lld/%.2f = %i events/sec\n",percentProcessed,eventnum,ttime,(Int_t)(eventnum/ttime));
 }
 
+void H10::CalcLVs() {
+    E0 = beamEnergy;
+    //nu = E0-p[0];
+    //Q2 = -(nu*nu-p[0]*p[0]-E0*E0+2*E0*p[0]*cz[0]);
+    //s = -Q2+2*MASS_P*nu+MASS_P*MASS_P;
+    //W = s >= 0 ? sqrt(s) : -sqrt(-s);
+
+    /* Very inefficient to do this for all events.  Could refactor
+    by moving lv's to DataHandler and allow subclasses to flag for
+    population and check for already-populated state before
+    proceeding.  For now, I'm just populating the lv's here.
+    More simply, it could be pulled into separate data handler
+    to be added into the chain of data handlers when needed! */
+    lvE1.SetXYZM(p[0]*cx[0], p[0]*cy[0], p[0]*cz[0], MASS_E);
+    nu = lvE1[3]-lvE0[3];
+    lvq = lvE0-lvE1;
+    lvW = lvq+lvP0;
+    Q2 = -lvq.M2();
+    s = lvW.M2();
+    W = lvW.M();
+    double _phi = lvE1.Phi();        //returns -pi to pi
+    if (_phi <= -PI/6) _phi += 2*PI;  //sector 1 is between -30 and 30 degrees
+    _phi += PI/6;                    //shift so that sector 1 relates to 0 to 60
+    sector = _phi/(PI/3)+1;          //divide by 60, truncate to int add one
+    if (sector == 7) sector = 1;    //identify 360 with 0
+    int idx[] = {0,0,0};    // h10 idx of proton, pip, pim
+    if (gpart>1) {
+        for (int ipart = 1; ipart < gpart; ipart++) {
+            switch(id[ipart]) {
+                case PROTON:
+                    np++;
+                    if (idx[0]==0) idx[0]=ipart;
+                    break;
+                case PIP:
+                    npip++;
+                    if (idx[1]==0) idx[1]=ipart;
+                    break;
+                case PIM:
+                    npim++;
+                    if (idx[2]==0) idx[2]=ipart;
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (idx[0]>0) {
+            lvP1.SetXYZM(p[idx[0]]*cx[idx[0]], p[idx[0]]*cy[idx[0]], p[idx[0]]*cz[idx[0]], MASS_P);
+            t = (lvP1-lvP0).M2();
+            lvMMp = lvW-lvP1;
+            MMp = lvMMp.M();
+            if (idx[1]>0) {
+                lvPip.SetXYZM(p[0]*cx[idx[1]], p[idx[1]]*cy[idx[1]], p[idx[1]]*cz[idx[1]], MASS_PIP);
+                lvMMppip = lvMMp-lvPip;
+                MMppip = lvMMppip.M();
+                if (idx[2]>0) {
+                    lvMMppippim = lvMMppip-lvPim;
+                    MMppippim = lvMMppippim.M();
+                }
+            }
+            if (idx[2]>0) {
+                lvPim.SetXYZM(p[idx[2]]*cx[idx[2]], p[idx[2]]*cy[idx[2]], p[idx[2]]*cz[idx[2]], MASS_PIM);
+                lvMMppim = lvMMp-lvPim;
+                MMppim = lvMMppim.M();
+            }
+            //4-rotate into boosted frame and get CM variables
+            TVector3 uz = lvq.Vect().Unit();
+            TVector3 ux = (lvE0.Vect().Cross(lvE1.Vect())).Unit();
+            ux.Rotate(-PI/2,uz);
+            TRotation _3rot;
+            _3rot.SetZAxis(uz,ux).Invert();
+            TLorentzRotation _4rot(_3rot);
+            TVector3 _boost(-1*lvW.BoostVector());
+            _4rot *= _boost;
+            TLorentzVector _mmp = lvMMp;
+            _mmp.Transform(_4rot);
+            cosTheta = _mmp.CosTheta();
+            phi = _mmp.Phi();
+            //printf("(%.2f, %.2f)\n", phi, cosTheta);
+            t = (lvP1-lvP0).M2();
+            TLorentzVector _p0 = lvP0;
+            TLorentzVector _p1 = lvP1;
+            _p0.Transform(_4rot);
+            _p1.Transform(_4rot);
+            t0 = pow(_p0.E()-_p1.E(),2)-pow(_p0.P()-_p1.P(),2);
+            t1 = t-t0;
+        }
+    }
+}
 using namespace TMath;
 
 void H10::GetUVW(double xyz[3], double uvw[3]) {

@@ -293,6 +293,7 @@ class H10
         virtual Bool_t   Notify();
         virtual void     Show(Long64_t entry = -1);
         void GetUVW(double xyz[3], double uvw[3]);
+        void CalcLVs();
 
         TLorentzVector  lvE0, lvE1, lvP0, lvP1, lvPip, lvPim,
                         lvW, lvq, lvMMp, lvMMppip, lvMMppim, lvMMppippim;

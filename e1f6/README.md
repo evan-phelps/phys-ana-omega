@@ -1,12 +1,39 @@
 # README
 
+## Notes
+
+* Having evolved from command-line scripted classes, design is a mess -- too much interdependency between H10, data handlers, and utility functions!
+* need to implement a good particle-level handler concept -- currently requires callback to CalcLVs when particle properties are changed or particles are filtered.
+
 ## H10
 
 H10 is the main processing class that binds h10-formatted trees to variables and controls the event loop.  It has a HandlerChain that manages for each event the conditional execution of a sequence of DataHandlers.
 
 ## HandlerChain
 
+Maintains the queue of data handlers.
+
 ## DataHandler
+
+Data handlers can serve as tree (or binned data) builders, plot builders (monitor), transformers, filters, or any combination of these.  The following table denotes the current status of each handler in terms of function.
+
+| Handler             | trees | plots | transform | filter | notes |
+|:--------------------|:-----:|:-----:|:---------:|:------:|:------|
+| DH_SC_Hists_PrePid  |       |   X   |           |        |       |
+| DH_EC_Hists_PreEid  |       |   X   |           |        |       |
+| DH_CC_Hists         |       |   X   |           |        |       |
+| DH_RunQuality       |   X   |   X   |           |   X    | Q skim |
+| DH_Eid              |       |   X   |     X     |   X    | first particle must be electron to pass |
+| DH_Efid             |       |       |           |   X    | currently skims events with electrons in fiducial volume |
+| DH_Hfid             |       |       |     X     |        | hack: id=0 if outside of fiducial volume |
+| DH_SC_BadPdls       |       |       |     X     |        | hack: id=0 if hits bad paddle |
+| DH_Efid_Hists       |       |   X   |     X     |        | change to "PreEfid"? |
+| DH_Hists_Monitor    |       |   X   |           |        |       |
+| DH_EC_Hists         |       |   X   |           |        |       |
+| DH_CloneH10         |   X   |   X   |           |        |       |
+| DH_H6Maker          |   X   |       |           |        |       |
+
+The two handlers that currently alter the particle id would need to modify H10's lorentz vectors to have a logical effect -- **This is just bad design and needs to be changed!**  Current work-around is to expose access to H10::CalcLVs() for data handlers to call, which recalculates all lorentz vectors, invariants, and rotations.
 
 ### DH_EC_Hists_PreEid
 
@@ -53,7 +80,10 @@ In the same event loop, an "h10" skimmed event tree is populated for events that
 
 ### DH_Eid
 
-Side effect:  etot = etot > ec_ei+ec_eo ? etot : ec_ei+ec_eo
+Side effects:
+
+* etot = etot > ec_ei+ec_eo ? etot : ec_ei+ec_eo
+* filters -- cuts events that do not have a good electron as first particle
 
 Performs identification of strong electron candidates according to the following criteria:
 

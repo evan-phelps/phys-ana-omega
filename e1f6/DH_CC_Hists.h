@@ -22,6 +22,9 @@ class H10;
 using namespace H10Constants;
 using namespace std;
 
+/**
+* DataHandler to produce histograms with number of photo-electrons per CC PMT.
+*/
 class DH_CC_Hists : public DataHandler
 {
     public:

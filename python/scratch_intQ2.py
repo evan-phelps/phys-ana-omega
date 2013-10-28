@@ -60,9 +60,12 @@ def get_f_legs_tu(order=7, ignore=[], tamp=200, uamp=200):
     else:
         retf.SetParLimits(nlegs+2, 0, uamp)
         retf.SetParLimits(nlegs+3, 1, 50)
-    for ipar in range(0, nlegs):
-        retf.SetParLimits(ipar, 0, 1000)
-        retf.SetParName(ipar, 'L_%d_%d' % legs[ipar])
+    # for ipar in range(0, nlegs):
+    #     retf.SetParLimits(ipar, 0, 1000)
+    #     retf.SetParName(ipar, 'L_%d_%d' % legs[ipar])
+    retf.SetParLimits(0, 0, 1000)
+    for ipar in range(1, nlegs):
+        retf.SetParLimits(1, -1000, 1000)
     retf.legs = legs
     return retf
 

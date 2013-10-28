@@ -81,15 +81,11 @@ class DH_Efid : public DataHandler
         }
         TF1* fdphi(float p, int sect)
         {
-            printf("TEST 1\n");
             TString name = TString::Format("fdphi_s%d_p%d", sect, (int)p*1000);
-            printf("TEST 2\n");
             TF1 *ret = new TF1(name.Data(), &dDphi, 0, 100, 10);
-            printf("TEST 3\n");
             ret->SetParameters(parms_efid_F[sect-1][0], parms_efid_F[sect-1][1], parms_efid_F[sect-1][2], parms_efid_F[sect-1][3],
                 parms_efid_t0[sect-1][0], parms_efid_t0[sect-1][1], parms_efid_t0[sect-1][2], bfieldrat,
                 parms_efid_b[sect-1][0], p);
-            printf("TEST 4\n");
             return ret;
         }
         DH_Efid(std::string name = "DH_Efid", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
