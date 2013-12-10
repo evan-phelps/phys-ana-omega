@@ -27,19 +27,13 @@ class DH_EC_Hists : public DataHandler
     public:
         vector<TH2*> hsf_V_p;
         vector<TH2*> heo_V_ei;
-        vector<TH2*> hsf_V_p_anti;
-        vector<TH2*> heo_V_ei_anti;
 
         DH_EC_Hists(std::string name = "EC_Hists", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
             fDir->cd();
-            hsf_V_p = MakeHists(NSECTS, "hsf_V_p_%d", "stat>0, nphe>40, etot>0.14, ei>0.07, sector %d",
+            hsf_V_p = MakeHists(NSECTS, "hsf_V_p_%d", "sector %d",
                 250, 0.0, 5.0, 100, 0.0, 0.5);
-            heo_V_ei = MakeHists(NSECTS, "heo_V_ei_%d", "stat>0, nphe>40, sf>0.26, p>0.64, sector %d",
-                300, 0.0, 0.3, 300, 0.0, 0.3);
-            hsf_V_p_anti = MakeHists(NSECTS, "hsf_V_p_anti_%d", "NOT stat>0, nphe>40, etot>0.14, ei>0.07, sector %d",
-                250, 0.0, 5.0, 100, 0.0, 0.5);
-            heo_V_ei_anti = MakeHists(NSECTS, "heo_V_ei_anti_%d", "NOT stat>0, nphe>40, sf>0.26, p>0.64, sector %d",
+            heo_V_ei = MakeHists(NSECTS, "heo_V_ei_%d", "sector %d",
                 300, 0.0, 0.3, 300, 0.0, 0.3);
         }
         virtual ~DH_EC_Hists()
@@ -47,16 +41,12 @@ class DH_EC_Hists : public DataHandler
             fDir->cd();
             for_each(hsf_V_p.begin(), hsf_V_p.end(), DeleteObj);
             for_each(heo_V_ei.begin(), heo_V_ei.end(), DeleteObj);
-            for_each(hsf_V_p_anti.begin(), hsf_V_p_anti.end(), DeleteObj);
-            for_each(heo_V_ei_anti.begin(), heo_V_ei_anti.end(), DeleteObj);
         }
         virtual void Finalize(H10* d)
         {
             fDir->cd();
             for_each(hsf_V_p.begin(), hsf_V_p.end(), WriteObj);
             for_each(heo_V_ei.begin(), heo_V_ei.end(), WriteObj);
-            for_each(hsf_V_p_anti.begin(), hsf_V_p_anti.end(), WriteObj);
-            for_each(heo_V_ei_anti.begin(), heo_V_ei_anti.end(), WriteObj);
         }
         virtual bool Handle(H10* d)
         {
@@ -66,31 +56,8 @@ class DH_EC_Hists : public DataHandler
             {
                 int ecidx = d->ec[0]-1;
                 int sectidx = d->ec_sect[ecidx]-1;
-                bool critnphe = d->nphe[d->cc[0]-1]>40;
-                bool critsf = d->etot[ecidx]/d->p[0]>0.26 && d->p[0]>0.64;
-                bool critetot = d->etot[ecidx] > 0.14 && d->ec_ei[ecidx] > 0.07;
-                /* CORRECT EC TOTAL ENERGY !!!! */
-                d->etot[ecidx] = d->etot[ecidx] > d->ec_ei[ecidx]+d->ec_eo[ecidx] ? d->etot[ecidx] : d->ec_ei[ecidx]+d->ec_eo[ecidx];
-                if (critnphe && critetot)
-                {
-                    TH2 *h = hsf_V_p[sectidx];
-                    h->Fill(d->p[0], d->etot[ecidx]/d->p[0]);
-                }
-                else
-                {
-                    TH2 *h = hsf_V_p_anti[sectidx];
-                    h->Fill(d->p[0], d->etot[ecidx]/d->p[0]);
-                }
-                if (critnphe && critsf)
-                {
-                    TH2 *h = heo_V_ei[sectidx];
-                    h->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
-                }
-                else
-                {
-                    TH2 *h = heo_V_ei_anti[sectidx];
-                    h->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
-                }
+                hsf_V_p[sectidx]->Fill(d->p[0], d->etot[ecidx]/d->p[0]);
+                heo_V_ei[sectidx]->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
             }
             return passed;
         }

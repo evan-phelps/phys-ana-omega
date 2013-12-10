@@ -152,19 +152,25 @@ Produces common histograms that are interesting to look at between various event
         .L DH_Hists_Monitor.h+
         .L DH_Eid.h+
         .L DH_SC_Hists_PrePid.h+
+        .L DH_W_Skim.h+
+        .L DH_MMp_Skim.h+
         TFile *fout = new TFile("test.root","recreate")
         TChain *c = new TChain("h10clone/h10")
         c->Add("/data/e1f/skim/3812?.root")
-        H10 *h10proc = new H10(c, "e1f")
+        H10 *h10proc = new H10(c, "input.e1f.exp.parms")
         h10proc->Add(new DH_Hists_Monitor("mon_raw", fout))
-        h10proc->Add(new DH_EC_Hists("echists_raw", fout))
+        h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
         h10proc->Add(new DH_RunQuality("runquality", fout))
+        h10proc->Add(new DH_EC_Hists_PreEid("echists_raw", fout))
         h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
         h10proc->Add(new DH_Hists_Monitor("mon_qskim", fout))
         h10proc->Add(new DH_Eid("eid", fout))
         h10proc->Add(new DH_EC_Hists("echists_eskim", fout))
         h10proc->Add(new DH_Hists_Monitor("mon_eskim", fout))
         h10proc->Add(new DH_SC_Hists_PrePid("scpid", fout))
+        h10proc->Add(new DH_W_Skim("w_skim", fout))
+        h10proc->Add(new DH_MMp_Skim("mmp_skim", fout))
+        h10proc->Add(new DH_CloneH10("h10clone", fout))
         h10proc->Loop(-1,kFALSE)</code></pre>
 1. Determine or use existing electron momentum corrections
 1. Determine electron fiducial cut parameters
