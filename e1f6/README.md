@@ -160,10 +160,10 @@ h10proc->Loop()</code></pre>
 .L DH_SC_Hists_PrePid.h+
 .L DH_W_Skim.h+
 .L DH_MMp_Skim.h+
-TFile *fout = new TFile("test.root","recreate")
-TChain *c = new TChain("h10clone/h10")
+TFile \*fout = new TFile("test.root","recreate")
+TChain \*c = new TChain("h10clone/h10")
 c->Add("/data/e1f/skim/3812?.root")
-H10 *h10proc = new H10(c, "input.e1f.exp.parms")
+H10 \*h10proc = new H10(c, "input.e1f.exp.parms")
 h10proc->Add(new DH_Hists_Monitor("mon_raw", fout))
 h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
 h10proc->Add(new DH_RunQuality("runquality", fout))
