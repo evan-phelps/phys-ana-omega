@@ -42,11 +42,11 @@ class DH_H6Maker : public DataHandler
         }
         static THnSparseF* GetH6(std::string hname = "hbd_yield", std::string htitle = "W, Q^{2}, t', cos(#theta), #phi, mmp")
         {
-            Int_t bins2[] = { 80, 7, 8, 12, 18, 35 };
-            Double_t xmin2[] = { 1.6, 1.5, 0, -1, -Pi(), 0.6 };
-            Double_t xmax2[] = { 3.2, 3.1, 8,  1,  Pi(), 0.95 };
+            Int_t bins2[] = { 80, 6, 8, 12, 18, 35 };
+            Double_t xmin2[] = { 1.6, 1.35, 0, -1, -Pi(), 0.6 };
+            Double_t xmax2[] = { 3.2, 5.5, 8,  1,  Pi(), 0.95 };
             THnSparseF *hbd = new THnSparseF(hname.c_str(), htitle.c_str(), 6, bins2, xmin2, xmax2);
-            Double_t qbins[] = { 1.5, 1.6, 1.8, 2.1, 2.4, 2.76, 3.3, 5.1 };
+            Double_t qbins[] = { 1.35, 1.5, 1.75, 2.1, 2.89, 4, 5.5 };
             Double_t tbins[] = { 0.1, 0.25, 0.45, 0.65, 0.85, 1.15, 1.5, 2.06, 3, 8 };
             Double_t cbins[] = { -1,-0.9,-0.8,-0.6,-0.4,-0.2,-0.0,0.2,0.4,0.6,0.8,0.9,1 };
             hbd->SetBinEdges(1,qbins);
