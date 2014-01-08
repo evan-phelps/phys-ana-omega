@@ -148,8 +148,8 @@ using namespace TMath;
 
 void H10::GetUVW(double xyz[3], double uvw[3]) {
   enum { X, Y, Z };
-  enum { U, V, W };
-  Float_t phi, ec_phi, ec_the, tgrho, sinrho, cosrho;
+  enum { u, v, w };
+  Float_t _phi, ec_phi, ec_the, tgrho, sinrho, cosrho;
   Float_t ylow, yhi, xi, yi, zi;
   ec_the = 0.4363323;
   ylow = -182.974;
@@ -158,13 +158,13 @@ void H10::GetUVW(double xyz[3], double uvw[3]) {
   sinrho = 0.8901256;
   cosrho = 0.455715;
   //----------------
-  phi = ATan2(xyz[Y], xyz[X]) * 57.29578;
-  if (phi < 0.)
-    phi += 360.;
-  phi = phi + 30.;
-  if (phi > 360.)
-    phi -= 360.;
-  ec_phi = 1.0471975 * int(phi / 60.);
+  _phi = ATan2(xyz[Y], xyz[X]) * 57.29578;
+  if (_phi < 0.)
+    _phi += 360.;
+  _phi = _phi + 30.;
+  if (_phi > 360.)
+    _phi -= 360.;
+  ec_phi = 1.0471975 * int(_phi / 60.);
   //----------------
   float rot11 = cos(ec_the) * cos(ec_phi);
   float rot12 = -sin(ec_phi);
@@ -181,7 +181,7 @@ void H10::GetUVW(double xyz[3], double uvw[3]) {
   zi = xyz[X] * rot13 + xyz[Y] * rot23 + xyz[Z] * rot33;
   zi -= 510.32;
   //----------------
-  uvw[U] = (yi - ylow) / sinrho;
-  uvw[V] = (yhi - ylow) / tgrho - xi + (yhi - yi) / tgrho;
-  uvw[W] = ((yhi-ylow)/tgrho+xi+(yhi-yi)/tgrho)/2./cosrho;
+  uvw[u] = (yi - ylow) / sinrho;
+  uvw[v] = (yhi - ylow) / tgrho - xi + (yhi - yi) / tgrho;
+  uvw[w] = ((yhi-ylow)/tgrho+xi+(yhi-yi)/tgrho)/2./cosrho;
 }
