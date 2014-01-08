@@ -301,7 +301,7 @@ class H10
                 MMp, MMppip, MMppim, MMppippim,
                 cosTheta, phi;
         int sector;
-        Int_t np, npip, npim, npos, nneg;
+        Int_t np, npip, npim;
 };
 #endif
 
@@ -329,7 +329,7 @@ H10::H10(TTree *tree, std::string fn_config)
     fRegExp_run = new TRegexp("[0-9][0-9][0-9][0-9][0-9]");
     fRegExp_Anum = new TRegexp("[Aa][0-9][0-9]");
     E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
-    np = npip = npim = npos = nneg = 0;
+    np = npip = npim = 0;
     lvE0.SetXYZM(0,0,beamEnergy,MASS_E);
     lvP0.SetXYZM(0,0,0,MASS_P);
     Init(tree);

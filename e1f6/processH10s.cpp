@@ -35,6 +35,7 @@ int main(int argc, char const *argv[])
     h10proc->Add(new DH_W_Skim("w_skim", fout));
     h10proc->Add(new DH_MMp_Skim("mmp_skim", fout));
     h10proc->Add(new DH_CloneH10("h10clone", fout));
+    h10proc->Add(new DH_Hists_Monitor("mon_mmpskim", fout));
     printf("all handlers added; execute h10proc.Loop\n");
     h10proc->Loop(-1,kFALSE);
     return 0;

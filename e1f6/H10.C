@@ -106,6 +106,11 @@ void H10::CalcLVs() {
             t = (lvP1-lvP0).M2();
             lvMMp = lvW-lvP1;
             MMp = lvMMp.M();
+            if (idx[2]>0) {
+                lvPim.SetXYZM(p[idx[2]]*cx[idx[2]], p[idx[2]]*cy[idx[2]], p[idx[2]]*cz[idx[2]], MASS_PIM);
+                lvMMppim = lvMMp-lvPim;
+                MMppim = lvMMppim.M();
+            }
             if (idx[1]>0) {
                 lvPip.SetXYZM(p[0]*cx[idx[1]], p[idx[1]]*cy[idx[1]], p[idx[1]]*cz[idx[1]], MASS_PIP);
                 lvMMppip = lvMMp-lvPip;
@@ -114,11 +119,6 @@ void H10::CalcLVs() {
                     lvMMppippim = lvMMppip-lvPim;
                     MMppippim = lvMMppippim.M();
                 }
-            }
-            if (idx[2]>0) {
-                lvPim.SetXYZM(p[idx[2]]*cx[idx[2]], p[idx[2]]*cy[idx[2]], p[idx[2]]*cz[idx[2]], MASS_PIM);
-                lvMMppim = lvMMp-lvPim;
-                MMppim = lvMMppim.M();
             }
             //4-rotate into boosted frame and get CM variables
             TVector3 uz = lvq.Vect().Unit();

@@ -113,22 +113,28 @@ Produces common histograms that are interesting to look at between various event
         <pre><code>for fn in $(ls run*.1); do nt10maker -t1 -o$fn.hbook $fn && h2root $fn.hbook; done</code></pre>
     + in root/CInt, create histograms for parameter extraction
         <pre><code>.L Config.cpp+
-        .L DataHandler.h+
-        .L HandlerChain.cpp+
-        .L H10.C+
-        .L DH_EC_Hists_PreEid.h+
-        TFile *fout = new TFile("EC_Hists_e16.root","create")
-        TChain *c = new TChain("h10")
-        c->Add("*.root")
-        H10 *h10proc = new H10(c, "e16")
-        h10proc->Add(new DH_EC_Hists_PreEid("ecpreeid", fout))
-        h10proc->Loop()</code></pre>
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+TFile *fout = new TFile("EC_Hists_e16.root","create")
+TChain *c = new TChain("h10")
+c->Add("*.root")
+H10 *h10proc = new H10(c, "e16")
+h10proc->Add(new DH_EC_Hists_PreEid("ecpreeid", fout))
+h10proc->Loop()</code></pre>
     + copy root file to local computer
     + use ../worksheets/eid.ipynb to generate figures and get parameters
     + copy parameters into appropriate input file:
         - input.e16.exp.parms
         - input.e1f.exp.parms
 1. Create data skim
+    + full skim jobs performed on 1/2; see /data/jobs/skim.20140102 on laptop, ~/omega/jobs_20140102 on ifarm:
+        - see ifarm:~/omega/jobs_20140102 for code snapshot
+        - pipeline included: DH_Hists_Monitor, DH_EC_Hists, DH_RunQuality, DH_EC_Hists_PreEid, DH_EC_Hists, DH_Hists_Monitor, DH_Eid, DH_EC_Hists, DH_Hists_Monitor, DH_SC_Hists_PrePid, DH_W_Skim, DH_MMp_Skim, DH_CloneH10
+        - skim.e1[6f].hists.root contains results of "hadd -k -T" on corresponding runs (no trees)
+        - 3????.root files (with trees) copied to ep-deb-cb-desktop:~/data/batch/e1[6f]_skim/
+        - procedure slightly different from generic bullet points below -- in particular, used compiled versions in batch environment
     + see worksheet "run_list" to produce xml submission files
         - CDATA execution line reads
             <pre><code>bash -l -c "python ~/omega/src/processH10s.py -b -o out.root -w ~/omega/src -c ~/omega/src/input.e16.exp.parms"</code></pre>
@@ -142,37 +148,48 @@ Produces common histograms that are interesting to look at between various event
         - accumulate histograms for momentum corrections
         - clone h10 for skimmed events
         <pre><code>.L Config.cpp+
-        .L DataHandler.h+
-        .L HandlerChain.cpp+
-        .L H10.C+
-        .L DH_EC_Hists_PreEid.h+
-        .L DH_RunQuality.cpp+
-        .L DH_EC_Hists.h+
-        .L DH_CloneH10.h+
-        .L DH_Hists_Monitor.h+
-        .L DH_Eid.h+
-        .L DH_SC_Hists_PrePid.h+
-        .L DH_W_Skim.h+
-        .L DH_MMp_Skim.h+
-        TFile *fout = new TFile("test.root","recreate")
-        TChain *c = new TChain("h10clone/h10")
-        c->Add("/data/e1f/skim/3812?.root")
-        H10 *h10proc = new H10(c, "input.e1f.exp.parms")
-        h10proc->Add(new DH_Hists_Monitor("mon_raw", fout))
-        h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
-        h10proc->Add(new DH_RunQuality("runquality", fout))
-        h10proc->Add(new DH_EC_Hists_PreEid("echists_raw", fout))
-        h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
-        h10proc->Add(new DH_Hists_Monitor("mon_qskim", fout))
-        h10proc->Add(new DH_Eid("eid", fout))
-        h10proc->Add(new DH_EC_Hists("echists_eskim", fout))
-        h10proc->Add(new DH_Hists_Monitor("mon_eskim", fout))
-        h10proc->Add(new DH_SC_Hists_PrePid("scpid", fout))
-        h10proc->Add(new DH_W_Skim("w_skim", fout))
-        h10proc->Add(new DH_MMp_Skim("mmp_skim", fout))
-        h10proc->Add(new DH_CloneH10("h10clone", fout))
-        h10proc->Loop(-1,kFALSE)</code></pre>
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+.L DH_RunQuality.cpp+
+.L DH_EC_Hists.h+
+.L DH_CloneH10.h+
+.L DH_Hists_Monitor.h+
+.L DH_Eid.h+
+.L DH_SC_Hists_PrePid.h+
+.L DH_W_Skim.h+
+.L DH_MMp_Skim.h+
+TFile *fout = new TFile("test.root","recreate")
+TChain *c = new TChain("h10clone/h10")
+c->Add("/data/e1f/skim/3812?.root")
+H10 *h10proc = new H10(c, "input.e1f.exp.parms")
+h10proc->Add(new DH_Hists_Monitor("mon_raw", fout))
+h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
+h10proc->Add(new DH_RunQuality("runquality", fout))
+h10proc->Add(new DH_EC_Hists_PreEid("echists_raw", fout))
+h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
+h10proc->Add(new DH_Hists_Monitor("mon_qskim", fout))
+h10proc->Add(new DH_Eid("eid", fout))
+h10proc->Add(new DH_EC_Hists("echists_eskim", fout))
+h10proc->Add(new DH_Hists_Monitor("mon_eskim", fout))
+h10proc->Add(new DH_SC_Hists_PrePid("scpid", fout))
+h10proc->Add(new DH_W_Skim("w_skim", fout))
+h10proc->Add(new DH_MMp_Skim("mmp_skim", fout))
+h10proc->Add(new DH_CloneH10("h10clone", fout))
+h10proc->Loop(-1,kFALSE)</code></pre>
 1. Determine or use existing electron momentum corrections
+    + **This should have been done before skim jobs**, since the change in electron momentum changes W and MMp.  Check to what extent before re-running.
+1. Hadron energy loss corrections
+    + **This should have been done before skim jobs**, since the change in proton momentum changes MMp.  Check to what extent before re-running.
 1. Determine electron fiducial cut parameters
 1. Determine hadron identification parameters
 1. Determine hadron fiducial cut parameters
+1. Optimize W,Q2 binning
+    + see worksheets/W_Q2_ranges helps find binning that maximizes number of bins without 
+    + e1f results:
+        - 20 MeV from 1.68 GeV to 2.28 GeV FOR Q2 between 2.89 to 4.00 GeV^2
+        - 20 MeV from 1.68 GeV to 2.64 GeV FOR Q2 between 1.35 to 2.89 GeV^2
+        - Q2 bin edges: 1.35, 1.5, 1.75, 2.1, 2.89, 4 GeV^2
+1. Simulate omega electroproduction events with radiative effects, flat in cosine
+1. Determine first-order simulation shaping
