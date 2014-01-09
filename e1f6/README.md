@@ -178,6 +178,46 @@ h10proc->Add(new DH_W_Skim("w_skim", fout))
 h10proc->Add(new DH_MMp_Skim("mmp_skim", fout))
 h10proc->Add(new DH_CloneH10("h10clone", fout))
 h10proc->Loop(-1,kFALSE)</code></pre>
+1. Skim reconstructed simulation and build 6-dimensional thrown event histogram
+    + code snapshot at ifarm:~/omega/jobs/sim_skim_20140108
+    + resulting files, skim.e1[f6].sim.root, jput to mss:/mss/home/ephelps/omega/simulations
+    + working directory ~/w/2013_sept/batch/e1[f6]
+    + root session:
+<pre><code>.L Config.cpp+
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+.L DH_RunQuality.cpp+
+.L DH_EC_Hists.h+
+.L DH_CloneH10.h+
+.L DH_Hists_Monitor.h+
+.L DH_Eid.h+
+.L DH_SC_Hists_PrePid.h+
+.L DH_W_Skim.h+
+.L DH_MMp_Skim.h+
+.L DH_H6Maker.h+
+TFile *fout = new TFile("test.root","recreate")
+TChain *c = new TChain("h10")
+c->Add("all/recon*root")
+H10 *h10proc = new H10(c, "/home/ephelps/omega/src/input.e16.sim.parms")
+h10proc->Add(new DH_Hists_Monitor("hists_mon", fout))
+h10proc->Add(new DH_H6Maker_Thrown("h6thrown", fout))
+h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
+h10proc->Add(new DH_RunQuality("runquality", fout))
+h10proc->Add(new DH_EC_Hists_PreEid("echists_raw", fout))
+h10proc->Add(new DH_EC_Hists("echists_qskim_2", fout))
+h10proc->Add(new DH_Hists_Monitor("mon_qskim", fout))
+h10proc->Add(new DH_Eid("eid", fout))
+h10proc->Add(new DH_EC_Hists("echists_eskim", fout))
+h10proc->Add(new DH_Hists_Monitor("mon_eskim", fout))
+h10proc->Add(new DH_SC_Hists_PrePid("scpid", fout))
+h10proc->Add(new DH_W_Skim("w_skim", fout))
+h10proc->Add(new DH_MMp_Skim("mmp_skim", fout))
+h10proc->Add(new DH_CloneH10("h10clone", fout))
+h10proc->Add(new DH_H6Maker_Recon("h6recon", fout))
+h10proc->Loop(-1,kFALSE)</code></pre>
+    + Contents of output files must be shaped before determining acceptance.  The idea is for 4D thrown kinematics histogram and 4D acceptance to be accessible during analysis.  If any event selection cuts change, the 4D histograms must be regenerated from these very large skim files that have the thrown events in addition to the skimmed h10 of reconstructed events.  Ideally, the skim is re-run (~6 hours) to allow for event-by-event shaping.
 1. Determine or use existing electron momentum corrections
     + **This should have been done before skim jobs**, since the change in electron momentum changes W and MMp.  Check to what extent before re-running.
 1. Hadron energy loss corrections
