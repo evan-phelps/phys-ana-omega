@@ -27,6 +27,8 @@ class DH_EC_Hists : public DataHandler
     public:
         vector<TH2*> hsf_V_p;
         vector<TH2*> heo_V_ei;
+        vector<TH2*> hsf_V_p_pos;
+        vector<TH2*> heo_V_ei_pos;
 
         DH_EC_Hists(std::string name = "EC_Hists", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
@@ -35,18 +37,26 @@ class DH_EC_Hists : public DataHandler
                 250, 0.0, 5.0, 100, 0.0, 0.5);
             heo_V_ei = MakeHists(NSECTS, "heo_V_ei_%d", "sector %d",
                 300, 0.0, 0.3, 300, 0.0, 0.3);
+            hsf_V_p_pos = MakeHists(NSECTS, "hsf_V_p_pos%d", "sector %d",
+                250, 0.0, 5.0, 100, 0.0, 0.5);
+            heo_V_ei_pos = MakeHists(NSECTS, "heo_V_ei_pos%d", "sector %d",
+                300, 0.0, 0.3, 300, 0.0, 0.3);
         }
         virtual ~DH_EC_Hists()
         {
             fDir->cd();
             for_each(hsf_V_p.begin(), hsf_V_p.end(), DeleteObj);
             for_each(heo_V_ei.begin(), heo_V_ei.end(), DeleteObj);
+            for_each(hsf_V_p_pos.begin(), hsf_V_p_pos.end(), DeleteObj);
+            for_each(heo_V_ei_pos.begin(), heo_V_ei_pos.end(), DeleteObj);
         }
         virtual void Finalize(H10* d)
         {
             fDir->cd();
             for_each(hsf_V_p.begin(), hsf_V_p.end(), WriteObj);
             for_each(heo_V_ei.begin(), heo_V_ei.end(), WriteObj);
+            for_each(hsf_V_p_pos.begin(), hsf_V_p_pos.end(), WriteObj);
+            for_each(heo_V_ei_pos.begin(), heo_V_ei_pos.end(), WriteObj);
         }
         virtual bool Handle(H10* d)
         {
@@ -56,8 +66,13 @@ class DH_EC_Hists : public DataHandler
             {
                 int ecidx = d->ec[0]-1;
                 int sectidx = d->ec_sect[ecidx]-1;
-                hsf_V_p[sectidx]->Fill(d->p[0], d->etot[ecidx]/d->p[0]);
-                heo_V_ei[sectidx]->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
+                if (d->q[0] < 0) {
+                    hsf_V_p[sectidx]->Fill(d->p[0], d->etot[ecidx]/d->p[0]);
+                    heo_V_ei[sectidx]->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
+                } else {
+                    hsf_V_p_pos[sectidx]->Fill(d->p[0], d->etot[ecidx]/d->p[0]);
+                    heo_V_ei_pos[sectidx]->Fill(d->ec_ei[ecidx], d->ec_eo[ecidx]);
+                }
             }
             return passed;
         }

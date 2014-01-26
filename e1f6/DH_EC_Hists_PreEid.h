@@ -61,7 +61,7 @@ class DH_EC_Hists_PreEid : public DataHandler
         virtual bool Handle(H10* d)
         {
             bool passed = true;
-            bool critbase = d->stat[0]>0 && d->sc[0]>0 && d->dc[0]>0 && d->ec[0]>0;
+            bool critbase = d->q[0]==-1 && d->stat[0]>0 && d->sc[0]>0 && d->dc[0]>0 && d->ec[0]>0;
             if ( critbase )
             {
                 int ecidx = d->ec[0]-1;
