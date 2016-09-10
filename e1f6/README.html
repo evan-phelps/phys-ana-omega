@@ -1,0 +1,466 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>html { font-size: 100%; overflow-y: scroll; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+
+body{
+  color:#444;
+  font-family:Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman',
+              "Hiragino Sans GB", "STXihei", "微软雅黑", serif;
+  font-size:12px;
+  line-height:1.5em;
+  background:#fefefe;
+  width: 45em;
+  margin: 10px auto;
+  padding: 1em;
+  outline: 1300px solid #FAFAFA;
+}
+
+a{ color: #0645ad; text-decoration:none;}
+a:visited{ color: #0b0080; }
+a:hover{ color: #06e; }
+a:active{ color:#faa700; }
+a:focus{ outline: thin dotted; }
+a:hover, a:active{ outline: 0; }
+
+span.backtick {
+  border:1px solid #EAEAEA;
+  border-radius:3px;
+  background:#F8F8F8;
+  padding:0 3px 0 3px;
+}
+
+::-moz-selection{background:rgba(255,255,0,0.3);color:#000}
+::selection{background:rgba(255,255,0,0.3);color:#000}
+
+a::-moz-selection{background:rgba(255,255,0,0.3);color:#0645ad}
+a::selection{background:rgba(255,255,0,0.3);color:#0645ad}
+
+p{
+margin:1em 0;
+}
+
+img{
+max-width:100%;
+}
+
+h1,h2,h3,h4,h5,h6{
+font-weight:normal;
+color:#111;
+line-height:1em;
+}
+h4,h5,h6{ font-weight: bold; }
+h1{ font-size:2.5em; }
+h2{ font-size:2em; border-bottom:1px solid silver; padding-bottom: 5px; }
+h3{ font-size:1.5em; }
+h4{ font-size:1.2em; }
+h5{ font-size:1em; }
+h6{ font-size:0.9em; }
+
+blockquote{
+color:#666666;
+margin:0;
+padding-left: 3em;
+border-left: 0.5em #EEE solid;
+}
+hr { display: block; height: 2px; border: 0; border-top: 1px solid #aaa;border-bottom: 1px solid #eee; margin: 1em 0; padding: 0; }
+
+
+pre , code, kbd, samp { 
+  color: #000; 
+  font-family: monospace; 
+  font-size: 0.88em; 
+  border-radius:3px;
+  background-color: #F8F8F8;
+  border: 1px solid #CCC; 
+}
+pre { white-space: pre; white-space: pre-wrap; word-wrap: break-word; padding: 5px 12px;}
+pre code { border: 0px !important; padding: 0;}
+code { padding: 0 3px 0 3px; }
+
+b, strong { font-weight: bold; }
+
+dfn { font-style: italic; }
+
+ins { background: #ff9; color: #000; text-decoration: none; }
+
+mark { background: #ff0; color: #000; font-style: italic; font-weight: bold; }
+
+sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+sup { top: -0.5em; }
+sub { bottom: -0.25em; }
+
+ul, ol { margin: 1em 0; padding: 0 0 0 2em; }
+li p:last-child { margin:0 }
+dd { margin: 0 0 0 2em; }
+
+img { border: 0; -ms-interpolation-mode: bicubic; vertical-align: middle; }
+
+table { border-collapse: collapse; border-spacing: 0; }
+td { vertical-align: top; }
+
+@media only screen and (min-width: 480px) {
+body{font-size:14px;}
+}
+
+@media only screen and (min-width: 768px) {
+body{font-size:16px;}
+}
+
+@media print {
+  * { background: transparent !important; color: black !important; filter:none !important; -ms-filter: none !important; }
+  body{font-size:12pt; max-width:100%; outline:none;}
+  a, a:visited { text-decoration: underline; }
+  hr { height: 1px; border:0; border-bottom:1px solid black; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }
+  pre, blockquote { border: 1px solid #999; padding-right: 1em; page-break-inside: avoid; }
+  tr, img { page-break-inside: avoid; }
+  img { max-width: 100% !important; }
+  @page :left { margin: 15mm 20mm 15mm 10mm; }
+  @page :right { margin: 15mm 10mm 15mm 20mm; }
+  p, h2, h3 { orphans: 3; widows: 3; }
+  h2, h3 { page-break-after: avoid; }
+}
+</style><title>README</title></head><body><h1 id="readme">README</h1>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Having evolved from command-line scripted classes, design is a mess -- too much interdependency between H10, data handlers, and utility functions!</li>
+<li>need to implement a good particle-level handler concept -- currently requires callback to CalcLVs when particle properties are changed or particles are filtered.</li>
+</ul>
+<h2 id="h10">H10</h2>
+<p>H10 is the main processing class that binds h10-formatted trees to variables and controls the event loop.  It has a HandlerChain that manages for each event the conditional execution of a sequence of DataHandlers.</p>
+<h2 id="handlerchain">HandlerChain</h2>
+<p>Maintains the queue of data handlers.</p>
+<h2 id="datahandler">DataHandler</h2>
+<p>Data handlers can serve as tree (or binned data) builders, plot builders (monitor), transformers, filters, or any combination of these.  The following table denotes the current status of each handler in terms of function.</p>
+<table>
+<thead>
+<tr>
+<th align="left">Handler</th>
+<th align="center">trees</th>
+<th align="center">plots</th>
+<th align="center">transform</th>
+<th align="center">filter</th>
+<th align="left">notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">DH_SC_Hists_PrePid</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DH_EC_Hists_PreEid</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DH_CC_Hists</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DH_RunQuality</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="left">Q skim</td>
+</tr>
+<tr>
+<td align="left">DH_Eid</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="left">first particle must be electron to pass</td>
+</tr>
+<tr>
+<td align="left">DH_Efid</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="left">currently skims events with electrons in fiducial volume</td>
+</tr>
+<tr>
+<td align="left">DH_Hfid</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="left">hack: id=0 if outside of fiducial volume</td>
+</tr>
+<tr>
+<td align="left">DH_SC_BadPdls</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="left">hack: id=0 if hits bad paddle</td>
+</tr>
+<tr>
+<td align="left">DH_Efid_Hists</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="left">change to "PreEfid"?</td>
+</tr>
+<tr>
+<td align="left">DH_Hists_Monitor</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DH_EC_Hists</td>
+<td align="center"></td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DH_CloneH10</td>
+<td align="center">X</td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">DH_H6Maker</td>
+<td align="center">X</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>The two handlers that currently alter the particle id would need to modify H10's lorentz vectors to have a logical effect -- <strong>This is just bad design and needs to be changed!</strong>  Current work-around is to expose access to H10::CalcLVs() for data handlers to call, which recalculates all lorentz vectors, invariants, and rotations.</p>
+<h3 id="dh_ec_hists_preeid">DH_EC_Hists_PreEid</h3>
+<p>Produces histograms for first particle of each event with overly strong electron isolation cuts independently applied to amplify the character of electron EC signatures.  Resulting histograms are used by ../worksheets/eid.ipynb to produce cut parameters that feed into DH_Eid.</p>
+<h3 id="dh_runquality">DH_RunQuality</h3>
+<p>Should perhaps be called DH_RunQuality_and_ChargeSkimmer.  It not only builds a luminosity-block-level tree of event counts and accumulated Faraday-cup charge, but it also picks out events that have a negative first detected particle plus either (a) 2 positive, 0 negative, (b) 1 positive, 1 negative, or (c) 2 positive, 1 negative particles (any number of neutrals are allowed).</p>
+<p>For each run, block entries are accumulated.  Each entry includes block-level values.</p>
+<pre><code>    file_name
+    run_num
+    file_num
+    lumblock_num
+    evt_num_first
+    evt_num_last
+    fc_charge_ltcorr
+    livetime
+    ntrigs
+    ne
+    np
+    npip
+    npim
+    nevts_Neg1st
+    nevts_Neg1st_2Pos_exc
+    nevts_Neg1st_1Pos1Neg_exc
+    nevts_Neg1st_2Pos1Neg_exc
+</code></pre>
+<p>Two electron-sector-specific histograms are filled:</p>
+<ul>
+<li>hq2_V_w</li>
+<li>hq2_V_w_elast_exc</li>
+</ul>
+<p>And one histogram of fully exclusive events:</p>
+<ul>
+<li>hmmppippim_V_mmp</li>
+</ul>
+<p>In the same event loop, an "h10" skimmed event tree is populated for events that have</p>
+<ol>
+<li>gpart &lt; 8</li>
+<li>negative particle first</li>
+<li>exactly 2 positive OR 1 positive, 1 negative OR 2 positive, 1 negative</li>
+</ol>
+<h3 id="dh_eid">DH_Eid</h3>
+<p>Side effects:</p>
+<ul>
+<li>etot = etot &gt; ec_ei+ec_eo ? etot : ec_ei+ec_eo</li>
+<li>filters -- cuts events that do not have a good electron as first particle</li>
+</ul>
+<p>Performs identification of strong electron candidates according to the following criteria:</p>
+<ul>
+<li>first particle of event</li>
+<li>negative particle (already accounted if DH_RunQuality executed prior)</li>
+<li>same-sector DC, SC, CC, EC hits</li>
+<li>DC track points toward SC hit and be matched in time (stat&gt;0, geometrical matching and viable timing from SC)</li>
+<li>EC energy/p ~ 1 (SF/p cuts)</li>
+<li>EC inner &lt; minimum ionizing threshold</li>
+</ul>
+<p>The last two items depend on parameters from output parameters of ../worksheets/eid.ipynb, assumed to be copied into input.*.exp.parms, chosen by experiment.</p>
+<h3 id="dh_cloneh10">DH_CloneH10</h3>
+<p>Clones the h10 tree for events surviving cuts imposed by previous data handlers.</p>
+<h3 id="dh_hists_monitor">DH_Hists_Monitor</h3>
+<p>Produces common histograms that are interesting to look at between various event selection schemes.</p>
+<h2 id="procedures">Procedures</h2>
+<ol>
+<li>Determine electron identification parameters<ul>
+<li>jget selection of cooked data files for selected experiment<ul>
+<li>/mss/clas/e1f/production/pass2/v1/data/</li>
+<li>/mss/clas/e1-6a/production/pass2/v1/data/</li>
+</ul>
+</li>
+<li>convert to hbook and root
+    <pre><code>for fn in $(ls run*.1); do nt10maker -t1 -o$fn.hbook $fn &amp;&amp; h2root $fn.hbook; done</code></pre></li>
+<li>in root/CInt, create histograms for parameter extraction
+    <pre><code>.L Config.cpp+
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+TFile <em>fout = new TFile("EC_Hists_e16.root","create")
+TChain </em>c = new TChain("h10")
+c-&gt;Add("<em>.root")
+H10 </em>h10proc = new H10(c, "e16")
+h10proc-&gt;Add(new DH_EC_Hists_PreEid("ecpreeid", fout))
+h10proc-&gt;Loop()</code></pre></li>
+<li>copy root file to local computer</li>
+<li>use ../worksheets/eid.ipynb to generate figures and get parameters</li>
+<li>copy parameters into appropriate input file:<ul>
+<li>input.e16.exp.parms</li>
+<li>input.e1f.exp.parms</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Create data skim<ul>
+<li>full skim jobs performed on 1/2; see /data/jobs/skim.20140102 on laptop, ~/omega/jobs_20140102 on ifarm:<ul>
+<li>see ifarm:~/omega/jobs_20140102 for code snapshot</li>
+<li>pipeline included: DH_Hists_Monitor, DH_EC_Hists, DH_RunQuality, DH_EC_Hists_PreEid, DH_EC_Hists, DH_Hists_Monitor, DH_Eid, DH_EC_Hists, DH_Hists_Monitor, DH_SC_Hists_PrePid, DH_W_Skim, DH_MMp_Skim, DH_CloneH10</li>
+<li>skim.e1[6f].hists.root contains results of "hadd -k -T" on corresponding runs (no trees)</li>
+<li>3????.root files (with trees) copied to ep-deb-cb-desktop:~/data/batch/e1[6f]_skim/</li>
+<li>procedure slightly different from generic bullet points below -- in particular, used compiled versions in batch environment</li>
+</ul>
+</li>
+<li>see worksheet "run_list" to produce xml submission files<ul>
+<li>CDATA execution line reads
+    <pre><code>bash -l -c "python ~/omega/src/processH10s.py -b -o out.root -w ~/omega/src -c ~/omega/src/input.e16.exp.parms"</code></pre></li>
+<li>sequential folder/handler names in pipeline:
+    <pre>mon_raw, echists_raw, cchists_raw, runquality, cchists_qskim, echists_qskim, mon_qskim, eid, echists_eskim, cchists_eskim, mon_eskim, h10_eskim, scpid_eskim</pre>
+    <pre>DH_Hists_Monitor, DH_EC_Hists_PreEid, DH_CC_Hists, DH_RunQuality, DH_CC_Hists, DH_EC_Hists,
+DH_Hists_Monitor, DH_Eid, DH_EC_Hists, DH_CC_Hists, DH_Hists_Monitor, DH_CloneH10, DH_SC_Hists_PrePid</pre></li>
+</ul>
+</li>
+<li>perform several data handling tasks on this process:<ul>
+<li>run quality</li>
+<li>electron identification</li>
+<li>accumulate histograms for momentum corrections</li>
+<li>clone h10 for skimmed events
+<pre><code>.L Config.cpp+
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+.L DH_RunQuality.cpp+
+.L DH_EC_Hists.h+
+.L DH_CloneH10.h+
+.L DH_Hists_Monitor.h+
+.L DH_Eid.h+
+.L DH_SC_Hists_PrePid.h+
+.L DH_W_Skim.h+
+.L DH_MMp_Skim.h+
+TFile *fout = new TFile("test.root","recreate")
+TChain *c = new TChain("h10clone/h10")
+c-&gt;Add("/data/e1f/skim/3812?.root")
+H10 *h10proc = new H10(c, "input.e1f.exp.parms")
+h10proc-&gt;Add(new DH_Hists_Monitor("mon_raw", fout))
+h10proc-&gt;Add(new DH_EC_Hists("echists_qskim", fout))
+h10proc-&gt;Add(new DH_RunQuality("runquality", fout))
+h10proc-&gt;Add(new DH_EC_Hists_PreEid("echists_raw", fout))
+h10proc-&gt;Add(new DH_EC_Hists("echists_qskim", fout))
+h10proc-&gt;Add(new DH_Hists_Monitor("mon_qskim", fout))
+h10proc-&gt;Add(new DH_Eid("eid", fout))
+h10proc-&gt;Add(new DH_EC_Hists("echists_eskim", fout))
+h10proc-&gt;Add(new DH_Hists_Monitor("mon_eskim", fout))
+h10proc-&gt;Add(new DH_SC_Hists_PrePid("scpid", fout))
+h10proc-&gt;Add(new DH_W_Skim("w_skim", fout))
+h10proc-&gt;Add(new DH_MMp_Skim("mmp_skim", fout))
+h10proc-&gt;Add(new DH_CloneH10("h10clone", fout))
+h10proc-&gt;Loop(-1,kFALSE)</code></pre></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Skim reconstructed simulation and build 6-dimensional thrown event histogram<ul>
+<li>code snapshot at ifarm:~/omega/jobs/sim_skim_20140108</li>
+<li>resulting files, skim.e1[f6].sim.root, jput to mss:/mss/home/ephelps/omega/simulations</li>
+<li>working directory ~/w/2013_sept/batch/e1[f6]</li>
+<li>root session:
+<pre><code>.L Config.cpp+
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+.L DH_RunQuality.cpp+
+.L DH_EC_Hists.h+
+.L DH_CloneH10.h+
+.L DH_Hists_Monitor.h+
+.L DH_Eid.h+
+.L DH_SC_Hists_PrePid.h+
+.L DH_W_Skim.h+
+.L DH_MMp_Skim.h+
+.L DH_H6Maker.h+
+TFile <em>fout = new TFile("test.root","recreate")
+TChain </em>c = new TChain("h10")
+c-&gt;Add("all/recon<em>root")
+H10 </em>h10proc = new H10(c, "/home/ephelps/omega/src/input.e16.sim.parms")
+h10proc-&gt;Add(new DH_Hists_Monitor("hists_mon", fout))
+h10proc-&gt;Add(new DH_H6Maker_Thrown("h6thrown", fout))
+h10proc-&gt;Add(new DH_EC_Hists("echists_qskim", fout))
+h10proc-&gt;Add(new DH_RunQuality("runquality", fout))
+h10proc-&gt;Add(new DH_EC_Hists_PreEid("echists_raw", fout))
+h10proc-&gt;Add(new DH_EC_Hists("echists_qskim_2", fout))
+h10proc-&gt;Add(new DH_Hists_Monitor("mon_qskim", fout))
+h10proc-&gt;Add(new DH_Eid("eid", fout))
+h10proc-&gt;Add(new DH_EC_Hists("echists_eskim", fout))
+h10proc-&gt;Add(new DH_Hists_Monitor("mon_eskim", fout))
+h10proc-&gt;Add(new DH_SC_Hists_PrePid("scpid", fout))
+h10proc-&gt;Add(new DH_W_Skim("w_skim", fout))
+h10proc-&gt;Add(new DH_MMp_Skim("mmp_skim", fout))
+h10proc-&gt;Add(new DH_CloneH10("h10clone", fout))
+h10proc-&gt;Add(new DH_H6Maker_Recon("h6recon", fout))
+h10proc-&gt;Loop(-1,kFALSE)</code></pre></li>
+<li>Contents of output files must be shaped before determining acceptance.  The idea is for 4D thrown kinematics histogram and 4D acceptance to be accessible during analysis.  If any event selection cuts change, the 4D histograms must be regenerated from these very large skim files that have the thrown events in addition to the skimmed h10 of reconstructed events.  Ideally, the skim is re-run (~6 hours) to allow for event-by-event shaping.</li>
+</ul>
+</li>
+<li>Determine or use existing electron momentum corrections<ul>
+<li><strong>This should have been done before skim jobs</strong>, since the change in electron momentum changes W and MMp.  Check to what extent before re-running.</li>
+</ul>
+</li>
+<li>Hadron energy loss corrections<ul>
+<li><strong>This should have been done before skim jobs</strong>, since the change in proton momentum changes MMp.  Check to what extent before re-running.</li>
+</ul>
+</li>
+<li>Determine electron fiducial cut parameters</li>
+<li>Determine hadron identification parameters</li>
+<li>Determine hadron fiducial cut parameters</li>
+<li>Optimize W,Q2 binning<ul>
+<li>see worksheets/W_Q2_ranges helps find binning that maximizes number of bins without </li>
+<li>e1f results:<ul>
+<li>20 MeV from 1.68 GeV to 2.28 GeV FOR Q2 between 2.89 to 4.00 GeV^2</li>
+<li>20 MeV from 1.68 GeV to 2.64 GeV FOR Q2 between 1.35 to 2.89 GeV^2</li>
+<li>Q2 bin edges: 1.35, 1.5, 1.75, 2.1, 2.89, 4 GeV^2</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Simulate omega electroproduction events with radiative effects, flat in cosine</li>
+<li>Determine first-order simulation shaping</li>
+</ol></body></html>

@@ -1,0 +1,18 @@
+<Request>
+  <Project name="e1-6a"/>
+  <Track name="debug"/>
+  <Name name="epskim"/>
+  <DiskSpace space="80" unit="GB"/>
+  <Memory space="4" unit="GB"/>
+  <Command><![CDATA[bash -l -c "python ~/omega/src/processH10s.py -b -w ~/omega/src -c ~/omega/src/input.e16.exp.parms"]]></Command>
+  <Job>
+    <Input src="/mss/clas/e1-6a/production/pass2/v1/data/run_30543_pass2.a00.1" dest="run_30543_pass2.a00.1.bos"/>
+  </Job>
+  <Job>
+    <Input src="/mss/clas/e1-6a/production/pass2/v1/data/run_30563_pass2.a00.1" dest="run_30563_pass2.a00.1.bos"/>
+  </Job>
+  <Job>
+    <Input src="/mss/clas/e1-6a/production/pass2/v1/data/run_30568_pass2.a00.1" dest="run_30568_pass2.a00.1.bos"/>
+    <Input src="/mss/clas/e1-6a/production/pass2/v1/data/run_30568_pass2.a01.1" dest="run_30568_pass2.a01.1.bos"/>
+  </Job>
+</Request>

@@ -1,0 +1,61 @@
+.L Config.cpp+
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+.L DH_RunQuality.cpp+
+.L DH_EC_Hists.h+
+.L DH_CloneH10.h+
+.L DH_Hists_Monitor.h+
+.L DH_Eid.h+
+.L DH_SC_Hists_PrePid.h+
+TFile *fout = new TFile("test.root","recreate")
+TChain *c = new TChain("h10clone/h10")
+//c->Add("/data/e1f/skim/3812?.root")
+c->Add("/data/e1f/skim/3[78]???.root")
+H10 *h10proc = new H10(c, "input.e1f.exp.parms")
+h10proc->Add(new DH_Hists_Monitor("mon_raw", fout))
+h10proc->Add(new DH_EC_Hists("echists_raw", fout))
+h10proc->Add(new DH_RunQuality("runquality", fout))
+h10proc->Add(new DH_EC_Hists("echists_qskim", fout))
+h10proc->Add(new DH_Hists_Monitor("mon_qskim", fout))
+h10proc->Add(new DH_Eid("eid", fout))
+h10proc->Add(new DH_EC_Hists("echists_eskim", fout))
+h10proc->Add(new DH_Hists_Monitor("mon_eskim", fout))
+h10proc->Add(new DH_SC_Hists_PrePid("scpid", fout))
+h10proc->Loop(-1,kFALSE)
+
+
+.L Config.cpp+
+.L DataHandler.h+
+.L HandlerChain.cpp+
+.L H10.C+
+.L DH_EC_Hists_PreEid.h+
+.L DH_RunQuality.cpp+
+.L DH_EC_Hists.h+
+.L DH_CloneH10.h+
+.L DH_Hists_Monitor.h+
+.L DH_Eid.h+
+.L DH_SC_Hists_PrePid.h+
+.L DH_W_Skim.h+
+.L DH_MMp_Skim.h+
+TFile *fout = new TFile("test.root","recreate")
+TChain *c = new TChain("h10clone/h10")
+c->Add("/hdd500/home/data/batch/e1f_skim/3812?.root")
+H10 *h10proc = new H10(c, "input.e1f.exp.parms")
+h10proc->Add(new DH_Hists_Monitor("mon_raw", fout));
+h10proc->Add(new DH_EC_Hists("echists_raw", fout));
+h10proc->Add(new DH_RunQuality("runquality_qskim", fout));
+h10proc->Add(new DH_EC_Hists_PreEid("echists_qskim_clean", fout));
+h10proc->Add(new DH_EC_Hists("echists_qskim", fout));
+h10proc->Add(new DH_Hists_Monitor("mon_qskim", fout));
+h10proc->Add(new DH_Eid("eid", fout));
+h10proc->Add(new DH_EC_Hists("echists_eskim", fout));
+h10proc->Add(new DH_Hists_Monitor("mon_eskim", fout));
+h10proc->Add(new DH_SC_Hists_PrePid("scpid", fout));
+h10proc->Add(new DH_W_Skim("w_skim", fout));
+h10proc->Add(new DH_MMp_Skim("mmp_skim_gen", fout));
+h10proc->Add(new DH_CloneH10("h10clone", fout));
+h10proc->Add(new DH_Hists_Monitor("mon_mmpskim", fout));
+h10proc->Loop(-1,kFALSE);
+

@@ -1,0 +1,40 @@
+Particle,No.,Mass(GeV),Charge,Life time(sec)
+Gamma,1,0.0,0,stable E15
+Positron,2,0.00051099906,1,stable,
+Electron,3,0.00051099906,-1,stable,
+Neutrino,4,0.0,0,stable,
+Muon +,5,0.105658389,1,2.19703 E-6
+Muon -,6,0.105658389,-1,2.19703 E-6
+Pion 0,7,0.1349764,0,8.4 E-17
+Pion +,8,0.1395700,1,2.603 E-8
+Pion -,9,0.1395700,-1,2.603 E-8
+Kaon 0 long,10,0.497672,0,5.17 E-8
+Kaon +,11,0.493677,1,1.237 E-8
+Kaon -,12,0.493677,-1,1.237 E-8
+Neutron,13,0.93956563,0,887.0,
+Proton,14,0.93827231,1,stable,
+Antiproton,15,0.93827231,-1,stable,
+Kaon 0 short,16,0.497672,0,8.926 E-11
+Eta,17,0.54745,0,5.485 E-19
+Lambda,18,1.115684,0,2.632 E-10
+Sigma +,19,1.18937,1,7.99 E-11
+Sigma 0,20,1.19255,0,7.40 E-20
+Sigma -,21,1.197436,-1,1.479 E-10
+Xi 0,22,1.3149,0,2.90 E-10
+Xi -,23,1.32132,-1,1.639 E-10
+Omega,24,1.67245,-1,8.22 E-11
+Antineutron,25,0.93956563,0,887.0,
+Antilambda,26,1.115684,0,2.632 E-10
+Antisigma -,27,1.18937,-1,7.99 E-11
+Antisigma 0,28,1.19255,0,7.40 E-20
+Antisigma +,29,1.197436,1,1.479 E-10
+Antixi 0,30,1.3149,0,2.90 E-10
+Antixi +,31,1.32132,1,1.639 E-10
+Particle,No.,Mass(GeV),Charge,Life time(sec),
+Antiomega +,32,1.67245,1,8.22 E-11
+Deuteron,45,1.875613,1,stable,
+Tritium,46,2.80925,1,stable,
+Alpha,47,3.727417,2,stable,
+Geantino,48,0,0,stable,
+He3,49,2.80923,2,stable,
+Cerenkov,50,0,0,stable,
