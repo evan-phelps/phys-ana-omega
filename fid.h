@@ -15,7 +15,7 @@ class Fid
 
 public:
 	Acc *acc;
-	static Fid* Instance(string infile = "input/fid.parms");
+	static Fid* Instance(string infile = "/home/ephelps/dropbox/barracuda_copy-gmail/phys-ana-omega/input/fid.parms");
 	static void Release();
 
 	void Print() { };
@@ -36,7 +36,7 @@ public:
 	TF1* fThetaMin(Int_t sector, Int_t pnum = 0);
 	bool mPw[6][57];
 private:
-	Fid(string infile = "input/fid.parms");
+	Fid(string infile = "/home/ephelps/copy/gmail/phys-ana-omega/input/fid.parms");
 	virtual ~Fid();
 	static const double _rad2deg;
 	string mFName;

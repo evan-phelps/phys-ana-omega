@@ -51,7 +51,9 @@ class H10
                 Float_t ttime = _swmain.RealTime();
                 Float_t percentProcessed = (Float_t)eventnum/_ntoprocess*100;
                 Float_t remaining = (100/percentProcessed*ttime-ttime)/60;
-                printf("(%.2f) %lld/%.2f = %i events/sec | block = %i events/sec ... %.1f min remaining\n",percentProcessed,eventnum,ttime,((Int_t)(eventnum/ttime)),(Int_t)(blocksize/gtime),remaining);
+                printf("(%.2f) %lld/%.2f = %i events/sec | block = %i events/sec ... %.1f min remaining\n",
+		       percentProcessed, eventnum, ttime,
+		       ((Int_t)(eventnum/ttime)), (Int_t)(blocksize/gtime), remaining);
                 _swgroup.Start();
                 _swmain.Start(kFALSE);
             }
@@ -300,7 +302,7 @@ class H10
         Float_t E0, nu, Q2,  W,  s, t, t0, t1,
                 MMp, MMppip, MMppim, MMppippim,
                 cosTheta, phi;
-        int sector;
+        int esector;
         Int_t np, npip, npim;
 };
 #endif
@@ -317,7 +319,7 @@ H10::H10(TTree *tree, std::string fn_config)
     //     std::string emsg = "experiment not recognized! must be e1f or e16";
     //     throw new std::runtime_error(emsg.c_str());
     // }
-    sector = 0;
+    esector = 0;
     is_sim = kFALSE;
     run = -1;
     beamEnergy = cfg->GetFloat("beam_energy");

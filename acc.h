@@ -15,7 +15,7 @@ public:
 	THnSparse *fHf; //fiducial volume thrown events
                         //(thrown values of reconstructed particles)
 	THnSparse *fHo; //"hole" thrown events
-	Acc(string infile = "/home/ephelps/projects/phys-ana-omega/input/acc-per-part.root");
+	Acc(string infile = "/home/ephelps/dropbox/barracuda_copy-gmail/phys-ana-omega/input/acc-per-part.root");
 	//Acc(string infile);
 	virtual ~Acc();
 	/* effective acceptance factor in final kinematics */

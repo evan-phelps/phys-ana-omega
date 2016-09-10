@@ -83,7 +83,7 @@ bool DH_RunQuality::Handle(H10 *d)
     bool passed = true;
     PrepBlock(d);
     FillHists(d);
-                                 //count regardless of block
+    //count regardless of block
     passed = passed & CountAll(d);
     return passed;
 }

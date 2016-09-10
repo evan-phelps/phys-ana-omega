@@ -88,15 +88,15 @@ class DH_Eid : public DataHandler
             bool isE = d->id[0] == ELECTRON, isSC = d->sc[0]>0, isCC = d->cc[0]>0, isEC = d->ec[0]>0, isDC = d->dc[0]>0,
                  isStatGood = d->stat[0]>0, isDcStatGood = (dcidx>=0 && d->dc_stat[dcidx]>0), isPmom = d->p[0]>ec_pmom_lo;
 
-            bool isSameSector = (isSC && isCC && isDC && isEC && d->sector==scsect && d->sector==ccsect && d->sector==dcsect && d->sector==ecsect);
+            bool isSameSector = (isSC && isCC && isDC && isEC && d->esector==scsect && d->esector==ccsect && d->esector==dcsect && d->esector==ecsect);
             bool isEi = (isEC && d->ec_ei[ecidx] > parms_ei_lo_pol0[ecsect-1][0]);
             bool isSF = (isEC && sf > sflo && sf < sfhi);
             
             bool barr[] = {true, isE, isSC, isCC, isEC, isDC, isSameSector, isStatGood, isDcStatGood, isPmom, isEi, isSF};
             for (int i = 0; i < nconditions; i++) {
-                if (barr[i]) heidindS[d->sector-1]->Fill(i);
+                if (barr[i]) heidindS[d->esector-1]->Fill(i);
                 passed = passed ? barr[i] : false;          //if false, don't switch back to true
-                if (passed && barr[i]) heidS[d->sector-1]->Fill(i);
+                if (passed && barr[i]) heidS[d->esector-1]->Fill(i);
             }
 
             if (passed) d->id[0] = 11;

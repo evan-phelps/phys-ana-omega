@@ -48,7 +48,7 @@ def main(argv):
         elif opt == '-b':
             bos = True
 
-    if bos: 
+    if bos:
         try:
             retcode = call("for bosfile in $(ls *.bos); do nt10maker -t1 $bosfile -o${bosfile}.hbook && h2root ${bosfile}.hbook && rm $bosfile $bosfile.hbook; done", shell=True)
             if retcode < 0:

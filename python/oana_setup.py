@@ -13,8 +13,11 @@ from epfuncs import f_bwexpgaus_pol4
 from epfuncs import RejectWrapper
 from epxsectutils import vgflux
 
-gSystem.AddIncludePath("-I/home/ephelps/projects/phys-ana-omega")
-gROOT.ProcessLine(".include /home/ephelps/projects/phys-ana-omega")
+dir_skim = '/hdd500/home/e16e1fjobssimtof/e1f/skim'
+dir_src = '/home/ephelps/dropbox/barracuda_copy-gmail/phys-ana-omega'
+
+gSystem.AddIncludePath("-I%s"%dir_src)
+gROOT.ProcessLine(".include %s"%dir_src)
 
 h10 = TChain("h10clone/h10")
 tpilf = TChain("3pi-tree/t3pi")
@@ -28,10 +31,10 @@ runb = TChain("lumblock")
 
 chains = [h10, tpilf, tpipf, lum, lb]
 for c in chains:
-    c.Add("/data/e1f/skim/skims.root") #3????.root")
-run.Add("/data/e1f/skim/3xxxx_run.root")
-runb.Add("/data/e1f/skim/3xxxx_run.root")
-tkin.Add("/data/e1f/skim/friend-tkin.root")
+    c.Add("%s/skims.root"%dir_skim) #3????.root")
+run.Add("%s/3xxxx_run.root"%dir_skim)
+runb.Add("%s/3xxxx_run.root"%dir_skim)
+tkin.Add("%s/friend-tkin.root"%dir_skim)
 
 run.AddFriend(lum, "l")
 runb.AddFriend(lb, "l")
@@ -41,15 +44,15 @@ h10.AddFriend(tpipf, "pf")
 h10.AddFriend(run, "r")
 h10.AddFriend(tkin, "k")
 
-felist = TFile("/data/e1f/skim/elists.root")
+felist = TFile("%s/elists.root"%dir_skim)
 elf = felist.Get("fid_cc")
 el1 = felist.Get("el1")
 el2 = felist.Get("el2")
 el3 = felist.Get("el3")
 el1_himm = felist.Get("el1_himm")
 
-print("/data/e1f/skim/3????.root")
-print("/data/e1f/skim/3xxxx_run.root")
+print("%s/3????.root"%dir_skim)
+print("%s/3xxxx_run.root"%dir_skim)
 print("run.lum(=l)")
 print("runb.lb(=l)")
 print("tpipf.tpilf(=lf)")
@@ -58,22 +61,22 @@ print("h10.run(=r)")
 print("h10.tkin(=k)")
 print("elist_fid_mm_[123]=el[123]")
 
-gROOT.ProcessLine(".L /home/ephelps/projects/phys-ana-omega/acc.cpp+")
+gROOT.ProcessLine(".L %s/acc.cpp+"%dir_src)
 print("loaded acc.cpp")
-gROOT.ProcessLine(".L /home/ephelps/projects/phys-ana-omega/fid.cpp+")
+gROOT.ProcessLine(".L %s/fid.cpp+"%dir_src)
 print("loaded fid.cpp")
-gROOT.ProcessLine(".L /home/ephelps/projects/phys-ana-omega/particle-constants.h")
+gROOT.ProcessLine(".L %s/particle-constants.h"%dir_src)
 print("loaded particle-constants.h")
-gROOT.ProcessLine('Fid::Instance("/home/ephelps/projects/phys-ana-omega/input/fid.parms")')
+gROOT.ProcessLine('Fid::Instance("%s/input/fid.parms")'%dir_src)
 print("loaded Fid instance")
-gROOT.ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/scripts/infid.C")
+gROOT.ProcessLine(".L  %s/scripts/infid.C"%dir_src)
 print("loaded infid.C")
-gROOT.ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/scripts/eff.C")
+gROOT.ProcessLine(".L %s/scripts/eff.C"%dir_src)
 print("loaded eff.cpp")
 print("recompiling h10t3pi_sel.C...")
-gROOT.ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/h10t3pi_sel.C+")
+gROOT.ProcessLine(".L  %s/scripts/h10t3pi_sel.C+"%dir_src)
 print("... done.")
-gROOT.ProcessLine(".L  /home/ephelps/projects/phys-ana-omega/input/cc_eff_lazy_programmer.h")
+gROOT.ProcessLine(".L  %s/input/cc_eff_lazy_programmer.h"%dir_src)
 
 h10.SetAlias("fidpass", "(infid(k.e.p,k.e.theta,k.e.phi) && (h10idx_p<0 || infid(k.p.p,k.p.theta,k.p.phi,2212)) && (h10idx_pip<0 || infid(k.pip.p,k.pip.theta,k.pip.phi,211)) && (h10idx_pim<0 || infid(k.pim.p,k.pim.theta,k.pim.phi,-211)))")
 h10.SetAlias("fidpasse", "(h10idx_e==0 && infid(k.e.p,k.e.theta,k.e.phi))")
@@ -90,8 +93,8 @@ h10.SetAlias("ccsect", "cc_sect[cc[h10idx_e]-1]")
 h10.SetAlias("ccseg", "(cc_segm[cc[h10idx_e]-1]%1000)/10")
 h10.SetAlias("cchit", "(cc_segm[cc[h10idx_e]-1]/1000 - 1)")
 
-print("Fid::Instance() loaded\t from /home/ephelps/projects/phys-ana-omega/fid.cpp\t with parameters from /home/ephelps/analysis/omega/input/fid.parms")
-print("infid() loaded\t from /home/ephelps/projects/phys-ana-sandbox/sim/infid.C")
+print("Fid::Instance() loaded\t from %s/fid.cpp\t with parameters from %s/input/fid.parms"%(dir_src,dir_src))
+print("infid() loaded\t from %s/infid.C"%dir_src)
 print("h10 aliases: c, mpip, bifpip, dtifpip, sf\tfidpass, fidpass[e,p,pip,pim]\ttop[1,2,3]pass, mmthreshpass, mmpi0pass\tccpass")
 
 

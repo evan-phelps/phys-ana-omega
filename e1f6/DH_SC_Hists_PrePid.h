@@ -53,13 +53,13 @@ class DH_SC_Hists_PrePid : public DataHandler
                 title = TString::Format("particle id, positive, assume pip, sector %d, paddle %s",isect+1, "%d");
                 name = TString::Format("hdt_V_p_pos_pip_s%d_p%s",isect+1, "%d");
                 hdt_V_p_pos_pipS[isect] = MakeHists(NPDLS, name.Data(), title.Data(), 500, 0, 5, 400, -10, 10);
-                title = TString::Format("particle id, negitive, assume pip, sector %d, paddle %s",isect+1, "%d");
+                title = TString::Format("particle id, negative, assume pip, sector %d, paddle %s",isect+1, "%d");
                 name = TString::Format("hdt_V_p_neg_pim_s%d_p%s",isect+1, "%d");
                 hdt_V_p_neg_pimS[isect] = MakeHists(NPDLS, name.Data(), title.Data(), 500, 0, 5, 400, -10, 10);
-                title = TString::Format("particle id, negitive, assume e, sector %d, paddle %s",isect+1, "%d");
+                title = TString::Format("particle id, negative, assume e, sector %d, paddle %s",isect+1, "%d");
                 name = TString::Format("hdt_V_p_neg_e_s%d_p%s",isect+1, "%d");
                 hdt_V_p_neg_eS[isect] = MakeHists(NPDLS, name.Data(), title.Data(), 500, 0, 5, 400, -10, 10);
-                title = TString::Format("particle id, negitive, assume e, 1st part, sector %d, paddle %s",isect+1, "%d");
+                title = TString::Format("particle id, negative, assume e, 1st part, sector %d, paddle %s",isect+1, "%d");
                 name = TString::Format("hdt_V_p_neg_e_part1_s%d_p%s",isect+1, "%d");
                 hdt_V_p_neg_e_part1S[isect] = MakeHists(NPDLS, name.Data(), title.Data(), 500, 0, 5, 40, -1, 1);
             }
@@ -102,7 +102,7 @@ class DH_SC_Hists_PrePid : public DataHandler
             bool passed = true;
             for (int ipart = 0; ipart < d->npart; ipart++) {
                 int scidx = d->sc[ipart]-1, dcidx = d->dc[ipart]-1;
-                int ipdl = d->sc_pd[scidx]-1, isec = d->sector-1;
+                int ipdl = d->sc_pd[scidx]-1, isec = d->sc_sect[scidx]-1;
                 if (scidx > 0 && dcidx >= 0) {
                     float mom = d->p[ipart];
                     float px = mom*d->cx[ipart], py = mom*d->cy[ipart], pz = mom*d->cz[ipart];
