@@ -2,7 +2,7 @@
 
 # TODO: propagate integral errors to error on weight3s
 import sys
-sys.path.append('/opt/root/lib')
+#sys.path.append('/opt/root/lib')
 import new
 from math import sqrt
 
