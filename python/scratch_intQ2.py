@@ -2,6 +2,7 @@ import ROOT as r
 from ROOT import TMinuit
 from rootpy.io import root_open as ropen
 import pandas as pd
+from functools import reduce
 # import matplotlib
 # matplotlib.use('gtkagg')
 # import matplotlib.pylab as mplt
@@ -111,8 +112,8 @@ def fitlegs(h, leg_order=3, ignore=[], tamp=0, uamp=0, trim=True):
     return (f, fl, ft, fu, h, status)
 
 
-fin = ropen('ana_bd.root')
-df = pd.read_csv('ana_bd.dat')
+fin = ropen('top1/ana_bd.root')
+df = pd.read_csv('top1/ana_bd.dat')
 
 
 def intQ2(wmid=1890):
