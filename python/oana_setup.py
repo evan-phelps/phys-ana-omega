@@ -14,7 +14,8 @@ from epfuncs import RejectWrapper
 from epxsectutils import vgflux
 
 dir_skim = '/hdd500/home/e16e1fjobssimtof/e1f/skim'
-dir_src = '/home/ephelps/dropbox/barracuda_copy-gmail/phys-ana-omega'
+#dir_src = '/home/ephelps/dropbox/barracuda_copy-gmail/phys-ana-omega'
+dir_src = '/home/ephelps/projects/phys-ana-omega'
 
 gSystem.AddIncludePath("-I%s"%dir_src)
 gROOT.ProcessLine(".include %s"%dir_src)

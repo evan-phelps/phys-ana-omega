@@ -360,6 +360,7 @@ def testme(wbin=15, q2bin=5):
         wait()
         # virtual photon flux factors and cc-cut efficiency factors
         # already applied in h6maker.h!
+	# ... but not in DH_H6Maker.h
         h2e = applyacc(wbin, q2bin, *sigsbparms)
 
         vals = ibins2vals(wbin, q2bin)
