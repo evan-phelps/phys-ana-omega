@@ -49,10 +49,16 @@ def main(argv):
             bos = True
 
     if bos:
+        bash_bos2root = ''' for bosfile in $(ls *.bos)
+                            do
+                                nt10maker -t1 $bosfile -o${bosfile}.hbook && \
+                                h2root ${bosfile}.hbook;
+                            done
+                        '''
         try:
-            retcode = call("for bosfile in $(ls *.bos); do nt10maker -t1 $bosfile -o${bosfile}.hbook && h2root ${bosfile}.hbook && rm $bosfile $bosfile.hbook; done", shell=True)
+            retcode = call(bash_bos2root, shell=True)
             if retcode < 0:
-                print >>sys.stderr, "Child was terminated by signal", -retcode
+                print >>sys.stderr, "Child was terminated by signal", retcode
             else:
                 print >>sys.stderr, "Child returned", retcode
         except OSError as e:
@@ -64,19 +70,26 @@ def main(argv):
                 'DH_SC_Hists_PrePid.h', 'DH_CC_Hists.h']:
         r.gROOT.ProcessLine('.L %s/%s+' % (wdir, dep))
 
-    hnames = [
-        "mon_raw", "echists_raw", "cchists_raw", "runquality", "cchists_qskim", "echists_qskim",
-        "mon_qskim", "eid", "echists_eskim", "cchists_eskim", "mon_eskim", "h10_eskim", "scpid_eskim"]
-    hclasses = [
-        r.DH_Hists_Monitor, r.DH_EC_Hists_PreEid, r.DH_CC_Hists, r.DH_RunQuality, r.DH_CC_Hists, r.DH_EC_Hists,
-        r.DH_Hists_Monitor, r.DH_Eid, r.DH_EC_Hists, r.DH_CC_Hists, r.DH_Hists_Monitor, r.DH_CloneH10, r.DH_SC_Hists_PrePid]
+    handlers = [("mon_raw", r.DH_Hists_Monitor),
+                ("echists_raw", r.DH_EC_Hists_PreEid),
+                ("cchists_raw", r.DH_CC_Hists),
+                ("runquality", r.DH_RunQuality),
+                ("cchists_qskim", r.DH_CC_Hists),
+                ("echists_qskim", r.DH_EC_Hists),
+                ("mon_qskim", r.DH_Hists_Monitor),
+                ("eid", r.DH_Eid),
+                ("echists_eskim", r.DH_EC_Hists),
+                ("cchists_eskim", r.DH_CC_Hists),
+                ("mon_eskim", r.DH_Hists_Monitor),
+                ("h10_eskim", r.DH_CloneH10),
+                ("scpid_eskim", r.DH_SC_Hists_PrePid)]
 
     fout = r.TFile(outfile, 'RECREATE')
     chain = r.TChain(treepath)
     chain.Add(rootfilepattern)
     processor = r.H10(chain, parmfile)
 
-    for name, handler in zip(hnames, hclasses):
+    for name, handler in handlers:
         processor.Add(handler(name, fout))
     processor.Loop(numproc, fastcount)
 
