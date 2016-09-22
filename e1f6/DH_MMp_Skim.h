@@ -77,8 +77,8 @@ class DH_MMp_Skim : public DataHandler
             }
 
             if (npos==2 && nneg==1) {
-                passed = (CutMM(d, ipos[0], ineg[0]) && CutMM(d, ipos[0], ipos[1])
-                      || (CutMM(d, ipos[1], ineg[0])) && CutMM(d, ipos[1], ipos[0]));
+                passed = (CutMM(d, ipos[0], ineg[0]) && CutMM(d, ipos[0], ipos[1]))
+                      || (CutMM(d, ipos[1], ineg[0]) && CutMM(d, ipos[1], ipos[0]));
             } else if (npos==2 && nneg==0) {
                 passed = CutMM(d, ipos[0], ipos[1]) || CutMM(d, ipos[1], ipos[0]);
             } else if (npos==1 && nneg==1) {
