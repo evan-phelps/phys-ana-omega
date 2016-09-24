@@ -28,10 +28,21 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         jentry = elist ? elist->GetEntry(jentry_el) : jentry_el;
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
+
         PrintProgress(jentry);
+
+        GetEntry(jentry);
+
+        if ( gpart > 20 ) continue;
+        // if ( !(q[0]==-1 && p[0]<beamEnergy) ) continue;
+        //since q[0] must be -1, let's count a negative particle
+        //nneg = 1;
+
         //data->CheapPop(ientry);
         E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
-        np = npip = npim = 0;
+        np = npip = npim = nother = n0 = 0;
+        npos = nneu = nneg = 0;
+
         lvE1.SetXYZM(0,0,0,0);
         lvP1.SetXYZM(0,0,0,0);
         lvPip.SetXYZM(0,0,0,0);
@@ -43,9 +54,9 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         lvMMppim.SetXYZM(0,0,0,0);
         lvMMppippim.SetXYZM(0,0,0,0);
 
-        GetEntry(jentry);
-
         CalcLVs();
+
+        // if ( !(np>0 && W>=1.6 && W<=3.2 && MMp>=0.4 && MMp<=1.2) ) continue;
 
         fHandlerChain->Process(this);
     }
@@ -82,36 +93,54 @@ void H10::CalcLVs() {
     esector = _phi/(PI/3)+1;          //divide by 60, truncate to int add one
     if (esector == 7) esector = 1;    //identify 360 with 0
     int idx[] = {0,0,0};    // h10 idx of proton, pip, pim
+    //Since I, above, assumed that the first particle is an electron
+    // let's set nneg=1 to start
+    nneg = 1;
     if (gpart>1) {
+    //We'll check all gpart particles, which permits bad status in particles beyond npart.
         for (int ipart = 1; ipart < gpart; ipart++) {
+            if (q[ipart] < 0) nneg++;
+            else if (q[ipart] > 0) npos++;
+            else nneu++;
+
             switch(id[ipart]) {
                 case PROTON:
                     np++;
+                    //only first proton is used
                     if (idx[0]==0) idx[0]=ipart;
                     break;
                 case PIP:
                     npip++;
+                    //only first pi+ is used
                     if (idx[1]==0) idx[1]=ipart;
                     break;
                 case PIM:
                     npim++;
+                    //only first pi- is used
                     if (idx[2]==0) idx[2]=ipart;
                     break;
+                case 0:
+                    n0++;
+                    break;
                 default:
+                    nother++;
                     break;
             }
         }
         if (idx[0]>0) {
+        //Set everything that requires proton
             lvP1.SetXYZM(p[idx[0]]*cx[idx[0]], p[idx[0]]*cy[idx[0]], p[idx[0]]*cz[idx[0]], MASS_P);
             t = (lvP1-lvP0).M2();
             lvMMp = lvW-lvP1;
             MMp = lvMMp.M();
             if (idx[2]>0) {
+            //Set everything that requires pi-
                 lvPim.SetXYZM(p[idx[2]]*cx[idx[2]], p[idx[2]]*cy[idx[2]], p[idx[2]]*cz[idx[2]], MASS_PIM);
                 lvMMppim = lvMMp-lvPim;
                 MMppim = lvMMppim.M();
             }
             if (idx[1]>0) {
+            //Set everything that requires pi+
                 lvPip.SetXYZM(p[0]*cx[idx[1]], p[idx[1]]*cy[idx[1]], p[idx[1]]*cz[idx[1]], MASS_PIP);
                 lvMMppip = lvMMp-lvPip;
                 MMppip = lvMMppip.M();

@@ -209,7 +209,7 @@ void DH_RunQuality::FillHists(H10 *d)
         }
         int npart = d->npart;
         int gpart = d->gpart;
-        if (npart>2 && gpart<8)
+        if (npart>2 && gpart<10)
         {
             int np, npip, npim, nothercharged;
             np = npip = npim = nothercharged = 0;
@@ -269,7 +269,7 @@ bool DH_RunQuality::CountAll(H10 *d)
     bool negfirst = d->q[0] < 0 ? true : false;
     negfirst = negfirst && d->sc[0]>0 && d->cc[0]>0 && d->dc[0]>0 && d->ec[0]>0;
     int npos = 0, nneg = 0;
-    for (int ipart = 0; ipart < d->npart; ipart++)
+    for (int ipart = 0; ipart < d->gpart; ipart++)
     {
         switch(d->id[ipart])
         {
@@ -297,9 +297,10 @@ bool DH_RunQuality::CountAll(H10 *d)
     fLb.nevts_Neg1st_1Pos1Neg_exc += (negfirst && npos==1 && nneg==1);
     fLb.nevts_Neg1st_2Pos1Neg_exc += (negfirst && npos==2 && nneg==1);
 
-    bool passed = negfirst && ((npos==2 && nneg==0)
-        || (npos==1 && nneg==1)
-        || (npos==2 && nneg==1));
+    // bool passed = negfirst && ((npos==2 && nneg==0)
+    //     || (npos==1 && nneg==1)
+    //     || (npos==2 && nneg==1));
+    bool passed = true;
     return passed;
 }
 

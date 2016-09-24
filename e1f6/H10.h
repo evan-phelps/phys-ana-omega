@@ -303,7 +303,8 @@ class H10
                 MMp, MMppip, MMppim, MMppippim,
                 cosTheta, phi;
         int esector;
-        Int_t np, npip, npim;
+        Int_t np, npip, npim, nother, n0;
+        Int_t npos, nneg, nneu;
 };
 #endif
 
@@ -515,7 +516,9 @@ Bool_t H10::Notify()
         TObjArray *tokens = fullfn.Tokenize("/");
         TObjString *tok = (TObjString*)tokens->At(tokens->GetLast());
         TString fn = tok->GetString();
+        //printf("TEST1\n");
         run = ((TString)fn(*fRegExp_run)).Atoi();
+        //printf("TEST2\n");
         //printf("opening run %d\n",run);
         file_anum = ((TString)((TString)fn(*fRegExp_Anum))(1,2)).Atoi();
         filename = fn.Data();

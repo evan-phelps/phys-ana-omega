@@ -127,7 +127,7 @@ class DH_Efid : public DataHandler
                 passed = u > parms_efid_uvw[isectec][0] && u < parms_efid_uvw[isectec][1]
                          && v < parms_efid_uvw[isectec][2] && w < parms_efid_uvw[isectec][3];
                 if (passed) {
-                    int isect = d->sector-1;
+                    int isect = d->esector-1;
                     float p = d->p[0];
                     float theta = RadToDeg()*ACos(d->cz[0]);
                     float phi = RadToDeg()*ATan2(d->cy[0],d->cx[0]);

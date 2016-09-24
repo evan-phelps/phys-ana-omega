@@ -1,0 +1,27 @@
+# ipython --matplotlib tk
+import matplotlib as mpl
+import numpy as np
+from scipy.optimize import curve_fit
+from scipy.stats.mstats import gmean
+import pandas as pd
+
+df = pd.read_csv('~/dropbox/Notebooks/omega/Projects/Omega/Cross-sections/Morand/xsect_integrated_morand.txt', sep='\t')
+picks = (df.W<1.92)&(df.W>1.84)
+X = df.Q2[picks]
+Y = df.xsect[picks]
+
+mpl.pyplot.plot(X,Y, '*')
+mpl.pyplot.grid()
+mpl.pyplot.xlim(2, 6)
+
+fexp = lambda x,a,c,d: a*np.exp(-c*x)+d
+par = curve_fit(fexp, X, Y)[0]
+Xf = np.arange(2,6,0.1)
+Yf = [fexp(x,*par) for x in Xf]
+mpl.pyplot.plot(Xf,Yf)
+
+df2 = pd.read_csv('~/projects/phys-ana-omega/python/top1/ana_bd.dat')
+picks2 = (df2.W>=1.72)&(df2.W<=1.92)&(df2.xsect>25)
+q2_xsect = df2[picks2].groupby('Q2')[['xsect','err']].aggregate({'xsect':np.mean,'err':gmean}).reset_index()
+mpl.pyplot.errorbar(q2_xsect.Q2.values,q2_xsect.xsect.values, q2_xsect.err.values, None, 'ob')
+

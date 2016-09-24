@@ -24,3 +24,22 @@ SetAliases(TChain *c)
     c->SetAlias("sf","etot[ec-1]/p");
 
 }
+
+#SetAliases(TChain *c)
+#{
+#    //Delta-t for particle identification wrt electron time
+#    c->SetAlias("etime","sc_t[0]-sc_r[0]/29.9792458");
+#    c->SetAlias("bifp","sqrt(p*p/(p*p+0.93827203*0.93827203))");
+#    c->SetAlias("dtifpE","sc_t-sc_r/(29.9792458*bifp)-etime");
+#    c->SetAlias("bifpip","sqrt(p*p/(p*p+0.13957018*0.13957018))");
+#    c->SetAlias("dtifpipE","sc_t-sc_r/(29.9792458*bifpip)-etime");
+#    c->SetAlias("bifpim","sqrt(p*p/(p*p+0.13957018*0.13957018))");
+#    c->SetAlias("dtifpimE","sc_t-sc_r/(29.9792458*bifpim)-etime");
+#    //Delta-t for particle identification wrt bunch time
+#    c->SetAlias("dtifp","sc_t-sc_r/(29.9792458*bifp)-tr_time");
+#    c->SetAlias("dtifpip","sc_t-sc_r/(29.9792458*bifpip)-tr_time");
+#    c->SetAlias("dtifpim","sc_t-sc_r/(29.9792458*bifpim)-tr_time");
+#    //EC sampling fraction
+#    c->SetAlias("sf","etot/p");
+#
+#}

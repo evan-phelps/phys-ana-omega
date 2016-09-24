@@ -64,6 +64,7 @@ class DH_Efid_Hists : public DataHandler
         }
         virtual void Setup(H10* d)
         {
+            fDir->cd();
             PLO = 1000*d->cfg->GetFloat("ec_pmom_lo");
             DP = 100;
             NPBINS = 43;
@@ -73,7 +74,7 @@ class DH_Efid_Hists : public DataHandler
             for (int ipbin = 0; ipbin < NPBINS; ipbin++) {
                 TString title = TString::Format("electron angles, p = [%d,%d] MeV, sector %s", PLO+100*ipbin, PLO+100*(ipbin+1), "%d");
                 TString name = TString::Format("heang_%d_%d_s%s", PLO+DP*ipbin, PLO+DP*(ipbin+1), "%d");
-                hangpS[ipbin] = MakeHists(NSECTS, name.Data(), title.Data(), 60, 0, 60, 240, -30, 30);
+                hangpS[ipbin] = MakeHists(NSECTS, name.Data(), title.Data(), 120, 0, 60, 120, -30, 30);
                 //printf("%d\t", ipbin);
             }
         }
@@ -109,11 +110,11 @@ class DH_Efid_Hists : public DataHandler
                 float theta = RadToDeg()*ACos(d->cz[0]);
                 float phi = RadToDeg()*ATan2(d->cy[0],d->cx[0]);
                 if (phi < -30) phi+=360;
-                phi -= (d->sector-1)*60;
+                phi -= (d->esector-1)*60;
                 float p = 1000*d->p[0];
                 //printf("%.1f\t%d\n", p, GetPbin(p));
                 //printf("%.3f, %.3f\n", theta, phi);
-                if (p < PHI && p > PLO) hangpS[GetPbin(p)][d->sector-1]->Fill(theta, phi);
+                if (p < PHI && p > PLO) hangpS[GetPbin(p)][d->esector-1]->Fill(theta, phi);
             }
             return passed;
         }
