@@ -33,12 +33,9 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
 
         GetEntry(jentry);
 
+        // AVOID array over-runs by restricting gpart
         if ( gpart > 20 ) continue;
-        // if ( !(q[0]==-1 && p[0]<beamEnergy) ) continue;
-        //since q[0] must be -1, let's count a negative particle
-        //nneg = 1;
 
-        //data->CheapPop(ientry);
         E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
         np = npip = npim = nother = n0 = 0;
         npos = nneu = nneg = 0;
@@ -55,8 +52,6 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         lvMMppippim.SetXYZM(0,0,0,0);
 
         CalcLVs();
-
-        // if ( !(np>0 && W>=1.6 && W<=3.2 && MMp>=0.4 && MMp<=1.2) ) continue;
 
         fHandlerChain->Process(this);
     }
