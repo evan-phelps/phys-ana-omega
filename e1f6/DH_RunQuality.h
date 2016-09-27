@@ -45,7 +45,9 @@ class DH_RunQuality: public DataHandler
             Float_t fc_charge_ltcorr;
             Float_t livetime;
             ULong64_t ntrigs;
+            ULong64_t nevts_procd;
             ULong64_t ne;
+            ULong64_t ne_w_1950_2050_q2_19_21;
             ULong64_t np;
             ULong64_t npip;
             ULong64_t npim;
@@ -55,16 +57,12 @@ class DH_RunQuality: public DataHandler
             ULong64_t nevts_Neg1st_2Pos1Neg_exc;
         } fLb;
         TTree *lumblocks;
-        vector<TH2*> hq2_V_wS;
-        vector<TH2*> hq2_V_w_elast_excS;
-        TH2 *hmmppippim_V_mmp;
     protected:
         float fQl_last, fAnum_last, fRun_last;
         bool firstfile, a00exists;
         TLorentzVector *lvE0, *lvE1, *lvP0, *lvP1, *lvPip, *lvPim;
         void Clear();
         bool PrepBlock(H10 *d);
-        void FillHists(H10 *d);
         bool CountAll(H10 *d);
         void FillPreviousBlock(H10 *d);
 };

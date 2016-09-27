@@ -97,7 +97,7 @@ class DH_Efid_Hists : public DataHandler
             bool passed = true;
             int ecidx = d->ec[0]-1;
             int dcidx = d->dc[0]-1;
-            if (ecidx>=0 && dcidx>=0) {
+            if (ecidx>=0 && dcidx>=0 && d->q[0]<0) {
                 double uvw[3];
                 double xyz[3] = { d->ech_x[ecidx], d->ech_y[ecidx], d->ech_z[ecidx] };
                 double sf = d->etot[ecidx]/d->p[0];

@@ -31,6 +31,8 @@ class DH_Eid : public DataHandler
         float ec_pmom_lo;
         vector<TH1*> heidS;
         vector<TH1*> heidindS;
+        vector<TH1*> heidS_sample_2_2;
+        vector<TH1*> heidindS_sample_2_2;
         int nconditions;
 
         DH_Eid(std::string name = "DH_EC_Eid", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
@@ -38,8 +40,32 @@ class DH_Eid : public DataHandler
             nconditions = 12;
             ec_pmom_lo = 0;
             fDir->cd();
-            heidS = MakeHists(NSECTS, "heid_%d", "electron id summary, sector %d", nconditions, -0.5, nconditions-0.5);
-            heidindS = MakeHists(NSECTS, "heidind_%d", "electron id summary, independent, sector %d", nconditions, -0.5, nconditions-0.5);
+            static const char* const binlabels[] = {"UNDERFLOW",
+                                                    "CC",
+                                                    "EC",
+                                                    "DC",
+                                                    "SC",
+                                                    "same-sector",
+                                                    "DC status > 0",
+                                                    "status > 0",
+                                                    "1^{st} is negative",
+                                                    "p > p_{threshold}",
+                                                    "CC LowP, SF HighP",
+                                                    "E_{inner} > E^{min}_{inner}",
+                                                    "#frac{E_{EC}}{p} #approx SF",
+                                                    "OVERFLOW"};
+            heidS = MakeHists(NSECTS, "heid_s%d", "electron id summary, sector %d", nconditions, -0.5, nconditions-0.5);
+            heidindS = MakeHists(NSECTS, "heidind_s%d", "electron id summary, independent, sector %d", nconditions, -0.5, nconditions-0.5);
+            heidS_sample_2_2 = MakeHists(NSECTS, "heid_sample_2_2_s%d", "electron id summary, sector %d", nconditions, -0.5, nconditions-0.5);
+            heidindS_sample_2_2 = MakeHists(NSECTS, "heidindS_sample_2_2_s%d", "electron id summary, independent, sector %d", nconditions, -0.5, nconditions-0.5);
+            for (int isect = 0; isect < 6; isect++) {
+                for (int ibin = 1; ibin <= nconditions; ibin++) {
+                    heidS[isect]->GetXaxis()->SetBinLabel(ibin, binlabels[ibin]);
+                    heidindS[isect]->GetXaxis()->SetBinLabel(ibin, binlabels[ibin]);
+                    heidS_sample_2_2[isect]->GetXaxis()->SetBinLabel(ibin, binlabels[ibin]);
+                    heidindS_sample_2_2[isect]->GetXaxis()->SetBinLabel(ibin, binlabels[ibin]);
+                }
+            }
         }
         virtual ~DH_Eid()
         {
@@ -65,6 +91,8 @@ class DH_Eid : public DataHandler
             fDir->cd();
             for_each(heidS.begin(), heidS.end(), WriteObj);
             for_each(heidindS.begin(), heidindS.end(), WriteObj);
+            for_each(heidS_sample_2_2.begin(), heidS_sample_2_2.end(), WriteObj);
+            for_each(heidindS_sample_2_2.begin(), heidindS_sample_2_2.end(), WriteObj);
         }
         virtual bool Handle(H10* d)
         {
@@ -85,18 +113,29 @@ class DH_Eid : public DataHandler
             if (ccidx >= 0) ccsect = d->cc_sect[ccidx];
             if (dcidx >= 0) dcsect = d->dc_sect[dcidx];
             
-            bool isE = d->q[0]<0;  // well, for now, isE means "first particle and negative"
+            bool isX0neg = d->q[0]<0;
             bool isSC = scidx>=0, isCC = ccidx>=0, isEC = ecidx>=0, isDC = dcidx>=0,
                  isStatGood = d->stat[0]>0, isDcStatGood = (dcidx>=0 && d->dc_stat[dcidx]>0), isPmom = d->p[0]>ec_pmom_lo;
 
             bool isSameSector = (isSC && isCC && isDC && isEC && d->esector==scsect && d->esector==ccsect && d->esector==dcsect && d->esector==ecsect);
             bool isEi = (isEC && d->ec_ei[ecidx] > parms_ei_lo_pol0[ecsect-1][0]);
             bool isSF = (isEC && sf > sflo && sf < sfhi);
-            bool barr[] = {true, isE, isSC, isCC, isEC, isDC, isSameSector, isStatGood, isDcStatGood, isPmom, isEi, isSF};
+            bool isCCorSF = (isCC && d->p[0]<2) || (isSF && isEi && d->p[0]>=2);
+            bool barr[] = {isCC, isEC, isDC, isSC, isSameSector, isDcStatGood, isStatGood, isX0neg, isPmom, isCCorSF, isEi, isSF};
             for (int i = 0; i < nconditions; i++) {
-                if (barr[i]) heidindS[d->esector-1]->Fill(i);
+                if (barr[i]) {
+                    heidindS[d->esector-1]->Fill(i);
+                    if (d->W > 1.95 && d->W <= 2.05 && d->Q2 > 1.9 && d->Q2 <= 2.1) {
+                        heidindS_sample_2_2[d->esector-1]->Fill(i);
+                    }
+                }
                 passed = passed ? barr[i] : false;          //if false, don't switch back to true
-                if (passed && barr[i]) heidS[d->esector-1]->Fill(i);
+                if (passed && barr[i]) {
+                    heidS[d->esector-1]->Fill(i);
+                    if (d->W > 1.95 && d->W <= 2.05 && d->Q2 > 1.9 && d->Q2 <= 2.1) {
+                        heidS_sample_2_2[d->esector-1]->Fill(i);
+                    }
+                }
             }
 
             if (passed) d->id[0] = 11;

@@ -36,6 +36,9 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         // AVOID array over-runs by restricting gpart
         if ( gpart > 20 ) continue;
 
+        if ( tr_time == 0 && sc[0] > 0) {
+            tr_time = sc_t[sc[0]-1] - sc_r[sc[0]-1]/29.9792458;
+        }
         E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
         np = npip = npim = nother = n0 = 0;
         npos = nneu = nneg = 0;

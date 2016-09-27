@@ -405,18 +405,22 @@ void H10::Init(TTree *tree)
     }
     if (expTestBranch)
     {
+        fChain->SetBranchAddress("evtype", &evtype, &b_evtype);
+        fChain->SetBranchAddress("evthel", &evthel, &b_evthel);
+        fChain->SetBranchAddress("evntclas2", &evntclas2, &b_evntclas2);
+        fChain->SetBranchAddress("rf_time1", &rf_time1, &b_rf_time1);
+        fChain->SetBranchAddress("rf_time2", &rf_time2, &b_rf_time2);
+        fChain->SetBranchAddress("dc_xec", dc_xec, &b_dc_xec);
+        fChain->SetBranchAddress("dc_yec", dc_yec, &b_dc_yec);
+        fChain->SetBranchAddress("dc_zec", dc_zec, &b_dc_zec);
+        fChain->SetBranchAddress("dc_thcc", dc_thcc, &b_dc_thcc);
         fChain->SetBranchAddress("npart", &npart, &b_npart);
         fChain->SetBranchAddress("evstat", &evstat, &b_evstat);
         fChain->SetBranchAddress("evntid", &evntid, &b_evntid);
-        fChain->SetBranchAddress("evtype", &evtype, &b_evtype);
         fChain->SetBranchAddress("evntclas", &evntclas, &b_evntclas);
-        fChain->SetBranchAddress("evthel", &evthel, &b_evthel);
-        fChain->SetBranchAddress("evntclas2", &evntclas2, &b_evntclas2);
         fChain->SetBranchAddress("q_l", &q_l, &b_q_l);
         fChain->SetBranchAddress("t_l", &t_l, &b_t_l);
         fChain->SetBranchAddress("tr_time", &tr_time, &b_tr_time);
-        fChain->SetBranchAddress("rf_time1", &rf_time1, &b_rf_time1);
-        fChain->SetBranchAddress("rf_time2", &rf_time2, &b_rf_time2);
         fChain->SetBranchAddress("gpart", &gpart, &b_gpart);
         fChain->SetBranchAddress("id", id, &b_id);
         fChain->SetBranchAddress("stat", stat, &b_stat);
@@ -445,10 +449,6 @@ void H10::Init(TTree *tree)
         fChain->SetBranchAddress("dc_cxsc", dc_cxsc, &b_dc_cxsc);
         fChain->SetBranchAddress("dc_cysc", dc_cysc, &b_dc_cysc);
         fChain->SetBranchAddress("dc_czsc", dc_czsc, &b_dc_czsc);
-        fChain->SetBranchAddress("dc_xec", dc_xec, &b_dc_xec);
-        fChain->SetBranchAddress("dc_yec", dc_yec, &b_dc_yec);
-        fChain->SetBranchAddress("dc_zec", dc_zec, &b_dc_zec);
-        fChain->SetBranchAddress("dc_thcc", dc_thcc, &b_dc_thcc);
         fChain->SetBranchAddress("dc_c2", dc_c2, &b_dc_c2);
         fChain->SetBranchAddress("ec_part", &ec_part, &b_ec_part);
         fChain->SetBranchAddress("ec_stat", ec_stat, &b_ec_stat);
