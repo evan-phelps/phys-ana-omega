@@ -3,6 +3,8 @@ rc('text', usetex=True)
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.colors import LogNorm
+from rootpy import asrootpy
+import numpy as np
 
 import ROOT as R
 
@@ -22,8 +24,8 @@ def draw(hist, ncols=1, nrows=1, cell=1, fig=None,
     if isinstance(hist, R.TH2):
         rplt.hist2d(hist, axes=subplot, **kwargs)
     else:
-        rplt.errorbar([hist], xerr=False, emptybins=False, **kwargs)
-    fig.set_tight_layout(True)
+        rplt.errorbar(hist, xerr=False, emptybins=False, **kwargs)
+    #fig.set_tight_layout(True)
     return fig
 
 def mdraw(hists, ncols=1, nrows=1, figwidth=6.5, **kwargs):
@@ -67,8 +69,10 @@ def norm_x_slices(h2):
         maxval = h1.GetMaximum()
         for ybin in range(1, nby+1):
             bc = h2c.GetBinContent(xbin,ybin)
+            berr = h2c.GetBinError(xbin,ybin)
             if bc > 0:
                 h2c.SetBinContent(h2c.GetBin(xbin,ybin), bc/maxval)
+                h2c.SetBinError(h2c.GetBin(xbin,ybin), berr/maxval)
     return asrootpy(h2c)
 
 
@@ -80,18 +84,42 @@ def norm_y_slices(h2):
         maxval = h1.GetMaximum()
         for xbin in range(1, nbx+1):
             bc = h2c.GetBinContent(xbin,ybin)
+            berr = h2c.GetBinError(xbin,ybin)
             if bc > 0:
                 h2c.SetBinContent(h2c.GetBin(xbin,ybin), bc/maxval)
+                h2c.SetBinError(h2c.GetBin(xbin,ybin), berr/maxval)
     return asrootpy(h2c)
 
 
-def get_x_slices(h2, window=1):
+def get_x_slices(h2, window=1, xlow=None, xhigh=None):
     hs = []
-    for xbin in range(1, h2.xaxis.get_nbins()+1):
+    xbin_lo = 1
+    xbin_hi = h2.xaxis.get_nbins()+1
+    if xlow is not None:
+        xbin_lo = h2.xaxis.find_bin(xlow)
+    if xhigh is not None:
+        xbin_hi = h2.xaxis.find_bin(xhigh)+1
+
+    for xbin in range(xbin_lo, xbin_hi):
         h = h2.projection_y('%s_%d'%(h2.name, xbin), xbin, xbin+window-1)
-        if sum(h) < 10:
-            h = None
-        hs.append((h2.xaxis.get_bin_center(xbin),h))
+        xmid = sum([h2.xaxis.get_bin_center(i+xbin) for i in range(0,window)])/window
+        hs.append((xmid,h))
+    return hs
+
+
+def get_y_slices(h2, window=1, ylow=None, yhigh=None):
+    hs = []
+    ybin_lo = 1
+    ybin_hi = h2.yaxis.get_nbins()+1
+    if ylow is not None:
+        ybin_lo = h2.yaxis.find_bin(ylow)
+    if yhigh is not None:
+        ybin_hi = h2.yaxis.find_bin(yhigh)+1
+
+    for ybin in range(ybin_lo, ybin_hi):
+        h = h2.projection_x('%s_%d'%(h2.name, ybin), ybin, ybin+window-1)
+        ymid = sum([h2.yaxis.get_bin_center(i+ybin) for i in range(0,window)])/window
+        hs.append((ymid,h))
     return hs
 
 
@@ -115,4 +143,78 @@ def get_pointgen(gr, xlo, xhi):
                 yield (x, y)
     return genpoints
 
+
+def get_points_from_TF1(f, xmin, xmax, npoints=100):
+    X = np.linspace(xmin, xmax, npoints)
+    return [(x,f.Eval(x)) for x  in X]
+
+
+def get_ylims_of_xmid(h2, method='falling', threshold=0.001):
+    xmean = h2.projection_x().GetMean()
+    xmeanbin = h2.xaxis.find_bin(xmean)
+    h1mid3 = asrootpy(h2.projection_y('%s_py_mid3'%h2.name, xmeanbin-1, xmeanbin+1))
+    thresh_abs = threshold*h1mid3.get_maximum()
+
+    ymin = h1mid3.get_bin_low_edge(1)
+    ymax = h1mid3.get_bin_low_edge(h1mid3.get_nbins_x()+1)
+    if method == 'falling':
+        ymin = h1mid3.get_bin_low_edge(h1mid3.get_maximum_bin())
+        ymax = h1mid3.get_bin_low_edge(1+h1mid3.find_last_bin_above(thresh_abs))
+    return (ymin, ymax)
+
+
+def get_ymin_of_xmid(h2, method='falling', threshold=0.05):
+    return get_ylims_of_xmid(h2, method, threshold)[0]
+
+
+def get_ymax_of_xmid(h2, method='falling', threshold=0.05):
+    return get_ylims_of_xmid(h2, method, threshold)[1]
+
+
+def funcR_plateau(x, par):
+    '''ROOT-friendly piece-wise "plateau" function.'''
+    arg = x[0]
+    fitval = 0
+    if arg < par[2] or arg > par[3]: fitval = 0
+    if arg >= par[2] and arg < par[0]: fitval = par[4]*(arg-par[2])/(par[0]-par[2])
+    if arg >= par[0] and arg <= par[1]: fitval = par[4]
+    if arg > par[1] and arg <= par[3]: fitval = par[4]*(arg-par[3])/(par[1]-par[3])
+    return fitval
+
+
+def get_plateau_edges(h1, threshold=10, loose=0, fitopts='RSQN'):
+    if h1.GetEntries() < threshold:
+        return ([None, None], None)
+    h1_xmin = h1.get_bin_low_edge(1)
+    h1_xmax = h1.get_bin_low_edge(h1.get_nbins_x()+1)
+    fplat = R.TF1('%s_fplat'%h1.name, funcR_plateau, h1_xmin, h1_xmax, 5)
+    p0_xmin = b0_xmax = h1.get_bin_center(h1.find_first_bin_above(h1.get_maximum()/2))
+    p1_xmax = b1_xmin = h1.get_bin_center(h1.find_last_bin_above(h1.get_maximum()/2))
+    p0_xmax = p1_xmin = (p1_xmax+p0_xmin)/2
+    b0_xmin = h1.get_bin_center(h1.find_first_bin_above(0))
+    b1_xmax = h1.get_bin_center(h1.find_last_bin_above(0))
+    fplat.SetParLimits(0, p0_xmin, p0_xmax)
+    fplat.SetParLimits(1, p1_xmin, p1_xmax)
+    fplat.SetParLimits(2, b0_xmin, b0_xmax)
+    fplat.SetParLimits(3, b1_xmin, b1_xmax)
+    fplat.SetParLimits(4, h1.get_maximum()/2, h1.get_maximum())
+    h1.fit(fplat, fitopts, '')
+    b0, b1 = fplat.GetParameter(2), fplat.GetParameter(3)
+    p0, p1 = fplat.GetParameter(0), fplat.GetParameter(1)
+    d0, d1 = p0-b0, b1-p1
+    x0, x1 = p0-d0*loose, p1+d1*loose
+    return ([x0, x1], fplat)
+
+
+def get_plateau_edges_2d(h2, loose=0, window=1, ylow=None, yhigh=None):
+    h1_projs = get_y_slices(h2, window, ylow, yhigh)
+    edge_loX, edge_hiX = [], []
+    for h1 in h1_projs:
+        edge_y = h1[0]
+        ([edge_x_low, edge_x_high], _) = get_plateau_edges(asrootpy(h1[1]), loose=loose)
+        if edge_x_low is not None:
+            edge_loX.append((edge_x_low, edge_y))
+        if edge_x_high is not None:
+            edge_hiX.append((edge_x_high, edge_y))
+    return [edge_loX, edge_hiX]
 
