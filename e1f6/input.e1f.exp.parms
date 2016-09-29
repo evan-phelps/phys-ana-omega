@@ -43,6 +43,16 @@ efid_b      3,-0.4
 efid_b      4,-0.4
 efid_b      5,-0.4
 efid_b      6,-0.4
+###### cut away the flange with an SC cut
+###### sector, x_min, x_max, m_lo, b_lo, m_hi, b_hi
+###### where sc_x = m*sc_y+b
+######   for lower (lo) and upper (hi) bounding lines
+efid_sc_x_of_y	1,92,366,-1.978,73,2.020,71
+efid_sc_x_of_y	2,91,369,-2.028,70,1.906,78
+efid_sc_x_of_y	3,92,364,-2.080,70,1.998,70
+efid_sc_x_of_y	4,94,368,-2.123,70,2.001,75
+efid_sc_x_of_y	5,92,365,-1.968,70,1.968,69
+efid_sc_x_of_y	6,97,369,-2.070,66,1.953,72
 ###### 20<u<400, v<375, w<410
 efid_uvw      1,20,400,375,410
 efid_uvw      2,20,400,375,410

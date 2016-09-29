@@ -9,6 +9,7 @@
 #include "TDirectory.h"
 #include "TObjArray.h"
 #include "TString.h"
+#include "TH3.h"
 #include "TH2.h"
 #include "TH1.h"
 
@@ -68,6 +69,23 @@ class DataHandler
         /* Finalize after all events processed */
         virtual void Finalize(H10 *d) = 0;
         std::string GetName() { return fName; }
+        std::vector<TH3*> MakeHists(Int_t N, const char* nametmpl, const char* titletmpl,
+            Int_t nbinsx, Float_t xlo, Float_t xhi,
+            Int_t nbinsy, Float_t ylo, Float_t yhi,
+            Int_t nbinsz, Float_t zlo, Float_t zhi)
+        {
+            std::vector<TH3*> ret(N);
+            for (int n = 1; n <= N; n++)
+            {
+                TString name = TString::Format(nametmpl,n);
+                TString title = TString::Format(titletmpl,n);
+                ret[n-1] = new TH3D(name.Data(), title.Data(),
+                                    nbinsx, xlo, xhi,
+                                    nbinsy, ylo, yhi,
+                                    nbinsz, zlo, zhi);
+            }
+            return ret;
+        }
         std::vector<TH2*> MakeHists(Int_t N, const char* nametmpl, const char* titletmpl,
             Int_t nbinsx, Float_t xlo, Float_t xhi,
             Int_t nbinsy, Float_t ylo, Float_t yhi)
