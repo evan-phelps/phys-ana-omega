@@ -1,3 +1,4 @@
+import sys
 from matplotlib import rc
 rc('text', usetex=True)
 import matplotlib.pyplot as plt
@@ -32,7 +33,7 @@ def mdraw(hists, ncols=1, nrows=1, figwidth=6.5, **kwargs):
     fig = plt.figure(figsize=goldenaspect(figwidth, nrows, ncols))
     for (ih, h) in enumerate(hists):
         draw(h, ncols, nrows, ih+1, fig=fig)
-    fig.set_tight_layout(True)
+    #fig.set_tight_layout(True)
     return fig
 
 def sdraw(hists, xlabel='', ylabel='', xlims=None, ylims=None, space=0):
@@ -102,10 +103,10 @@ def get_x_slices(h2, window=1, xlow=None, xhigh=None):
 
     for xbin in range(xbin_lo, xbin_hi):
         h = h2.projection_y('%s_%d'%(h2.name, xbin), xbin, xbin+window-1)
-        xmid = sum([h2.xaxis.get_bin_center(i+xbin) for i in range(0,window)])/window
-        hs.append((xmid,h))
+        if h.GetEntries() > 10:
+            xmid = sum([h2.xaxis.get_bin_center(i+xbin) for i in range(0,window)])/window
+            hs.append((xmid,h))
     return hs
-
 
 def get_y_slices(h2, window=1, ylow=None, yhigh=None):
     hs = []
@@ -118,8 +119,10 @@ def get_y_slices(h2, window=1, ylow=None, yhigh=None):
 
     for ybin in range(ybin_lo, ybin_hi):
         h = h2.projection_x('%s_%d'%(h2.name, ybin), ybin, ybin+window-1)
-        ymid = sum([h2.yaxis.get_bin_center(i+ybin) for i in range(0,window)])/window
-        hs.append((ymid,h))
+        if h.GetEntries() > 10:
+            ymid = sum([h2.yaxis.get_bin_center(i+ybin) for i in range(0,window)])/window
+            hs.append((ymid,h))
+
     return hs
 
 
@@ -149,6 +152,39 @@ def get_points_from_TF1(f, xmin, xmax, npoints=100):
     return [(x,f.Eval(x)) for x  in X]
 
 
+def get_edges_1d(h, loose=0, method='falling', threshold=0.001):
+    # TODO incorporate "plateau" functions as a method
+    # in the edge-finding methods
+    thresh_abs = threshold*h.get_maximum()
+    ymin = h.get_bin_low_edge(1)
+    ymax = h.get_bin_low_edge(h.get_nbins_x()+1)
+    ymin_err = 0
+    if method == 'falling':
+        ymin0 = h.get_bin_low_edge(h.find_first_bin_above(thresh_abs))
+        ymin = h.get_bin_low_edge(h.get_maximum_bin())
+        ymin = ymin-loose*(ymin-ymin0)
+        yminerr = 0.25*(ymin-ymin0)
+        ymax = h.get_bin_low_edge(1+h.find_last_bin_above(thresh_abs))
+    return (ymin, ymax, yminerr)
+
+
+def get_yedges_2d(h2, loose=0, xlow=None, xhigh=None, window=1,
+                  method='falling', threshold=0.001):
+    # TODO incorporate "plateau" functions as a method
+    # in the edge-finding methods
+    h1_projs = get_x_slices(h2, window, xlow, xhigh)
+    edge_loY, edge_hiY, edge_loY_err = [], [], []
+    for h1 in h1_projs:
+        edge_x = h1[0]
+        [edge_y_low, edge_y_high, edge_y_low_err] = get_edges_1d(asrootpy(h1[1]), loose=loose)
+        if edge_y_low is not None:
+            edge_loY.append((edge_x, edge_y_low))
+            edge_loY_err.append(edge_y_low_err)
+        if edge_y_high is not None:
+            edge_hiY.append((edge_x, edge_y_high))
+    return [edge_loY, edge_hiY, edge_loY_err]
+
+
 def get_ylims_of_xmid(h2, method='falling', threshold=0.001):
     xmean = h2.projection_x().GetMean()
     xmeanbin = h2.xaxis.find_bin(xmean)
@@ -163,11 +199,11 @@ def get_ylims_of_xmid(h2, method='falling', threshold=0.001):
     return (ymin, ymax)
 
 
-def get_ymin_of_xmid(h2, method='falling', threshold=0.05):
+def get_ymin_of_xmid(h2, method='falling', threshold=0.001):
     return get_ylims_of_xmid(h2, method, threshold)[0]
 
 
-def get_ymax_of_xmid(h2, method='falling', threshold=0.05):
+def get_ymax_of_xmid(h2, method='falling', threshold=0.001):
     return get_ylims_of_xmid(h2, method, threshold)[1]
 
 
@@ -182,23 +218,30 @@ def funcR_plateau(x, par):
     return fitval
 
 
-def get_plateau_edges(h1, threshold=10, loose=0, fitopts='RSQN'):
+def get_plateau_edges(h1, loose=0, threshold=10, fitopts='RQSN'):
     if h1.GetEntries() < threshold:
         return ([None, None], None)
     h1_xmin = h1.get_bin_low_edge(1)
     h1_xmax = h1.get_bin_low_edge(h1.get_nbins_x()+1)
+    h1_bwidth = h1.get_bin_width(1)
     fplat = R.TF1('%s_fplat'%h1.name, funcR_plateau, h1_xmin, h1_xmax, 5)
-    p0_xmin = b0_xmax = h1.get_bin_center(h1.find_first_bin_above(h1.get_maximum()/2))
-    p1_xmax = b1_xmin = h1.get_bin_center(h1.find_last_bin_above(h1.get_maximum()/2))
+    p0_xmin = b0_xmax = h1.get_bin_center(h1.find_first_bin_above(0.75*h1.get_maximum()))
+    p1_xmax = b1_xmin = h1.get_bin_center(h1.find_last_bin_above(0.75*h1.get_maximum()))
     p0_xmax = p1_xmin = (p1_xmax+p0_xmin)/2
     b0_xmin = h1.get_bin_center(h1.find_first_bin_above(0))
     b1_xmax = h1.get_bin_center(h1.find_last_bin_above(0))
+    fplat.SetParameters(p0_xmin, p1_xmax,
+                        b0_xmax-h1_bwidth,
+                        b1_xmin+h1_bwidth,
+                        h1.get_maximum())
     fplat.SetParLimits(0, p0_xmin, p0_xmax)
-    fplat.SetParLimits(1, p1_xmin, p1_xmax)
-    fplat.SetParLimits(2, b0_xmin, b0_xmax)
-    fplat.SetParLimits(3, b1_xmin, b1_xmax)
-    fplat.SetParLimits(4, h1.get_maximum()/2, h1.get_maximum())
-    h1.fit(fplat, fitopts, '')
+    fplat.SetParLimits(1, p1_xmin+h1_bwidth, p1_xmax)
+    fplat.SetParLimits(2, b0_xmin, b0_xmax-h1_bwidth)
+    fplat.SetParLimits(3, b1_xmin+h1_bwidth, b1_xmax)
+    fplat.SetParLimits(4, 0.75*h1.get_maximum(), h1.get_maximum())
+
+    res = h1.fit(fplat, fitopts, '')
+
     b0, b1 = fplat.GetParameter(2), fplat.GetParameter(3)
     p0, p1 = fplat.GetParameter(0), fplat.GetParameter(1)
     d0, d1 = p0-b0, b1-p1
