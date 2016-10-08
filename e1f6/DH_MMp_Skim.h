@@ -66,24 +66,27 @@ class DH_MMp_Skim : public DataHandler
             lvE0->SetXYZT(0, 0, d->E0, d->E0);
             lvE1->SetXYZT(d->p[0]*d->cx[0], d->p[0]*d->cy[0], d->p[0]*d->cz[0], d->p[0]);
             int npos = 0, nneg = 0;
-            const int NPOS_MAX = 2, NNEG_MAX = 1;
+            const int NPOS_MAX = 8, NNEG_MAX = 8;
             int ipos[NPOS_MAX], ineg[NNEG_MAX];
-            ipos[0] = ipos[1] = ineg[0] = -1;
             for (int ipart = 1; ipart < d->gpart; ipart++) {
-                //store h10 indexes of positives and negatives up to maximum of topologies;
-                //H10 shouldn't know anything about topologies -- this is a cludge.
                 if (d->q[ipart]>0 && npos < NPOS_MAX) ipos[npos++] = ipart;
                 else if (d->q[ipart]<0 && nneg < NNEG_MAX) ineg[nneg++] = ipart;
             }
 
-            if (npos==2 && nneg==1) {
-                passed = (CutMM(d, ipos[0], ineg[0]) && CutMM(d, ipos[0], ipos[1]))
-                      || (CutMM(d, ipos[1], ineg[0]) && CutMM(d, ipos[1], ipos[0]));
-            } else if (npos==2 && nneg==0) {
-                passed = CutMM(d, ipos[0], ipos[1]) || CutMM(d, ipos[1], ipos[0]);
-            } else if (npos==1 && nneg==1) {
-                passed = CutMM(d, ipos[0], ineg[0]);
+            //outer loop: assume each positive particle is the proton
+            for (int iproton = 0; iproton < npos; iproton++) {
+                //assume each other positive particle is a pion
+                for (int ipip = 0; ipip < npos; ipip++) {
+                    if (iproton != ipip) {
+                        if (CutMM(d, ipos[iproton], ipos[ipip])) return true;
+                    }
+                }
+                //assume each negative particle is a pion
+                for (int ipim = 0; ipim < nneg; ipim++) {
+                    if (CutMM(d, ipos[iproton], ineg[ipim])) return true;
+                }
             }
+
             return passed;
         }
         // virtual bool Handle(H10* d)

@@ -57,7 +57,7 @@ class DH_Eid : public DataHandler
             heidS = MakeHists(NSECTS, "heid_s%d", "electron id summary, sector %d", nconditions, -0.5, nconditions-0.5);
             heidindS = MakeHists(NSECTS, "heidind_s%d", "electron id summary, independent, sector %d", nconditions, -0.5, nconditions-0.5);
             heidS_sample_2_2 = MakeHists(NSECTS, "heid_sample_2_2_s%d", "electron id summary, sector %d", nconditions, -0.5, nconditions-0.5);
-            heidindS_sample_2_2 = MakeHists(NSECTS, "heidindS_sample_2_2_s%d", "electron id summary, independent, sector %d", nconditions, -0.5, nconditions-0.5);
+            heidindS_sample_2_2 = MakeHists(NSECTS, "heidind_sample_2_2_s%d", "electron id summary, independent, sector %d", nconditions, -0.5, nconditions-0.5);
             for (int isect = 0; isect < 6; isect++) {
                 for (int ibin = 1; ibin <= nconditions; ibin++) {
                     heidS[isect]->GetXaxis()->SetBinLabel(ibin, binlabels[ibin]);

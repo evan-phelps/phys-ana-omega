@@ -141,7 +141,7 @@ def get_peak_points(h2, xlo, xhi, ylo=0):
 
 def get_pointgen(gr, xlo, xhi):
     def genpoints():
-        for x, y in zip(gr.x(), gsfmeans.y()):
+        for x, y in zip(gr.x(), gr.y()):
             if x > xlo and x < xhi and y > 0:
                 yield (x, y)
     return genpoints
@@ -249,15 +249,17 @@ def get_plateau_edges(h1, loose=0, threshold=10, fitopts='RQSN'):
     return ([x0, x1], fplat)
 
 
-def get_plateau_edges_2d(h2, loose=0, window=1, ylow=None, yhigh=None):
+def get_plateau_edges_2d(h2, loose=0, window=1, ylow=None, yhigh=None,
+                         chi2ndf_thresh=None):
     h1_projs = get_y_slices(h2, window, ylow, yhigh)
     edge_loX, edge_hiX = [], []
     for h1 in h1_projs:
         edge_y = h1[0]
-        ([edge_x_low, edge_x_high], _) = get_plateau_edges(asrootpy(h1[1]), loose=loose)
-        if edge_x_low is not None:
-            edge_loX.append((edge_x_low, edge_y))
-        if edge_x_high is not None:
-            edge_hiX.append((edge_x_high, edge_y))
+        ([edge_x_low, edge_x_high], fplat) = get_plateau_edges(asrootpy(h1[1]), loose=loose)
+        if chi2ndf_thresh is None or chi2ndf_thresh > fplat.GetChisquare()/fplat.GetNDF():
+            if edge_x_low is not None:
+                edge_loX.append((edge_x_low, edge_y))
+            if edge_x_high is not None:
+                edge_hiX.append((edge_x_high, edge_y))
     return [edge_loX, edge_hiX]
 

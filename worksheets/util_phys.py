@@ -7,6 +7,39 @@ bnames = ['evntid', 'gpart', 'id', 'q', 'p', 'cx', 'cy', 'cz',
           'sc', 'sc_sect', 'sc_pd', 'sc_t', 'sc_r',
           'cc', 'cc_sect', 'cc_hit', 'cc_segm', 'nphe']
 
+PI = 3.14159265358979312
+E1F_E0 = 5.497
+E16_E0 = 5.754
+FSC = 0.00729735253
+A = FSC
+NA = 6.02214129E23
+QE = 1.60217646E-19
+MP = 0.93827203
+MOMEGA = 0.78265
+WOMEGA = 0.00849
+
+
+def nu(w, q2):
+    return (w*w-MP*MP+q2)/(2*MP)
+
+
+def epsilon(w, q2, e0=E1F_E0):
+    n = nu(w, q2)
+    e0 = E1F_E0
+    e1 = e0-n
+    epsInv = 1+2*(q2+n*n)/(4*e0*e1-q2)
+    return 1.0/epsInv
+
+
+def vgflux(w, q2, e0=E1F_E0):
+    eps = epsilon(w, q2, e0)
+    return A*w*(w*w-MP*MP)/(4*PI*e0*e0*MP*MP*q2*(1-eps))
+
+
+def xb(w, q2):
+    return q2/(2*MP*nu(w, q2))
+
+
 def inv_prod(lv1, lv2):
     '''Minkowski (t, x, y, z) inner product of four-vectors lv1 and lv2.
     '''

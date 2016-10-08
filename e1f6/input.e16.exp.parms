@@ -22,18 +22,47 @@ ec_ei_lo    5,0.060
 ec_ei_lo    6,0.059
 ###### EC threshold as electron momentum
 ec_pmom_lo    0.683
-###### Electron fiducial cuts F*{1-exp[b*(t-t0)]}, F=pol3
-#
+###### Electron fiducial cuts pol3*{1-exp[bexp*(t-t0)]}
+###### theta_min = A + B/{[p+C]*[Imax/Ib]}
+efid_tightness	0
+efid_theta_max	47
+efid_theta_min	1,10.071,28.770,0.659
+efid_theta_min	2,10.788,26.585,0.595
+efid_theta_min	3,9.879,30.107,0.698
+efid_theta_min	4,10.348,27.205,0.572
+efid_theta_min	5,10.128,29.872,0.723
+efid_theta_min	6,9.787,30.775,0.732
+###### phi min/max = pol3*{1-exp(bexp*(t-t0))}
+######   where   t0 = A + B/{[p+C]*[Imax/Ib]}
+######     and pol3 = A + B*p + C*p^2 + D*p^3
+efid_phi_t0	1,6.416,48.614,1.506
+efid_phi_t0	2,3.937,74.072,2.333
+efid_phi_t0	3,5.971,54.593,1.738
+efid_phi_t0	4,7.175,42.584,1.248
+efid_phi_t0	5,11.216,26.216,0.856
+efid_phi_t0	6,3.000,72.870,2.239
+efid_phi_pol3	1,25.547,-5.165,1.900,-0.312
+efid_phi_pol3	2,19.292,5.036,-3.491,0.600
+efid_phi_pol3	3,26.375,-6.194,2.348,-0.367
+efid_phi_pol3	4,27.155,-8.160,2.968,-0.423
+efid_phi_pol3	5,31.381,-16.851,9.564,-1.893
+efid_phi_pol3	6,26.896,-7.753,3.396,-0.559
+efid_phi_bexp	1,-0.180
+efid_phi_bexp	2,-0.180
+efid_phi_bexp	3,-0.180
+efid_phi_bexp	4,-0.180
+efid_phi_bexp	5,-0.180
+efid_phi_bexp	6,-0.180
 ###### cut away the flange with an SC cut
 ###### sector, x_min, x_max, m_lo, b_lo, m_hi, b_hi
 ###### where sc_x = m*sc_y+b
 ######   for lower (lo) and upper (hi) bounding lines
-efid_sc_x_of_y  1,92,366,-1.978,73,2.020,71
-efid_sc_x_of_y  2,91,369,-2.028,70,1.906,78
-efid_sc_x_of_y  3,92,364,-2.080,70,1.998,70
-efid_sc_x_of_y  4,94,368,-2.123,70,2.001,75
-efid_sc_x_of_y  5,92,365,-1.968,70,1.968,69
-efid_sc_x_of_y  6,97,369,-2.070,66,1.953,72
+efid_sc_x_of_y	1,92,368,-1.937,74,1.947,73
+efid_sc_x_of_y	2,94,367,-2.027,70,1.834,83
+efid_sc_x_of_y	3,92,369,-1.943,75,1.861,74
+efid_sc_x_of_y	4,92,372,-2.022,75,1.960,73
+efid_sc_x_of_y	5,91,365,-1.908,72,1.976,67
+efid_sc_x_of_y	6,94,367,-1.993,69,1.894,73
 ###### t0 = A + B/{[p+C]*[Imax/Ib]}
 ###### 20<u<400, v<375, w<410
 ####### Hadron fiducial cuts F*{1-exp[b*(t-t0)]}

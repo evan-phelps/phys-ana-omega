@@ -39,20 +39,6 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
         if ( tr_time == 0 && sc[0] > 0) {
             tr_time = sc_t[sc[0]-1] - sc_r[sc[0]-1]/29.9792458;
         }
-        E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
-        np = npip = npim = nother = n0 = 0;
-        npos = nneu = nneg = 0;
-
-        lvE1.SetXYZM(0,0,0,0);
-        lvP1.SetXYZM(0,0,0,0);
-        lvPip.SetXYZM(0,0,0,0);
-        lvPim.SetXYZM(0,0,0,0);
-        lvW.SetXYZM(0,0,0,0);
-        lvq.SetXYZM(0,0,0,0);
-        lvMMp.SetXYZM(0,0,0,0);
-        lvMMppip.SetXYZM(0,0,0,0);
-        lvMMppim.SetXYZM(0,0,0,0);
-        lvMMppippim.SetXYZM(0,0,0,0);
 
         CalcLVs();
 
@@ -65,8 +51,24 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
     printf("Total: (%.2f) %lld/%.2f = %i events/sec\n",percentProcessed,eventnum,ttime,(Int_t)(eventnum/ttime));
 }
 
-void H10::CalcLVs() {
+void H10::CalcLVs(bool use_npart /*= false */) {
+    E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
+    np = npip = npim = nother = n0 = 0;
+    npos = nneu = nneg = 0;
+
+    lvE1.SetXYZM(0,0,0,0);
+    lvP1.SetXYZM(0,0,0,0);
+    lvPip.SetXYZM(0,0,0,0);
+    lvPim.SetXYZM(0,0,0,0);
+    lvW.SetXYZM(0,0,0,0);
+    lvq.SetXYZM(0,0,0,0);
+    lvMMp.SetXYZM(0,0,0,0);
+    lvMMppip.SetXYZM(0,0,0,0);
+    lvMMppim.SetXYZM(0,0,0,0);
+    lvMMppippim.SetXYZM(0,0,0,0);
+
     E0 = beamEnergy;
+    int nparts = use_npart ? npart : gpart;
     //nu = E0-p[0];
     //Q2 = -(nu*nu-p[0]*p[0]-E0*E0+2*E0*p[0]*cz[0]);
     //s = -Q2+2*MASS_P*nu+MASS_P*MASS_P;
@@ -94,9 +96,8 @@ void H10::CalcLVs() {
     //Since I, above, assumed that the first particle is an electron
     // let's set nneg=1 to start
     nneg = 1;
-    if (gpart>1) {
-    //We'll check all gpart particles, which permits bad status in particles beyond npart.
-        for (int ipart = 1; ipart < gpart; ipart++) {
+    if (nparts>1) {
+        for (int ipart = 1; ipart < nparts; ipart++) {
             if (q[ipart] < 0) nneg++;
             else if (q[ipart] > 0) npos++;
             else nneu++;
@@ -139,7 +140,7 @@ void H10::CalcLVs() {
             }
             if (idx[1]>0) {
             //Set everything that requires pi+
-                lvPip.SetXYZM(p[0]*cx[idx[1]], p[idx[1]]*cy[idx[1]], p[idx[1]]*cz[idx[1]], MASS_PIP);
+                lvPip.SetXYZM(p[idx[1]]*cx[idx[1]], p[idx[1]]*cy[idx[1]], p[idx[1]]*cz[idx[1]], MASS_PIP);
                 lvMMppip = lvMMp-lvPip;
                 MMppip = lvMMppip.M();
                 if (idx[2]>0) {
@@ -149,8 +150,10 @@ void H10::CalcLVs() {
             }
             //4-rotate into boosted frame and get CM variables
             TVector3 uz = lvq.Vect().Unit();
+            // TVector3 uy = lvq.Vect().Cross(lvMMp.Vect()).Unit();
+            // TVector3 ux = uy.Cross(uz);
             TVector3 ux = (lvE0.Vect().Cross(lvE1.Vect())).Unit();
-            ux.Rotate(-PI/2,uz);
+            ux.Rotate(PI/2,uz);
             TRotation _3rot;
             _3rot.SetZAxis(uz,ux).Invert();
             TLorentzRotation _4rot(_3rot);
