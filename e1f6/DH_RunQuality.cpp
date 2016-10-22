@@ -141,7 +141,7 @@ bool DH_RunQuality::CountAll(H10 *d)
     bool negfirst = d->q[0] < 0 ? true : false;
     negfirst = negfirst && d->sc[0]>0 && d->cc[0]>0 && d->dc[0]>0 && d->ec[0]>0;
     int npos = 0, nneg = 0;
-    for (int ipart = 0; ipart < d->gpart; ipart++)
+    for (int ipart = 0; ipart < d->npart; ipart++)
     {
         switch(d->id[ipart])
         {

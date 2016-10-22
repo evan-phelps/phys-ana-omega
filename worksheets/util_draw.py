@@ -32,11 +32,11 @@ def draw(hist, ncols=1, nrows=1, cell=1, fig=None,
 def mdraw(hists, ncols=1, nrows=1, figwidth=6.5, **kwargs):
     fig = plt.figure(figsize=goldenaspect(figwidth, nrows, ncols))
     for (ih, h) in enumerate(hists):
-        draw(h, ncols, nrows, ih+1, fig=fig)
+        draw(h, ncols, nrows, ih+1, fig=fig, figsize=None, **kwargs)
     #fig.set_tight_layout(True)
     return fig
 
-def sdraw(hists, xlabel='', ylabel='', xlims=None, ylims=None, space=0):
+def sdraw(hists, xlabel='', ylabel='', xlims=None, ylims=None, space=0, grid=False, **kwargs):
     nr, nc = 2, 3
     fig = plt.figure(figsize=goldenaspect(6.5,nr,nc))
     gs = gridspec.GridSpec(nr, nc, wspace=space, hspace=space, left=0.1, right=0.95, bottom=0.175)
@@ -45,7 +45,7 @@ def sdraw(hists, xlabel='', ylabel='', xlims=None, ylims=None, space=0):
             hnum = 3*irow+(icol+1)
             h = hists[hnum-1]
             ax = plt.subplot(gs[irow, icol])
-            rplt.hist2d(h, axes=ax) #, norm=LogNorm())
+            rplt.hist2d(h, axes=ax, **kwargs) #, norm=LogNorm())
             if xlims is not None:
                 plt.xlim(xlims)
             if ylims is not None:
@@ -54,6 +54,8 @@ def sdraw(hists, xlabel='', ylabel='', xlims=None, ylims=None, space=0):
                 ax.set_yticklabels('')
             if irow+1 < nr:
                 ax.set_xticklabels('')
+            if grid is True:
+                plt.grid()
     fig.add_axes([0.06, 0.105, 0.94, 0.895], frameon=False)
     plt.xticks([])
     plt.yticks([])
@@ -218,7 +220,7 @@ def funcR_plateau(x, par):
     return fitval
 
 
-def get_plateau_edges(h1, loose=0, threshold=10, fitopts='RQSN'):
+def get_plateau_edges(h1, loose=0, threshold=10, fitopts='RQSNW'):
     if h1.GetEntries() < threshold:
         return ([None, None], None)
     h1_xmin = h1.get_bin_low_edge(1)
@@ -250,8 +252,9 @@ def get_plateau_edges(h1, loose=0, threshold=10, fitopts='RQSN'):
 
 
 def get_plateau_edges_2d(h2, loose=0, window=1, ylow=None, yhigh=None,
-                         chi2ndf_thresh=None):
-    h1_projs = get_y_slices(h2, window, ylow, yhigh)
+                         chi2ndf_thresh=None, transpose=False):
+    get_slices = get_x_slices if transpose is True else get_y_slices
+    h1_projs = get_slices(h2, window, ylow, yhigh)
     edge_loX, edge_hiX = [], []
     for h1 in h1_projs:
         edge_y = h1[0]

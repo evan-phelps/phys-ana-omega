@@ -52,6 +52,7 @@ class DH_KinTree : public DataHandler
 
             if (tkin == NULL)
             {
+                fDir->cd();
                 tkin = new TTree("tkin", "tkin");
 
                 tkin->Branch("run", &(d->run));

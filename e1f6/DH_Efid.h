@@ -63,7 +63,7 @@ class DH_Efid : public DataHandler
             float a = parms_efid_theta_min[sect-1][0],
                   b = parms_efid_theta_min[sect-1][1],
                   c = parms_efid_theta_min[sect-1][2];
-            return a + b/((p+c)*bfieldrat);
+            return a + b/((p+c)*bfieldrat) + tightness;
         }
         double Dphi(float p, float t, int sect)
         {

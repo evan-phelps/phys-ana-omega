@@ -66,8 +66,8 @@ class DH_Hfid : public DataHandler
             for (int i = 0; i < d->gpart; i++) {
                 if (d->q[i]>0) {
                     int isect = d->sector-1;
-                    float theta = RadToDeg()*ACos(d->cz[0]);
-                    float phi = RadToDeg()*ATan2(d->cy[0],d->cx[0]);
+                    float theta = RadToDeg()*ACos(d->cz[i]);
+                    float phi = RadToDeg()*ATan2(d->cy[i],d->cx[i]);
                     if (phi < -30) phi+=360;
                     phi -= (isect)*60;
                     float dphi = Dphi(theta, isect+1);

@@ -51,7 +51,7 @@ void H10::Loop(Long64_t ntoproc/* = -1*/, Bool_t fastcount/* = kTRUE*/, TEntryLi
     printf("Total: (%.2f) %lld/%.2f = %i events/sec\n",percentProcessed,eventnum,ttime,(Int_t)(eventnum/ttime));
 }
 
-void H10::CalcLVs(bool use_npart /*= false */) {
+void H10::CalcLVs(bool use_npart /*= true */) {
     E0 = nu = Q2 = s = W = MMp = MMppip = MMppim = MMppippim = cosTheta = phi = t = t0 = t1 = 0;
     np = npip = npim = nother = n0 = 0;
     npos = nneu = nneg = 0;
