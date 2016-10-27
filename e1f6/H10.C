@@ -98,6 +98,8 @@ void H10::CalcLVs(bool use_npart /*= true */) {
     nneg = 1;
     if (nparts>1) {
         for (int ipart = 1; ipart < nparts; ipart++) {
+            if (stat[ipart] < 0) continue;
+            
             if (q[ipart] < 0) nneg++;
             else if (q[ipart] > 0) npos++;
             else nneu++;

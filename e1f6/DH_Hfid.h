@@ -63,7 +63,7 @@ class DH_Hfid : public DataHandler
             //hides positive hadrons not in fiducial volume
             bool passed = true;
             bool changed = false;
-            for (int i = 0; i < d->gpart; i++) {
+            for (int i = 1; i < d->gpart; i++) {
                 if (d->q[i]>0) {
                     int isect = d->sector-1;
                     float theta = RadToDeg()*ACos(d->cz[i]);
@@ -72,12 +72,12 @@ class DH_Hfid : public DataHandler
                     phi -= (isect)*60;
                     float dphi = Dphi(theta, isect+1);
                     if (phi < -dphi || phi > dphi) {
-                        d->id[i] = 0;
+                        d->stat[i] = 0;
                         changed = true;
                     }
                 }
             }
-            if (changed) d->CalcLVs();
+            if (changed) d->CalcLVs(true);
             return passed;
         }
         virtual void Wrapup(H10* d)

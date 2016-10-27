@@ -23,6 +23,14 @@ using namespace H10Constants;
 class DH_MMp_Skim : public DataHandler
 {
     public:
+        TTree *tpid_combos;
+        int ncombos_pos;
+        int ncombos_neg;
+        int p_idxs[8];
+        int pip_idxs[8];
+        int pim_idxs[8];
+        int p2_idxs[8];
+
         bool m_require_dcsc;
         TLorentzVector *lvE0, *lvE1, *lvP0, *lvP1, *lvPip, *lvPim;
         double mmp, mmppi;
@@ -33,6 +41,7 @@ class DH_MMp_Skim : public DataHandler
         DH_MMp_Skim(std::string name = "DH_MMp_Skim", TDirectory *pDir = NULL, H10 *h10looper = NULL, bool require_dcsc = true) : DataHandler(name, pDir, h10looper)
         {
             fDir->cd();
+            tpid_combos = NULL;
             mmp = mmppi = 0;
             m_require_dcsc = require_dcsc;
             lvE0 = new TLorentzVector();
@@ -58,6 +67,7 @@ class DH_MMp_Skim : public DataHandler
         virtual ~DH_MMp_Skim()
         {
             fDir->cd();
+            if (tpid_combos) delete tpid_combos;
             delete lvE0;
             delete lvE1;
             delete lvP0;
@@ -78,6 +88,7 @@ class DH_MMp_Skim : public DataHandler
         virtual void Finalize(H10* d)
         {
             fDir->cd();
+            if (tpid_combos) tpid_combos->Write();
             h_nPerE_any->Write();
             h_nPerE_stat->Write();
             h_nPerE_stat_id->Write();
@@ -103,7 +114,19 @@ class DH_MMp_Skim : public DataHandler
         }
         virtual bool Handle(H10* d)
         {
-            int nparts = d->gpart; //m_use_npart ? d->npart : d->gpart;
+            if (tpid_combos == NULL) {
+                fDir->cd();
+                tpid_combos = new TTree("tpid_combos", "tpid_combos");
+                tpid_combos->Branch("run", &(d->run));
+                tpid_combos->Branch("evntid", &(d->evntid));
+                tpid_combos->Branch("ncombos_pos", &ncombos_pos);
+                tpid_combos->Branch("ncombos_neg", &ncombos_neg);
+                tpid_combos->Branch("p_idxs", p_idxs);
+                tpid_combos->Branch("pip_idxs", pip_idxs);
+                tpid_combos->Branch("pim_idxs", pim_idxs);
+            }
+            ncombos_pos = ncombos_neg = 0;
+            int nparts = d->npart; //m_use_npart ? d->npart : d->gpart;
             lvE0->SetXYZT(0, 0, d->E0, d->E0);
             lvE1->SetXYZT(d->p[0]*d->cx[0], d->p[0]*d->cy[0], d->p[0]*d->cz[0], d->p[0]);
             int npos = 0, nneg = 0;
@@ -148,8 +171,12 @@ class DH_MMp_Skim : public DataHandler
                                     //when we require dcscstat, let's also require that the
                                     //particle assumed to be proton has a higher mass than
                                     //the one assumed to be the pion...
-                                    if (d->m[ipos[iproton]]>d->m[ipos[ipip]])
+                                    if (d->m[ipos[iproton]]>0.5 && d->m[ipos[ipip]]<=0.5) {
                                         passed = true;
+                                        p_idxs[ncombos_pos] = ipos[iproton];
+                                        pip_idxs[ncombos_pos] = ipos[ipip];
+                                        ncombos_pos++;
+                                    }
                                     if (d->id[ipos[iproton]]==PROTON && d->id[ipos[ipip]]==PIP) {
                                         nPerE_stat_dcscstat_id++;
                                         hmmppip_V_mmpS[4]->Fill(mmp, mmppi);
@@ -177,7 +204,12 @@ class DH_MMp_Skim : public DataHandler
                                  && d->dc_stat[dcidx_p]>0 && d->sc_stat[scidx_p]>0
                                  && d->dc_stat[dcidx_pim]>0 && d->sc_stat[scidx_pim]>0) {
                                 // nPerE_stat_dcscstat++;
-                                passed = true;
+                                if (d->m[ipos[iproton]]>0.5 && d->m[ineg[ipim]]<=0.5) {
+                                    passed = true;
+                                    p2_idxs[ncombos_neg] = ipos[iproton];
+                                    pim_idxs[ncombos_neg] = ineg[ipim];
+                                    ncombos_neg++;
+                                }
                                 // if (d->id[ipos[iproton]]==PROTON && d->id[ineg[ipim]]==PIM) {
                                 //     nPerE_stat_dcscstat_id++;
                                 // }
@@ -198,6 +230,8 @@ class DH_MMp_Skim : public DataHandler
             if (nPerE_stat_dcscstat>0) h_nevts->SetBinContent(4,h_nevts->GetBinContent(4)+1);
             if (nPerE_stat_id>0) h_nevts->SetBinContent(5,h_nevts->GetBinContent(5)+1);
             if (nPerE_stat_dcscstat_id>0) h_nevts->SetBinContent(6,h_nevts->GetBinContent(6)+1);
+
+            if (passed) tpid_combos->Fill();
             return passed;
         }
         virtual void Wrapup(H10* d)

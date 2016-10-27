@@ -64,33 +64,43 @@ def sdraw(hists, xlabel='', ylabel='', xlims=None, ylims=None, space=0, grid=Fal
     return fig
 
 
-def norm_x_slices(h2):
+def norm_x_slices(h2, range_of_max=None):
     h2c = h2.Clone()
     nby = h2c.GetNbinsY()
     for xbin in range(1, h2c.GetNbinsX()+1):
         h1 = h2c.ProjectionY('%s_%d'%(h2c.GetName(),xbin), xbin, xbin)
+        if range_of_max is not None:
+            h1.GetXaxis().SetRangeUser(range_of_max[0], range_of_max[1])
         maxval = h1.GetMaximum()
+        h1.GetXaxis().SetRange(0,0)
+        maxval = maxval if maxval>0 else h1.GetMaximum()
         for ybin in range(1, nby+1):
             bc = h2c.GetBinContent(xbin,ybin)
             berr = h2c.GetBinError(xbin,ybin)
             if bc > 0:
                 h2c.SetBinContent(h2c.GetBin(xbin,ybin), bc/maxval)
                 h2c.SetBinError(h2c.GetBin(xbin,ybin), berr/maxval)
+        h2c.SetMaximum(maxval)
     return asrootpy(h2c)
 
 
-def norm_y_slices(h2):
+def norm_y_slices(h2, range_of_max=None):
     h2c = h2.Clone()
     nbx = h2c.GetNbinsX()
     for ybin in range(1, h2c.GetNbinsY()+1):
         h1 = h2c.ProjectionX('%s_%d'%(h2c.GetName(),ybin), ybin, ybin)
+        if range_of_max is not None:
+            h1.GetXaxis().SetRangeUser(range_of_max[0], range_of_max[1])
         maxval = h1.GetMaximum()
+        h1.GetXaxis().SetRange(0,0)
+        maxval = maxval if maxval>0 else h1.GetMaximum()
         for xbin in range(1, nbx+1):
             bc = h2c.GetBinContent(xbin,ybin)
             berr = h2c.GetBinError(xbin,ybin)
             if bc > 0:
                 h2c.SetBinContent(h2c.GetBin(xbin,ybin), bc/maxval)
                 h2c.SetBinError(h2c.GetBin(xbin,ybin), berr/maxval)
+        h2c.SetMaximum(maxval)
     return asrootpy(h2c)
 
 
@@ -266,3 +276,7 @@ def get_plateau_edges_2d(h2, loose=0, window=1, ylow=None, yhigh=None,
                 edge_hiX.append((edge_x_high, edge_y))
     return [edge_loX, edge_hiX]
 
+
+def get_tgraph(X, Y):
+    g = R.TGraph(len(X), array('d', X), array('d', Y))
+    return g

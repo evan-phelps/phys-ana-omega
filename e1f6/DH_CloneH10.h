@@ -53,6 +53,13 @@ class DH_CloneH10 : public DataHandler
                 {
                     fDir->cd();
                     tH10 = (TTree*)_h10looper->fChain->GetTree()->CloneTree(0);
+
+                    TBranch *runBranchTest = _h10looper->fChain->GetBranch("run");
+                    if (!runBranchTest) {
+                        tH10->Branch("run", &(data->run));
+                        tH10->Branch("evntid", &(data->evntid));
+                        tH10->Branch("filenum", &(data->file_anum));
+                    }
                     tH10->SetDirectory(fDir);
                 }
                 _h10looper->GetEntry(_h10looper->jentry);
