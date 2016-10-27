@@ -66,24 +66,24 @@ efid_sc_x_of_y	6,94,367,-1.993,69,1.894,73
 ###### t0 = A + B/{[p+C]*[Imax/Ib]}
 ###### 20<u<400, v<375, w<410
 ####### Hadron fiducial cuts F*{1-exp[b*(t-t0)]}
-hposfid_F      1,24
-hposfid_F      2,24
-hposfid_F      3,24
-hposfid_F      4,24
-hposfid_F      5,24
-hposfid_F      6,24
-hposfid_B      1,-0.14
-hposfid_B      2,-0.14
-hposfid_B      3,-0.14
-hposfid_B      4,-0.14
-hposfid_B      5,-0.14
-hposfid_B      6,-0.14
-hposfid_t0     1,6.0
-hposfid_t0     2,6.0
-hposfid_t0     3,6.0
-hposfid_t0     4,6.0
-hposfid_t0     5,6.0
-hposfid_t0     6,6.0
+hposfid_F	1,24
+hposfid_F	2,24
+hposfid_F	3,24
+hposfid_F	4,24
+hposfid_F	5,24
+hposfid_F	6,24
+hposfid_b	1,-0.14
+hposfid_b	2,-0.14
+hposfid_b	3,-0.14
+hposfid_b	4,-0.14
+hposfid_b	5,-0.14
+hposfid_b	6,-0.14
+hposfid_t0	1,6.0
+hposfid_t0	2,6.0
+hposfid_t0	3,6.0
+hposfid_t0	4,6.0
+hposfid_t0	5,6.0
+hposfid_t0	6,6.0
 ###### Bad Paddles
 ###### CC PHOTO-ELECTRON CUTOFF #######
 #

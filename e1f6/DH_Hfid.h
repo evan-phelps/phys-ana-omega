@@ -32,6 +32,7 @@ class DH_Hfid : public DataHandler
         vector< vector<float> > parms_hfid_t0;
         vector< vector<float> > parms_hfid_F;
         vector< vector<float> > parms_hfid_b;
+        long npos = 0, npos_passed = 0, npos_changed = 0;
 
         double Dphi(float t, int sect)
         {
@@ -57,24 +58,32 @@ class DH_Hfid : public DataHandler
         virtual void Finalize(H10* d)
         {
             fDir->cd();
+            printf("DH_Hfid: %ld/%ld passed. %ld changed to bad status.\n", npos_passed, npos, npos_changed);
         }
         virtual bool Handle(H10* d)
         {
             //hides positive hadrons not in fiducial volume
             bool passed = true;
             bool changed = false;
-            for (int i = 1; i < d->gpart; i++) {
+            for (int i = 1; i < d->npart; i++) {
                 if (d->q[i]>0) {
-                    int isect = d->sector-1;
+                    npos++;
                     float theta = RadToDeg()*ACos(d->cz[i]);
                     float phi = RadToDeg()*ATan2(d->cy[i],d->cx[i]);
                     if (phi < -30) phi+=360;
+                    int isect = int((phi+30)/60);
                     phi -= (isect)*60;
                     float dphi = Dphi(theta, isect+1);
                     if (phi < -dphi || phi > dphi) {
-                        d->stat[i] = 0;
+                        if (d->stat[i]>0) {
+                            d->stat[i] = -1*d->stat[i];
+                            npos_changed++;
+                        } else if (d->stat[i]==0) {
+                            d->stat[i] = -128;
+                            npos_changed++;
+                        }
                         changed = true;
-                    }
+                    } else npos_passed++;
                 }
             }
             if (changed) d->CalcLVs(true);

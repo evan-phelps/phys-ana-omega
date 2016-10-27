@@ -69,7 +69,7 @@ def main(argv):
                 'DH_EC_Hists.h', 'DH_Efid_Hists.h', 'DH_Hists_Monitor.h',
                 'DH_Eid.h', 'DH_CloneH10.h', 'DH_RunQuality.cpp', 'DH_Efid.h',
                 'DH_CC_Nphe.h', 'DH_W_Skim.h', 'DH_MMp_Skim.h', 'DH_MMp_Exclusive.h',
-                'DH_HFid.h']:
+                'DH_Hfid.h']:
         r.gROOT.ProcessLine('.L %s/%s+' % (wdir, dep))
 
     handlers = [("mon_raw", r.DH_Hists_Monitor),
@@ -89,9 +89,11 @@ def main(argv):
                 ("mon_eid_efid", r.DH_Hists_Monitor),
                 ("eid_efid_nphe", r.DH_CC_Nphe),
                 ("mon_eid_efid_nphe", r.DH_Hists_Monitor),
-                ("eid_efid_nphe_mmp", r.DH_MMp_Exclusive),
-                ("mon_eid_efid_nphe_mmp", r.DH_Hists_Monitor),
-                ("h10_eid_efid_nphe_mmp", r.DH_CloneH10)
+                ("eid_efid_nphe_hfid", r.DH_Hfid),
+                ("mon_eid_efid_nphe_hfid", r.DH_Hists_Monitor),
+                ("eid_efid_nphe_hfid_mmp", r.DH_MMp_Exclusive),
+                ("mon_eid_efid_nphe_hfid_mmp", r.DH_Hists_Monitor),
+                ("h10_eid_efid_nphe_hfid_mmp", r.DH_CloneH10)
                ]
 
     fout = r.TFile(outfile, 'RECREATE')
