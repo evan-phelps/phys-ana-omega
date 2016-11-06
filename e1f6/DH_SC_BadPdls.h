@@ -46,7 +46,7 @@ class DH_SC_BadPdls : public DataHandler
         virtual bool Handle(H10* d)
         {
             bool passed = true, changed = false;
-            for (int i = 0; i < d->gpart; i++) {
+            for (int i = 0; i < d->npart; i++) {
                 int scidx = d->sc[i]-1;
                 if (scidx >= 0) {
                     int isect = d->sc_sect[scidx]-1;

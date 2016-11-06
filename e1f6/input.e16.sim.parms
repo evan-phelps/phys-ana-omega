@@ -85,3 +85,9 @@ hposfid_t0	4,6.0
 hposfid_t0	5,6.0
 hposfid_t0	6,6.0
 ###### Bad Paddles
+scpdls_bad	1,45
+scpdls_bad	2,5,12
+scpdls_bad	3,16,24,37,38,42,45
+scpdls_bad	4,1,34
+scpdls_bad	5,2,3,20,42
+scpdls_bad	6,1,36,37,44
