@@ -78,11 +78,10 @@ def main(argv):
                 ("echists_raw", r.DH_EC_Hists),
                 ("echists_clean_raw", r.DH_EC_Hists_PreEid),
                 ("cchists_raw", r.DH_CC_Hists),
-                ("pcor", r.DH_Pcor),
                 ("eid", r.DH_Eid),
                 ("efid_hists_eid", r.DH_Efid_Hists),
                 ("mon_eid", r.DH_Hists_Monitor),
-                ("scpid_eid", r.DH_SC_Hists_PrePid),
+                ("schists_eid", r.DH_SC_Hists_PrePid),
                 ("lumblocks_eid", r.DH_RunQuality),
                 ("eid_efid", r.DH_Efid),
                 ("efid_hists_eid_efid", r.DH_Efid_Hists),
@@ -92,10 +91,14 @@ def main(argv):
                 ("mon_eid_efid_nphe", r.DH_Hists_Monitor),
                 ("eid_efid_nphe_hfid", r.DH_Hfid),
                 ("mon_eid_efid_nphe_hfid", r.DH_Hists_Monitor),
-                ("eid_efid_nphe_hfid_badsc", r.DH_SC_BadPdls),
-                ("eid_efid_nphe_hfid_badsc_mmp", r.DH_MMp_Exclusive),
-                ("mon_eid_efid_nphe_hfid_badsc_mmp", r.DH_Hists_Monitor),
-                ("h10_eid_efid_nphe_hfid_badsc_mmp", r.DH_CloneH10)
+                # pcor should go before fiducial cuts (efid and hfid),
+                # but only if fiducial parameters are recalculated
+                # based on already-corrected momenta
+                ("eid_efid_nphe_hfid_pcor", r.DH_Pcor),
+                ("eid_efid_nphe_hfid_pcor_badsc", r.DH_SC_BadPdls),
+                ("eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_MMp_Exclusive),
+                ("mon_eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_Hists_Monitor),
+                ("h10_eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_CloneH10)
                ]
 
     fout = r.TFile(outfile, 'RECREATE')

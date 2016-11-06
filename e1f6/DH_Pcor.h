@@ -37,7 +37,7 @@ class DH_Pcor : public DataHandler
             _pcorr = new MomCorr_e1f("MomCorr");
             fDir->cd();
             h = new TH2F("hpcor", "momentum change", 50, 0, 5.5, 200, -0.10, 0.10);
-            h2 = new TH2F("hczcor", "cz change", 50, 0, 5.5, 200, -1, 1);
+            h2 = new TH2F("hczcor", "cz change", 50, 0, 5.5, 200, -.1, .1);
         }
         virtual ~DH_Pcor()
         {
@@ -59,8 +59,8 @@ class DH_Pcor : public DataHandler
             TLorentzVector lvE1_cor = _pcorr->PcorN(d->lvE1, -1, 11);
             Float_t pb4 = d->p[0];
             Float_t czb4 = d->cz[0];
-            d->p[0] = pb4+lvE1_cor.P();
-            d->cz[0] = czb4+lvE1_cor.CosTheta();
+            d->p[0] = lvE1_cor.P();
+            d->cz[0] = lvE1_cor.CosTheta();
             h->Fill(pb4, d->p[0]-pb4);
             h2->Fill(pb4, d->cz[0]-czb4);
             d->CalcLVs();
