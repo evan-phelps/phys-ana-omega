@@ -35,14 +35,12 @@ rather than testing for run number (see, e.g., beamEnergy).
 */
 class H10
 {
-
     protected :
         Long64_t _ntoprocess;
         TRegexp *fRegExp_run, *fRegExp_Anum;
         TStopwatch _swmain;
         TStopwatch _swgroup;
         static const Int_t blocksize = 100000;
-        Long64_t eventnum;
         void PrintProgress(Long64_t entry)
         {
             if ( ++eventnum % blocksize == 0 )
@@ -60,6 +58,7 @@ class H10
         }
 
     public :
+        Long64_t eventnum;
         HandlerChain *fHandlerChain;
         virtual void Add(DataHandler *dhandler)
         {

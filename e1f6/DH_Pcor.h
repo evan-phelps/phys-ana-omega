@@ -59,7 +59,7 @@ class DH_Pcor : public DataHandler
             Float_t brat = d->cfg->GetFloat("bfieldratio");
             bfield_current = brat==0 ? 0 : 3375.0/brat; //3375 is max current
             if (mom_corr_type.EqualTo("MomCorr_e1f")) _pcorr = new MomCorr_e1f((char*)"MomCorr");
-            if ( !(mom_corr_type.EqualTo("No", TString::ECaseCompare::kIgnoreCase)) ) {
+            if ( !(mom_corr_type.EqualTo("No")) ) {
                 h = new TH2F("hpcor", "momentum change", 50, 0, 5.5, 200, -0.10, 0.10);
                 h2 = new TH2F("hczcor", "cz change", 50, 0, 5.5, 200, -.1, .1);
             }
@@ -73,7 +73,7 @@ class DH_Pcor : public DataHandler
         virtual bool Handle(H10* d)
         {
             bool passed = true;
-            if ( mom_corr_type.EqualTo("No", TString::ECaseCompare::kIgnoreCase) ) return passed;
+            if ( mom_corr_type.EqualTo("No") ) return passed;
 
             Float_t pb4 = d->p[0];
             Float_t czb4 = d->cz[0];

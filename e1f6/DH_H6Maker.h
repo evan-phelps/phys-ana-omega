@@ -13,6 +13,7 @@
 #include "TLorentzVector.h"
 #include "TVector3.h"
 #include "TString.h"
+#include "TGraph.h"
 
 #ifndef _DATA_HANDLER_H_
 #include "DataHandler.h"
@@ -40,12 +41,20 @@ class DH_H6Maker : public DataHandler
         TString fn_shape_sim;
         TH1 *shape_sim_norm_Q2;
         THnSparseF *hbd_shape_norm_Q2;
+        TGraph *h_nbins;
+        static const Long64_t BSIZE = 1000000;
+        static const int NPOINTS = 100;
+        Long64_t last_processed;
+        int last_point_num;
 
         DH_H6Maker(std::string name = "H6Maker", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
             hbd = GetH6();
             hbd_nphe_eff = GetH6("hbd_nphe_eff", "nphe cutoff efficiency");
             hbd_shape_norm_Q2 = GetH6("hbd_shape_norm_Q2", "first-order simulation shaping, Q2 only");
+            h_nbins = new TGraph(100);
+            last_processed = 0;
+            last_point_num = 0;
         }
         virtual ~DH_H6Maker()
         {
@@ -53,6 +62,7 @@ class DH_H6Maker : public DataHandler
             if (hbd_nphe_eff) delete hbd_nphe_eff;
             if (shape_sim_norm_Q2) delete shape_sim_norm_Q2;
             if (hbd_shape_norm_Q2) delete hbd_shape_norm_Q2;
+            delete h_nbins;
         }
         virtual void Setup(H10 *d)
         {
@@ -67,18 +77,26 @@ class DH_H6Maker : public DataHandler
         }
         static THnSparseF* GetH6(std::string hname = "hbd_yield", std::string htitle = "W, Q^{2}, t', cos(#theta), #phi, mmp")
         {
-            Int_t bins2[] = { 80, 6, 9, 12, 18, 35 };
+            Int_t bins2[] = { 80, 23, 9, 10, 18, 35 };
             Double_t xmin2[] = { 1.6, 1.35, 0.1, -1, -Pi(), 0.6 };
-            Double_t xmax2[] = { 3.2, 5.5, 8,  1,  Pi(), 0.95 };
+            Double_t xmax2[] = { 3.2, 5.95, 8,  1,  Pi(), 0.95 };
             THnSparseF *hbd = new THnSparseF(hname.c_str(), htitle.c_str(), 6, bins2, xmin2, xmax2);
-            Double_t qbins[] = { 1.35, 1.5, 1.75, 2.1, 2.89, 4, 5.5 };
             Double_t tbins[] = { 0.1, 0.25, 0.45, 0.65, 0.85, 1.15, 1.5, 2.06, 3, 8 };
-            Double_t cbins[] = { -1,-0.9,-0.8,-0.6,-0.4,-0.2,-0.0,0.2,0.4,0.6,0.8,0.9,1 };
-            hbd->SetBinEdges(1,qbins);
             hbd->SetBinEdges(2,tbins);
-            hbd->SetBinEdges(3,cbins);
             hbd->Sumw2();
             return hbd;
+            // Int_t bins2[] = { 80, 6, 9, 12, 18, 35 };
+            // Double_t xmin2[] = { 1.6, 1.35, 0.1, -1, -Pi(), 0.6 };
+            // Double_t xmax2[] = { 3.2, 5.5, 8,  1,  Pi(), 0.95 };
+            // THnSparseF *hbd = new THnSparseF(hname.c_str(), htitle.c_str(), 6, bins2, xmin2, xmax2);
+            // Double_t qbins[] = { 1.35, 1.5, 1.75, 2.1, 2.89, 4, 5.5 };
+            // Double_t tbins[] = { 0.1, 0.25, 0.45, 0.65, 0.85, 1.15, 1.5, 2.06, 3, 8 };
+            // Double_t cbins[] = { -1,-0.9,-0.8,-0.6,-0.4,-0.2,-0.0,0.2,0.4,0.6,0.8,0.9,1 };
+            // hbd->SetBinEdges(1,qbins);
+            // hbd->SetBinEdges(2,tbins);
+            // hbd->SetBinEdges(3,cbins);
+            // hbd->Sumw2();
+            // return hbd;
         }
         virtual void Fill(H10 *d, Double_t weight=1, bool do_cc_eff=false)
         {
@@ -98,15 +116,14 @@ class DH_H6Maker : public DataHandler
                     cc_eff = parms_cc_nphe[sector-1][pmt_num-1];
                     hbd_nphe_eff->Fill(bincoords, cc_eff);
                 }
-
             }
-
         }
         virtual void Finalize(H10* d)
         {
             fDir->cd();
             hbd->Write();
             if (hbd_nphe_eff) hbd_nphe_eff->Write();
+            fDir->WriteObject(h_nbins, "h_nbins");
         }
         virtual bool Handle(H10* d)
         {
@@ -136,6 +153,12 @@ class DH_H6Maker_Exp : public DH_H6Maker
         {
             bool passed = true;
             Fill(d, true);
+            if (d->eventnum/(BSIZE+last_processed)>0) {
+                last_processed += BSIZE;
+                if (last_point_num > h_nbins->GetMaxSize())
+                    h_nbins->Expand(last_point_num+NPOINTS);
+                h_nbins->SetPoint(last_point_num, d->eventnum, hbd->GetNbins());
+            }
             return passed;
         }
 };
@@ -187,9 +210,15 @@ class DH_H6Maker_Recon : public DH_H6Maker
                 Double_t Q2 = -lvq.M2();
                 Int_t q2bin = shape_sim_norm_Q2->FindBin(Q2);
                 Double_t invw = shape_sim_norm_Q2->GetBinContent(q2bin);
-                Double_t weight = invw==0 ? 0 : 1/invw;
+                // Double_t weight = invw==0 ? 0 : 1/invw;
                 double bincoords[] = {d->W, d->Q2, -d->t, d->cosTheta, d->phi, d->MMp};
-                hbd_shape_norm_Q2->Fill(bincoords, weight);
+                hbd_shape_norm_Q2->Fill(bincoords, invw);
+            }
+            if (d->eventnum/(BSIZE+last_processed)>0) {
+                last_processed += BSIZE;
+                if (last_point_num > h_nbins->GetMaxSize())
+                    h_nbins->Expand(last_point_num+NPOINTS);
+                h_nbins->SetPoint(last_point_num, d->eventnum, hbd->GetNbins());
             }
             return passed;
         }
@@ -273,12 +302,16 @@ class DH_H6Maker_Thrown : public DH_H6Maker
             hbd->Fill(bincoords);
 
             if (shape_sim_norm_Q2) {
-                lvq = lvE0-lvE1;
-                Double_t Q2 = -lvq.M2();
                 Int_t q2bin = shape_sim_norm_Q2->FindBin(Q2);
                 Double_t invw = shape_sim_norm_Q2->GetBinContent(q2bin);
-                Double_t weight = invw==0 ? 0 : 1/invw;
-                hbd_shape_norm_Q2->Fill(bincoords, weight);
+                // Double_t weight = invw==0 ? 0 : 1/invw;
+                hbd_shape_norm_Q2->Fill(bincoords, invw);
+            }
+            if (d->eventnum/(BSIZE+last_processed)>0) {
+                last_processed += BSIZE;
+                if (last_point_num > h_nbins->GetMaxSize())
+                    h_nbins->Expand(last_point_num+NPOINTS);
+                h_nbins->SetPoint(last_point_num, d->eventnum, hbd->GetNbins());
             }
             return true;
         }
