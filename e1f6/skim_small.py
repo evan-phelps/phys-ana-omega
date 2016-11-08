@@ -69,7 +69,7 @@ def main(argv):
                 'DH_EC_Hists.h', 'DH_Efid_Hists.h', 'DH_Hists_Monitor.h',
                 'DH_Eid.h', 'DH_CloneH10.h', 'DH_RunQuality.cpp', 'DH_Efid.h',
                 'DH_CC_Nphe.h', 'DH_W_Skim.h', 'DH_MMp_Skim.h', 'DH_MMp_Exclusive.h',
-                'DH_Hfid.h', 'mom_corr.cpp', 'Dh_Pcor.h', 'DH_SC_BadPdls.h']:
+                'DH_Hfid.h', 'mom_corr.cpp', 'DH_Pcor.h', 'DH_SC_BadPdls.h']:
         r.gROOT.ProcessLine('.L %s/%s+' % (wdir, dep))
 
     handlers = [("mon_raw", r.DH_Hists_Monitor),

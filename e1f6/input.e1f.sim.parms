@@ -1,5 +1,8 @@
+config_name	e1f_sim
 beam_energy     5.497
 bfieldratio     1.5
+mom_corr	No
+shape_thrown_Q2	norm1_Q2_e1f.root
 ###### EC sampling fraction vs. momentum pol3 cut parms ######
 ec_sf_hi_pol3   1,0.31,-0.013,-0.0016,0.00072
 ec_sf_lo_pol3   1,0.13,0.043,-0.008,0.00021

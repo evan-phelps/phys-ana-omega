@@ -31,11 +31,9 @@ Config::Config(const char* filename)
     propfile.close();
 }
 
-
 Config::~Config()
 {
 }
-
 
 TObjArray* Config::GetProperties(const char* label)
 {
@@ -51,6 +49,22 @@ TObjArray* Config::GetProperties(const char* label)
     return propvals;
 }
 
+TString Config::GetString(const char* label)
+{
+    TString retval;
+    TObjArray *t = GetProperties(label);
+    if (t->GetEntries() == 1)
+    {
+        TObjArray *t2 = (TObjArray*)t->At(0);
+        if (t2->GetEntries() == 1)
+        {
+            TObjString *tos = (TObjString*) t2->At(0);
+            retval = tos->GetString();
+        }
+    }
+    delete t;
+    return retval;
+}
 
 Float_t Config::GetFloat(const char* label)
 {

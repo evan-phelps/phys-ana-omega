@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include "TObjArray.h"
+#include "TString.h"
 
 using namespace std;
 
@@ -14,6 +15,7 @@ class Config
         Config(const char* filename);
         ~Config();
         TObjArray* GetProperties(const char* label);
+        TString GetString(const char* label);
         Float_t GetFloat(const char* label);
         vector< vector<float> > GetSectorParms(const char* label);
     protected:
