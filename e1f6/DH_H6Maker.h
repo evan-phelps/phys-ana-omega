@@ -157,7 +157,7 @@ class DH_H6Maker_Exp : public DH_H6Maker
                 last_processed += BSIZE;
                 if (last_point_num > h_nbins->GetMaxSize())
                     h_nbins->Expand(last_point_num+NPOINTS);
-                h_nbins->SetPoint(last_point_num, d->eventnum, hbd->GetNbins());
+                h_nbins->SetPoint(last_point_num++, d->eventnum, hbd->GetNbins());
             }
             return passed;
         }
@@ -218,7 +218,7 @@ class DH_H6Maker_Recon : public DH_H6Maker
                 last_processed += BSIZE;
                 if (last_point_num > h_nbins->GetMaxSize())
                     h_nbins->Expand(last_point_num+NPOINTS);
-                h_nbins->SetPoint(last_point_num, d->eventnum, hbd->GetNbins());
+                h_nbins->SetPoint(last_point_num++, d->eventnum, hbd->GetNbins());
             }
             return passed;
         }
@@ -311,7 +311,7 @@ class DH_H6Maker_Thrown : public DH_H6Maker
                 last_processed += BSIZE;
                 if (last_point_num > h_nbins->GetMaxSize())
                     h_nbins->Expand(last_point_num+NPOINTS);
-                h_nbins->SetPoint(last_point_num, d->eventnum, hbd->GetNbins());
+                h_nbins->SetPoint(last_point_num++, d->eventnum, hbd->GetNbins());
             }
             return true;
         }
