@@ -46,6 +46,7 @@ class DH_H6Maker : public DataHandler
         static const int NPOINTS = 100;
         Long64_t last_processed;
         int last_point_num;
+        TGraph *h_relerr_bt;
 
         DH_H6Maker(std::string name = "H6Maker", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
@@ -55,6 +56,7 @@ class DH_H6Maker : public DataHandler
             h_nbins = new TGraph(100);
             last_processed = 0;
             last_point_num = 0;
+            h_relerr_bt = new TGraph(100);
         }
         virtual ~DH_H6Maker()
         {
@@ -77,9 +79,9 @@ class DH_H6Maker : public DataHandler
         }
         static THnSparseF* GetH6(std::string hname = "hbd_yield", std::string htitle = "W, Q^{2}, t', cos(#theta), #phi, mmp")
         {
-            Int_t bins2[] = { 80, 23, 9, 10, 18, 35 };
-            Double_t xmin2[] = { 1.6, 1.35, 0.1, -1, -Pi(), 0.6 };
-            Double_t xmax2[] = { 3.2, 5.95, 8,  1,  Pi(), 0.95 };
+            Int_t bins2[] = { 80, 25, 9, 10, 18, 35 };
+            Double_t xmin2[] = { 1.6, 1.05, 0.1, -1, -Pi(), 0.6 };
+            Double_t xmax2[] = { 3.2, 6.05, 8,  1,  Pi(), 0.95 };
             THnSparseF *hbd = new THnSparseF(hname.c_str(), htitle.c_str(), 6, bins2, xmin2, xmax2);
             Double_t tbins[] = { 0.1, 0.25, 0.45, 0.65, 0.85, 1.15, 1.5, 2.06, 3, 8 };
             hbd->SetBinEdges(2,tbins);
@@ -123,7 +125,12 @@ class DH_H6Maker : public DataHandler
             fDir->cd();
             hbd->Write();
             if (hbd_nphe_eff) hbd_nphe_eff->Write();
+            for (int ipoint=last_point_num; ipoint < h_nbins->GetMaxSize(); ipoint++) {
+                h_relerr_bt->RemovePoint(ipoint);
+                h_nbins->RemovePoint(ipoint);
+            }
             fDir->WriteObject(h_nbins, "h_nbins");
+            fDir->WriteObject(h_relerr_bt, "h_relerr_bt");
         }
         virtual bool Handle(H10* d)
         {
@@ -157,7 +164,18 @@ class DH_H6Maker_Exp : public DH_H6Maker
                 last_processed += BSIZE;
                 if (last_point_num > h_nbins->GetMaxSize())
                     h_nbins->Expand(last_point_num+NPOINTS);
-                h_nbins->SetPoint(last_point_num++, d->eventnum, hbd->GetNbins());
+                    h_relerr_bt->Expand(last_point_num+NPOINTS);
+                Int_t dims[] = {0, 1, 3, 4};
+                THnSparse *h4 = hbd->Projection(4, dims);
+                h_nbins->SetPoint(last_point_num, d->eventnum, h4->GetNbins());
+                Int_t n_relerr_bt = 0;
+                for (int ibin=0; ibin<h4->GetNbins(); ibin++) {
+                    if (TMath::Sqrt(h4->GetBinError2(ibin))/h4->GetBinContent(ibin) < 0.05) {
+                        n_relerr_bt++;
+                    }
+                }
+                h_relerr_bt->SetPoint(last_point_num++, d->eventnum, n_relerr_bt);
+                delete h4;
             }
             return passed;
         }
@@ -218,7 +236,18 @@ class DH_H6Maker_Recon : public DH_H6Maker
                 last_processed += BSIZE;
                 if (last_point_num > h_nbins->GetMaxSize())
                     h_nbins->Expand(last_point_num+NPOINTS);
-                h_nbins->SetPoint(last_point_num++, d->eventnum, hbd->GetNbins());
+                    h_relerr_bt->Expand(last_point_num+NPOINTS);
+                Int_t dims[] = {0, 1, 3, 4};
+                THnSparse *h4 = hbd->Projection(4, dims);
+                h_nbins->SetPoint(last_point_num, d->eventnum, h4->GetNbins());
+                Int_t n_relerr_bt = 0;
+                for (int ibin=0; ibin<h4->GetNbins(); ibin++) {
+                    if (TMath::Sqrt(h4->GetBinError2(ibin))/h4->GetBinContent(ibin) < 0.05) {
+                        n_relerr_bt++;
+                    }
+                }
+                h_relerr_bt->SetPoint(last_point_num++, d->eventnum, n_relerr_bt);
+                delete h4;
             }
             return passed;
         }
@@ -311,7 +340,18 @@ class DH_H6Maker_Thrown : public DH_H6Maker
                 last_processed += BSIZE;
                 if (last_point_num > h_nbins->GetMaxSize())
                     h_nbins->Expand(last_point_num+NPOINTS);
-                h_nbins->SetPoint(last_point_num++, d->eventnum, hbd->GetNbins());
+                    h_relerr_bt->Expand(last_point_num+NPOINTS);
+                Int_t dims[] = {0, 1, 3, 4};
+                THnSparse *h4 = hbd->Projection(4, dims);
+                h_nbins->SetPoint(last_point_num, d->eventnum, h4->GetNbins());
+                Int_t n_relerr_bt = 0;
+                for (int ibin=0; ibin<h4->GetNbins(); ibin++) {
+                    if (TMath::Sqrt(h4->GetBinError2(ibin))/h4->GetBinContent(ibin) < 0.05) {
+                        n_relerr_bt++;
+                    }
+                }
+                h_relerr_bt->SetPoint(last_point_num++, d->eventnum, n_relerr_bt);
+                delete h4;
             }
             return true;
         }
