@@ -109,22 +109,25 @@ class DH_H6Maker : public DataHandler
                 double cc_eff = 1;
                 int ccidx = d->cc[0]-1;
                 int pmt_hit = d->cc_segm[ccidx]/1000-1;
-                if (pmt_hit == 0) cc_eff = 1.1;
+                if (pmt_hit == 0) cc_eff = 1;
                 else {
                     int segment = (d->cc_segm[ccidx]%1000)/10;
                     int sector = d->cc_sect[ccidx];
                     int pmt_num = (2*segment-1);
                     if (pmt_hit>0) pmt_num++;
                     cc_eff = parms_cc_nphe[sector-1][pmt_num-1];
-                    hbd_nphe_eff->Fill(bincoords, cc_eff);
                 }
+                hbd_nphe_eff->Fill(bincoords, cc_eff);
             }
         }
         virtual void Finalize(H10* d)
         {
             fDir->cd();
             hbd->Write();
-            if (hbd_nphe_eff) hbd_nphe_eff->Write();
+            if (hbd_nphe_eff) {
+                hbd_nphe_eff->Divide(hbd_yield);
+                hbd_nphe_eff->Write();
+            }
             for (int ipoint=last_point_num; ipoint < h_nbins->GetMaxSize(); ipoint++) {
                 h_relerr_bt->RemovePoint(ipoint);
                 h_nbins->RemovePoint(ipoint);
@@ -201,7 +204,10 @@ class DH_H6Maker_Recon : public DH_H6Maker
         {
             DH_H6Maker::Finalize(d);
             fDir->cd();
-            if (hbd_shape_norm_Q2) hbd_shape_norm_Q2->Write();
+            if (hbd_shape_norm_Q2) {
+                hbd_shape_norm_Q2->Divide(hbd_yield);
+                hbd_shape_norm_Q2->Write();
+            }
         }
         void Pop4P(H10* d, int pid, TLorentzVector &lv)
         {
@@ -273,7 +279,10 @@ class DH_H6Maker_Thrown : public DH_H6Maker
         {
             DH_H6Maker::Finalize(d);
             fDir->cd();
-            if (hbd_shape_norm_Q2) hbd_shape_norm_Q2->Write();
+            if (hbd_shape_norm_Q2) {
+                hbd_shape_norm_Q2->Divide(hbd_yield);
+                hbd_shape_norm_Q2->Write();
+            }
         }
         void Pop4P(H10* d, int pid, TLorentzVector &lv)
         {
