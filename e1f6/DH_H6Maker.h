@@ -128,7 +128,7 @@ class DH_H6Maker : public DataHandler
             fDir->cd();
             hbd->Write();
             if (hbd_nphe_eff) {
-                hbd_nphe_eff->Divide(hbd_yield);
+                hbd_nphe_eff->Divide(hbd);
                 hbd_nphe_eff->Write();
             }
             for (int ipoint=last_point_num; ipoint < h_nbins->GetMaxSize(); ipoint++) {
@@ -208,7 +208,7 @@ class DH_H6Maker_Recon : public DH_H6Maker
             DH_H6Maker::Finalize(d);
             fDir->cd();
             if (hbd_shape_norm_Q2) {
-                hbd_shape_norm_Q2->Divide(hbd_yield);
+                hbd_shape_norm_Q2->Divide(hbd);
                 hbd_shape_norm_Q2->Write();
             }
         }
@@ -283,7 +283,7 @@ class DH_H6Maker_Thrown : public DH_H6Maker
             DH_H6Maker::Finalize(d);
             fDir->cd();
             if (hbd_shape_norm_Q2) {
-                hbd_shape_norm_Q2->Divide(hbd_yield);
+                hbd_shape_norm_Q2->Divide(hbd);
                 hbd_shape_norm_Q2->Write();
             }
         }
