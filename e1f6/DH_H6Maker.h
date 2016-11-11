@@ -79,9 +79,12 @@ class DH_H6Maker : public DataHandler
         }
         static THnSparseF* GetH6(std::string hname = "hbd_yield", std::string htitle = "W, Q^{2}, t', cos(#theta), #phi, mmp")
         {
+            /* NOTE that Q2 needs to be binned so that the following values fall on edges:
+                    1.75, 2.25, 2.75, 3.25, 3.75, 4.25, and 4.75
+             */
             Int_t bins2[] = { 80, 25, 9, 10, 18, 35 };
-            Double_t xmin2[] = { 1.6, 1.05, 0.1, -1, -Pi(), 0.6 };
-            Double_t xmax2[] = { 3.2, 6.05, 8,  1,  Pi(), 0.95 };
+            Double_t xmin2[] = { 1.6, 0.95, 0.1, -1, -Pi(), 0.6 };
+            Double_t xmax2[] = { 3.2, 5.95, 8,  1,  Pi(), 0.95 };
             THnSparseF *hbd = new THnSparseF(hname.c_str(), htitle.c_str(), 6, bins2, xmin2, xmax2);
             Double_t tbins[] = { 0.1, 0.25, 0.45, 0.65, 0.85, 1.15, 1.5, 2.06, 3, 8 };
             hbd->SetBinEdges(2,tbins);
