@@ -72,6 +72,7 @@ class DH_Hfid : public DataHandler
                     float phi = RadToDeg()*ATan2(d->cy[i],d->cx[i]);
                     if (phi < -30) phi+=360;
                     int isect = int((phi+30)/60);
+                    if (isect==6) isect = 0;
                     phi -= (isect)*60;
                     float dphi = Dphi(theta, isect+1);
                     if (phi < -dphi || phi > dphi) {

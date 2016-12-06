@@ -165,7 +165,7 @@ class DH_H6Maker_Exp : public DH_H6Maker
         virtual bool Handle(H10* d)
         {
             bool passed = true;
-            Fill(d, true);
+            Fill(d, 1, true);
             if (d->eventnum/(BSIZE+last_processed)>0) {
                 last_processed += BSIZE;
                 if (last_point_num > h_nbins->GetMaxSize())
