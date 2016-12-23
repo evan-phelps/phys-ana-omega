@@ -80,7 +80,7 @@ void H10::CalcLVs(bool use_npart /*= true */) {
     proceeding.  For now, I'm just populating the lv's here.
     More simply, it could be pulled into separate data handler
     to be added into the chain of data handlers when needed! */
-    // if (id[0] != 11) return;
+    if (id[0] != 11) return;
 
     lvE1.SetXYZM(p[0]*cx[0], p[0]*cy[0], p[0]*cz[0], MASS_E);
     nu = lvE1[3]-lvE0[3];

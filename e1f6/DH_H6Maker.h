@@ -70,7 +70,7 @@ class DH_H6Maker : public DataHandler
         {
             parms_cc_nphe = d->cfg->GetSectorParms("cc_nphe");
             fn_shape_sim = d->cfg->GetString("shape_thrown_Q2");
-            // shape_sim_norm_Q2
+            shape_sim_norm_Q2
             if ( !fn_shape_sim.IsNull() ) {
                 TFile fin(fn_shape_sim.Data());
                 shape_sim_norm_Q2 = (TH1*)fin.Get("hQ2_norm");

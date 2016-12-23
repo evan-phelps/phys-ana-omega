@@ -256,7 +256,7 @@ class ExpData:
 		#for (mmp0, mmp1),h in zip(self._mmpranges_,[hmmp, hbg, hmmp):
 		#	h.GetXaxis().SetRange(h.FindBin(mmp0), h.FindBin(mmp1))
 		#	ints.append(hbg.Integral())
-		bgw8 = ints[1]/(ints[0]+ints[2])
+		bgw8 = ints[1]/(ints[0]+ints[2]) if ints[0]+ints[2]>0 else 0
 		for i,h4 in enumerate(self.h4es,1):
 			axW = h4.GetAxis(0)
 			axQ2 = h4.GetAxis(1)
@@ -331,19 +331,24 @@ class SimData:
 		return str_data_loc
 
 	def add_sim(self, fn, h6tdir='h6thrown', h6rdir='h6recon',
-	            h6tname='hbd_yield', h6rname='hbd_yield', shapename='hbd_shape_norm_Q2'):
+	            h6tname='hbd_yield', h6rname='hbd_yield', h6rfn=None,
+	            shapename='hbd_shape_norm_Q2'):
 		with root_open(fn) as fin:
 			h6t = fin['%s/%s'%(h6tdir,h6tname)]
-			h6r = fin['%s/%s'%(h6rdir,h6rname)]
-			#self.h6s.append((h6t.Clone('h6t'),h6r.Clone('h6r')))
-			h6t_w8s = fin['%s/%s'%(h6tdir,shapename)]
-			h6r_w8s = fin['%s/%s'%(h6rdir,shapename)]
-			for i in range(0, h6t_w8s.GetNbins()):
-				h6t_w8s.SetBinError(i,0)
-			for i in range(0, h6r_w8s.GetNbins()):
-				h6r_w8s.SetBinError(i,0)
-			h6t.Divide(h6t_w8s)
-			h6r.Divide(h6r_w8s)
+			h6r = None
+			if h6rfn is None:
+				h6r = fin['%s/%s'%(h6rdir,h6rname)]
+			else:
+				with root_open(h6rfn) as h6rfin:
+					h6r = h6rfin['%s/%s'%(h6rdir,h6rname)]
+			# h6t_w8s = fin['%s/%s'%(h6tdir,shapename)]
+			# h6r_w8s = fin['%s/%s'%(h6rdir,shapename)]
+			# for i in range(0, h6t_w8s.GetNbins()):
+			# 	h6t_w8s.SetBinError(i,0)
+			# for i in range(0, h6r_w8s.GetNbins()):
+			# 	h6r_w8s.SetBinError(i,0)
+			# h6t.Divide(h6t_w8s)
+			# h6r.Divide(h6r_w8s)
 			dims = array('i', [0,1,3,4])
 			for iax in [0,1,5]: #range(0,6):
 				for h6 in [h6r]: #[h6t, h6r]:
