@@ -67,6 +67,7 @@ TH2* normXslices(TH2 *h) {
       if (bc > 0) {
 	Int_t global_bin = h2->GetBin(bx,by);
 	h2->SetBinContent(global_bin,bc/max);
+	h2->SetBinError(global_bin, bc/max*TMath::Sqrt(bc/TMath::Power(bc,2)+max/TMath::Power(max,2)));
       }
     }
   }

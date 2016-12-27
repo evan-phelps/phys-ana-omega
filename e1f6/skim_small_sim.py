@@ -96,6 +96,8 @@ def main(argv):
                 ("mon_eid_efid_hfid_mmp", r.DH_Hists_Monitor),
                 ("h10_eid_efid_hfid_mmp", r.DH_CloneH10),
                 ("eid_efid_hfid_mmp_badsc", r.DH_SC_BadPdls),
+                ("eid_efid_hfid_mmp_badsc_mmp", r.DH_MMp_Exclusive),
+                ("mon_eid_efid_hfid_mmp_badsc_mmp", r.DH_Hists_Monitor),
                 ("h6recon", r.DH_H6Maker_Recon)
                ]
 

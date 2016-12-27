@@ -77,7 +77,7 @@ def main(argv):
                 # but only if fiducial parameters are recalculated
                 # based on already-corrected momenta
                 #("eid_efid_nphe_hfid_pcor", r.DH_Pcor),
-		("eid_efid", r.DH_Efid),
+		#("efid2", r.DH_Efid),
                 ("eid_efid_nphe_hfid_pcor_badsc", r.DH_SC_BadPdls),
                 ("eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_MMp_Exclusive),
                 ("mon_eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_Hists_Monitor),
