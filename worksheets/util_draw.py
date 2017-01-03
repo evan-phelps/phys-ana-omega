@@ -161,6 +161,8 @@ def get_pointgen(gr, xlo, xhi):
 
 def get_points_from_TF1(f, xmin, xmax, npoints=100):
     X = np.linspace(xmin, xmax, npoints)
+    if f is None:
+        return [(x,0) for x in X]
     return [(x,f.Eval(x)) for x  in X]
 
 

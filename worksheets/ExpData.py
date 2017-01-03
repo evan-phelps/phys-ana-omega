@@ -102,12 +102,14 @@ def fit_mmp(h, W, Q2, fout=None):
 				result += [W,Q2]
 				result.append(h),
 				result.append(tuple([fbg.GetParameter(ipar) for ipar in range(0,5)]))
-				result.append(h.GetListOfFunctions()[0])
+				tfuncs = h.GetListOfFunctions()
+				tfunc = None if len(tfuncs)==0 else tfuncs[0]
+				result.append(tfunc)
 				result.append(tuple([fsigbg.GetParameter(ipar) for ipar in range(0,8)]))
 				result.append(q)
 				result.append(r.gMinuit.fCstatu)
 				if fout is not None: fout.WriteObject(h, h.GetName())
-	return tuple(result) if result is not None else None
+	return tuple(result) if result is not None and len(result)>0 else None
 
 def get_mask(h, vlow=None, vhigh=None, errors=False):
 	_h = h.Clone()
@@ -367,6 +369,7 @@ class SimData:
 			#h4a = h4r.Clone('h4a_%d'%(len(self.h4s)+1))
 			#h4a.Divide(h4t)
 			#self.h4s.append((h4t, h4r, h4a))
+			
 			self.h4s.append((h4t, h4r))
 		self.fns.append(fn)
 
