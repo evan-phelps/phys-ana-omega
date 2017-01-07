@@ -38,8 +38,8 @@ class DH_Pcor : public DataHandler
         class MomCorr_e1f *_pcorr;
 
     public:
-        TH2 *h;
-        TH2 *h2;
+        vector<TH2*> hpcorS;
+        vector<TH2*> hpzcorS;
 
         DH_Pcor(std::string name = "pcor", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
@@ -49,8 +49,8 @@ class DH_Pcor : public DataHandler
         {
             if (_pcorr) delete _pcorr;
             fDir->cd();
-            delete h;
-            delete h2;
+            for_each(hpcorS.begin(), hpcorS.end(), DeleteObj);
+            for_each(hpzcorS.begin(), hpzcorS.end(), DeleteObj);
         }
         virtual void Setup(H10* d)
         {
@@ -59,21 +59,20 @@ class DH_Pcor : public DataHandler
             Float_t brat = d->cfg->GetFloat("bfieldratio");
             bfield_current = brat==0 ? 0 : 3375.0/brat; //3375 is max current
             if (mom_corr_type.EqualTo("MomCorr_e1f")) _pcorr = new MomCorr_e1f((char*)"MomCorr");
-            if ( !(mom_corr_type.EqualTo("No")) ) {
-                h = new TH2F("hpcor", "momentum change", 50, 0, 5.5, 200, -0.10, 0.10);
-                h2 = new TH2F("hczcor", "cz change", 50, 0, 5.5, 200, -.1, .1);
-            }
+            hpcorS = MakeHists(NSECTS, "hpcor_%d", "momentum change, S%d", 55, 0, 5.5, 200, -0.10, 0.10);
+            hpzcorS = MakeHists(NSECTS, "hpzcor_%d", "z-momentum change, S%d", 55, 0, 5.5, 200, -.1, .1);
         }
         virtual void Finalize(H10* d)
         {
             fDir->cd();
-            h->Write();
-            h2->Write();
+            for_each(hpcorS.begin(), hpcorS.end(), WriteObj);
+            for_each(hpzcorS.begin(), hpzcorS.end(), WriteObj);
         }
         virtual bool Handle(H10* d)
         {
             bool passed = true;
             if ( mom_corr_type.EqualTo("No") ) return passed;
+            if ( (d->id[0] != 11) || (d->sc[0] <= 0) || (d->dc[0] <= 0)) return passed;
 
             Float_t pb4 = d->p[0];
             Float_t czb4 = d->cz[0];
@@ -91,7 +90,8 @@ class DH_Pcor : public DataHandler
                 if (phield < 0) phield += 360;
                 float pel = pb4;
                 float torcur = bfield_current;
-                float secte = int(phield/60)+1;
+                // float secte = int(phield/60)+1;
+                float secte = d->sc_sect[d->sc[0]-1];
                 float thetaeldnew = thetaeld;
                 float newpel = pel;
                 e_corr_sub(thetaeld, phield, pel, torcur, secte, thetaeldnew, newpel);
@@ -100,8 +100,8 @@ class DH_Pcor : public DataHandler
             } else return passed;
             d->p[0] = pnew;
             d->cz[0] = cznew;
-            h->Fill(pb4, pnew-pb4);
-            h2->Fill(pb4, cznew-czb4);
+            hpcorS[d->esector-1]->Fill(pb4, pnew-pb4);
+            hpzcorS[d->esector-1]->Fill(pb4, cznew-czb4);
             d->CalcLVs();
             return passed;
         }
