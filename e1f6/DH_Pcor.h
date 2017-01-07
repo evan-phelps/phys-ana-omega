@@ -40,6 +40,7 @@ class DH_Pcor : public DataHandler
     public:
         vector<TH2*> hpcorS;
         vector<TH2*> hpzcorS;
+        vector<TH2*> hpphicorS;
 
         DH_Pcor(std::string name = "pcor", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
@@ -51,6 +52,7 @@ class DH_Pcor : public DataHandler
             fDir->cd();
             for_each(hpcorS.begin(), hpcorS.end(), DeleteObj);
             for_each(hpzcorS.begin(), hpzcorS.end(), DeleteObj);
+            for_each(hpphicorS.begin(), hpzcorS.end(), DeleteObj);
         }
         virtual void Setup(H10* d)
         {
@@ -61,12 +63,14 @@ class DH_Pcor : public DataHandler
             if (mom_corr_type.EqualTo("MomCorr_e1f")) _pcorr = new MomCorr_e1f((char*)"MomCorr");
             hpcorS = MakeHists(NSECTS, "hpcor_%d", "momentum change, S%d", 55, 0, 5.5, 200, -0.10, 0.10);
             hpzcorS = MakeHists(NSECTS, "hpzcor_%d", "z-momentum change, S%d", 55, 0, 5.5, 200, -.1, .1);
+            hpphicorS = MakeHists(NSECTS, "hpphicor_%d", "phi-momentum change, S%d", 55, 0, 5.5, 360, -PI, PI);
         }
         virtual void Finalize(H10* d)
         {
             fDir->cd();
             for_each(hpcorS.begin(), hpcorS.end(), WriteObj);
             for_each(hpzcorS.begin(), hpzcorS.end(), WriteObj);
+            for_each(hpphicorS.begin(), hpzcorS.end(), WriteObj);
         }
         virtual bool Handle(H10* d)
         {
@@ -76,17 +80,20 @@ class DH_Pcor : public DataHandler
 
             Float_t pb4 = d->p[0];
             Float_t czb4 = d->cz[0];
+            Float_t phib4 = atan2(d->cy[0], d->cx[0]);
             Float_t pnew = pb4;
             Float_t cznew = czb4;
+            Float_t phinew = phib4;
 
             if (mom_corr_type.EqualTo("MomCorr_e1f")) {
                 TLorentzVector lvE1_cor = _pcorr->PcorN(d->lvE1, -1, 11);
                 pnew = lvE1_cor.P();
                 cznew = lvE1_cor.CosTheta();
+                phinew = lvE1_cor.Phi();
             } else if(mom_corr_type.EqualTo("MomCorr_e16")) {
                 using namespace MomCorr_E16;
                 float thetaeld = R2D*acos(czb4);
-                float phield = R2D*atan2(d->cy[0], d->cx[0]);
+                float phield = R2D*phib4;
                 if (phield < 0) phield += 360;
                 float pel = pb4;
                 float torcur = bfield_current;
