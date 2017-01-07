@@ -1,7 +1,8 @@
 config_name	e16_exp
 beam_energy     5.754
 bfieldratio     1
-mom_corr	MomCorr_e16
+#mom_corr	MomCorr_e16
+mom_corr	No
 ###### EC sampling fraction vs. momentum pol3 cut parms ######
 ec_sf_hi_pol3   1,0.38,-0.032,0.01,-0.00089
 ec_sf_lo_pol3   1,0.11,0.1,-0.028,0.0026

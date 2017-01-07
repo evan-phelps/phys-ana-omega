@@ -52,7 +52,7 @@ class DH_Pcor : public DataHandler
             fDir->cd();
             for_each(hpcorS.begin(), hpcorS.end(), DeleteObj);
             for_each(hpzcorS.begin(), hpzcorS.end(), DeleteObj);
-            for_each(hpphicorS.begin(), hpzcorS.end(), DeleteObj);
+            for_each(hpphicorS.begin(), hpphicorS.end(), DeleteObj);
         }
         virtual void Setup(H10* d)
         {
@@ -70,7 +70,7 @@ class DH_Pcor : public DataHandler
             fDir->cd();
             for_each(hpcorS.begin(), hpcorS.end(), WriteObj);
             for_each(hpzcorS.begin(), hpzcorS.end(), WriteObj);
-            for_each(hpphicorS.begin(), hpzcorS.end(), WriteObj);
+            for_each(hpphicorS.begin(), hpphicorS.end(), WriteObj);
         }
         virtual bool Handle(H10* d)
         {
@@ -104,11 +104,13 @@ class DH_Pcor : public DataHandler
                 e_corr_sub(thetaeld, phield, pel, torcur, secte, thetaeldnew, newpel);
                 pnew = newpel;
                 cznew = cos(D2R*thetaeldnew);
+                phinew = D2R*phield; //will be same as phib4
             } else return passed;
             d->p[0] = pnew;
             d->cz[0] = cznew;
             hpcorS[d->esector-1]->Fill(pb4, pnew-pb4);
             hpzcorS[d->esector-1]->Fill(pb4, cznew-czb4);
+            hpphicorS[d->esector-1]->Fill(pb4, phinew-phib4);
             d->CalcLVs();
             return passed;
         }
