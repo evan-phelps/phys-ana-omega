@@ -24,3 +24,16 @@ python/__pycache__/
 *.pyc
 *.orig
 Untitled.ipynb
+e1f6/skim.e1f.sim.xml
+worksheets/pi_345_ps.ipynb
+worksheets/test.out
+worksheets/tr_eff_e16.out
+worksheets/tr_eff_e16_gt2000_lt2200.out
+worksheets/tr_eff_e16_lt1900.out
+worksheets/tr_eff_e16_multipleQ2s.out
+worksheets/tr_eff_e1f.out
+worksheets/tr_eff_e1f_gt2000_lt2200.out
+worksheets/tr_eff_e1f_lt1900.out
+worksheets/tr_eff_e1f_lt2800.out
+worksheets/tr_eff_e1f_multipleQ2s.out
+

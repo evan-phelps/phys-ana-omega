@@ -111,9 +111,9 @@ def fit_mmp(h, W, Q2, fout=None):
 				if fout is not None: fout.WriteObject(h, h.GetName())
 	return tuple(result) if result is not None and len(result)>0 else None
 
-def get_mask(h, vlow=None, vhigh=None, errors=False):
+def get_mask(h, vlow=None, vhigh=None, elow=None, ehigh=None):
 	_h = h.Clone()
-	if not errors:
+	if vhigh is not None or vlow is not None:
 		for ibin in range(0, _h.GetNcells()):
 			val = _h.GetBinContent(ibin)
 			if (vlow is not None and val <= vlow) or \
@@ -122,13 +122,13 @@ def get_mask(h, vlow=None, vhigh=None, errors=False):
 				_h.SetBinContent(ibin, 0)
 			else:
 				_h.SetBinContent(ibin, 1)
-	else:
+	if ehigh is not None or elow is not None:
 		_h.Sumw2()
 		for ibin in range(0, _h.GetNcells()):
 			val = _h.GetBinContent(ibin)
 			err = _h.GetBinError(ibin)
-			if (vlow is not None and (val == 0 or err/val <= vlow)) or \
-			   (vhigh is not None and (val == 0 or err/val >= vhigh) or \
+			if (elow is not None and (val == 0 or err/val <= elow)) or \
+			   (ehigh is not None and (val == 0 or err/val >= ehigh) or \
 				np.isnan(val)):
 				_h.SetBinContent(ibin, 0)
 			else:
@@ -203,6 +203,10 @@ class ExpData:
 			for i in [0,1,5]: #range(0,6):
 				self.h6y.GetAxis(i).SetRange(1, self.h6y.GetAxis(i).GetNbins())
 				self.h6y.GetAxis(i).SetBit(r.TAxis.kAxisRange)
+			# print("WARNING -- t cut in place!!!! ************")
+			# axT = self.h6y.GetAxis(2)
+			# axT.SetRange(0, axT.FindBin(2.7))
+			# end t cut
 			axMMP = self.h6y.GetAxis(5)
 			for i,(mmp0,mmp1) in enumerate(self._mmpranges_,1):
 			    b0, b1 = axMMP.FindBin(mmp0), axMMP.FindBin(mmp1)
@@ -358,6 +362,10 @@ class SimData:
 					nbins = ax.GetNbins()
 					ax.SetRange(1, nbins)
 					ax.SetBit(r.TAxis.kAxisRange)
+			# print("WARNING -- t cut in place!!!! ************")
+			# axT = h6r.GetAxis(2)
+			# axT.SetRange(0, axT.FindBin(2.7))
+			# end t cut
 			axMMp = h6r.GetAxis(5)
 			mmp_b0 = axMMp.FindBin(self._mmpranges_[1][0])
 			mmp_b1 = axMMp.FindBin(self._mmpranges_[1][1])
@@ -373,7 +381,7 @@ class SimData:
 			self.h4s.append((h4t, h4r))
 		self.fns.append(fn)
 
-	def get_acc2d(self, W, Q2, mask=None):
+	def get_acc2d(self, W, Q2, mask=None, lo_acc=None):
 #		_W = W if isinstance(W, list) else [W,W]
 #		_Q2 = Q2 if isinstance(Q2, list) else [Q2,Q2]
 #		h4tt = self.h4s[0][0]
@@ -427,7 +435,7 @@ class SimData:
 #			print(Q2bin0, Q2bin1)
 #			print(h4t.GetNbins(),h2t.GetEntries())
 #			print(h4r.GetNbins(),h2r.GetEntries())
-			h2tr.append((h2t,h2r,h2a,get_mask(h2a,vhigh=mask,errors=True),None))
+			h2tr.append((h2t,h2r,h2a,get_mask(h2a,ehigh=mask,vlow=lo_acc),None))
 			#h2tr.append((h2t,h2r,h2a,get_mask(h2a,vlow=mask),None))
 		h2t_all = asrootpy(h2tr[0][0].Clone('h2t_%dx%d_%dx%d'%(Wmid, Wwidth, Q2mid, Q2width)))
 		h2t_all.Reset()
@@ -466,7 +474,7 @@ class SimData:
 	#					 print(rw8s)
 		h2a_all = asrootpy(h2r_all.Clone('h2a_%dx%d_%dx%d'%(Wmid, Wwidth, Q2mid, Q2width)))
 		h2a_all.Divide(h2t_all)
-		hmask = get_mask(h2a_all,vhigh=mask,errors=True)
+		hmask = get_mask(h2a_all,ehigh=mask,vlow=lo_acc)
 		#hmask = get_mask(h2a_all,vlow=mask)
 		h2a_all_masked = h2a_all.Clone('%s_masked'%h2a_all.GetName())
 		h2a_all_masked.Divide(hmask)

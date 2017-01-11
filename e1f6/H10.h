@@ -49,9 +49,10 @@ class H10
                 Float_t ttime = _swmain.RealTime();
                 Float_t percentProcessed = (Float_t)eventnum/_ntoprocess*100;
                 Float_t remaining = (100/percentProcessed*ttime-ttime)/60;
-                printf("(%.2f) %lld/%.2f = %i events/sec | block = %i events/sec ... %.1f min remaining\n",
+                printf("(%.2f) %lld/%.2f = %i events/sec | block = %i events/sec ... %.1f min remaining",
 		       percentProcessed, eventnum, ttime,
 		       ((Int_t)(eventnum/ttime)), (Int_t)(blocksize/gtime), remaining);
+                cout << endl;
                 _swgroup.Start();
                 _swmain.Start(kFALSE);
             }

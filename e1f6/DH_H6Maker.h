@@ -75,7 +75,7 @@ class DH_H6Maker : public DataHandler
                 TFile fin(fn_shape_sim.Data());
                 shape_sim_norm_Q2 = (TH1*)fin.Get("hQ2_norm");
                 shape_sim_norm_Q2->SetDirectory(fDir);
-            }
+            } else shape_sim_norm_Q2=0;
         }
         static THnSparseF* GetH6(std::string hname = "hbd_yield", std::string htitle = "W, Q^{2}, t', cos(#theta), #phi, mmp")
         {
