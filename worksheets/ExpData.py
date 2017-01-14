@@ -184,7 +184,7 @@ MMP_RANGES = [(0.68,0.745), (0.755,0.825), (0.835,0.9)]
 class ExpData:
 
 	def __init__(self, fn, h6dir='h6_eid_efid_nphe_hfid_pcor_badsc_mmp',
-		     h6y='hbd_yield', h6w='hbd_nphe_eff'):
+		     h6y='hbd_yield', h6w='hbd_nphe_eff', h6treff='hbd_tr_eff'):
 		print('Setting up binned data for %s:%s'%(fn,h6dir))
 		self.h4es = []
 		self._mmpranges_ = MMP_RANGES
@@ -192,13 +192,20 @@ class ExpData:
 		self.h6dir_n = h6dir
 		self.h6y_n = h6y
 		self.h6w_n = h6w
+		self.h6tr_n = h6treff;
 		self.h2es = {}
 		with root_open(fn) as fin:
 			self.h6w = fin['%s/%s'%(h6dir, h6w)]
+			self.h6treff = fin['%s/%s'%(h6dir, h6treff)]
 			self.h6y = fin['%s/%s'%(h6dir, h6y)]
-			for i in range(0,self.h6w.GetNbins()):
-				self.h6w.SetBinError(i, 0)
-			self.h6y.Divide(self.h6w)
+			# for i in range(0,self.h6w.GetNbins()):
+			# 	self.h6w.SetBinError(i, 0)
+			# self.h6y.Divide(self.h6w)
+			# if self.h6treff is not None and self.h6treff.GetEntries()>0:
+			# 	print('found h6treff')
+			# 	for i in range(0,self.h6treff.GetNbins()):
+			# 		self.h6treff.SetBinError(i, 0)
+			# 	self.h6y.Divide(self.h6treff)
 			h4_dims = [dimW, dimQ2, dimCosTheta, dimPhi] = [0, 1, 3, 4]
 			for i in [0,1,5]: #range(0,6):
 				self.h6y.GetAxis(i).SetRange(1, self.h6y.GetAxis(i).GetNbins())

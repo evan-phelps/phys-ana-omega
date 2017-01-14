@@ -41,18 +41,12 @@ class DH_MMp_Exclusive : public DataHandler
         {
             fDir->cd();
         }
-        virtual bool inbadQ2W(int sector, float w, float q2)
-        {
-            return false;
-        }
         virtual bool Handle(H10* d)
         {
             if (d->id[0] != 11) return false;
             //recalculate kinematics of event assuming only particles through npart,
             // i.e., status>0, etc.
             d->CalcLVs(true);
-
-            if inbadQ2W(d->esector, d->W, d->Q2) return false;
 
             //restrict to exclusive pid combinations, but allow neutral background
             if ( !(d->np==1 && (d->npip==1 || d->npim==1)) ) return false;

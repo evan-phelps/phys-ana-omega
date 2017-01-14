@@ -36,6 +36,14 @@ class DH_H6Maker : public DataHandler
     public:
         THnSparseF *hbd;
         THnSparseF *hbd_nphe_eff;
+        THnSparseF *hbd_tr_eff;
+        vector< vector<float> > tr_effs_e;
+        vector< vector<float> > tr_effs_p;
+        vector< vector<float> > tr_effs_pip;
+        float tr_eff_e;
+        float tr_eff_p;
+        float tr_eff_pip;
+        float tr_eff;
         static const int NPHE_MIN = 30;
         vector< vector<float> > parms_cc_nphe;
         TString fn_shape_sim;
@@ -52,6 +60,7 @@ class DH_H6Maker : public DataHandler
         {
             hbd = GetH6();
             hbd_nphe_eff = GetH6("hbd_nphe_eff", "nphe cutoff efficiency");
+            hbd_tr_eff = GetH6("hbd_tr_eff", "track reconstruction efficiency");
             hbd_shape_norm_Q2 = GetH6("hbd_shape_norm_Q2", "first-order simulation shaping, Q2 only");
             h_nbins = new TGraph(100);
             last_processed = 0;
@@ -62,6 +71,7 @@ class DH_H6Maker : public DataHandler
         {
             delete hbd;
             if (hbd_nphe_eff) delete hbd_nphe_eff;
+            if (hbd_tr_eff) delete hbd_tr_eff;
             if (shape_sim_norm_Q2) delete shape_sim_norm_Q2;
             if (hbd_shape_norm_Q2) delete hbd_shape_norm_Q2;
             delete h_nbins;
@@ -70,6 +80,9 @@ class DH_H6Maker : public DataHandler
         {
             parms_cc_nphe = d->cfg->GetSectorParms("cc_nphe");
             fn_shape_sim = d->cfg->GetString("shape_thrown_Q2");
+            tr_effs_e = d->cfg->GetSectorParms("tr_effs_e");
+            tr_effs_p = d->cfg->GetSectorParms("tr_effs_p");
+            tr_effs_pip = d->cfg->GetSectorParms("tr_effs_pip");
             // shape_sim_norm_Q2
             if ( !fn_shape_sim.IsNull() ) {
                 TFile fin(fn_shape_sim.Data());
@@ -106,8 +119,7 @@ class DH_H6Maker : public DataHandler
         virtual void Fill(H10 *d, Double_t weight=1, bool do_cc_eff=false)
         {
             double bincoords[] = {d->W, d->Q2, -d->t, d->cosTheta, d->phi, d->MMp};
-            hbd->Fill(bincoords, weight);
-
+            float eff = 1;
             if (do_cc_eff) {
                 double cc_eff = 1;
                 int ccidx = d->cc[0]-1;
@@ -121,7 +133,43 @@ class DH_H6Maker : public DataHandler
                     cc_eff = parms_cc_nphe[sector-1][pmt_num-1];
                 }
                 hbd_nphe_eff->Fill(bincoords, cc_eff);
+                eff *= cc_eff;
             }
+
+            //if track recon efficiency exist for electrons, assume they exist for p and pip
+            if (tr_effs_e[0].size()>0) {
+                for (int ipart=0; ipart<d->npart; ipart++) {
+                    int scidx = d->sc[ipart]-1;
+                    if (scidx >= 0) {
+                        int isect = d->sc_sect[scidx]-1;
+                        int ipdl = d->sc_pd[scidx]-1;
+                        if (d->id[ipart]==11) {
+                            if (ipdl >= 0 && ipdl < 24) {
+                                tr_eff_e = tr_effs_e[isect][ipdl];
+                            } else {
+                                tr_eff_e = 0;
+                            }
+                        } else if (d->id[ipart]==2212) {
+                            if (ipdl >= 0 && ipdl < 31) {
+                                tr_eff_p = tr_effs_p[isect][ipdl];
+                            } else {
+                                tr_eff_p = 0;
+                            }
+                        } else if (d->id[ipart]==211) {
+                            if (ipdl >= 0 && ipdl < 48) {
+                                tr_eff_pip = tr_effs_pip[isect][ipdl];
+                            } else {
+                                tr_eff_pip = 0;
+                            }
+                        }
+                    }
+                }
+                tr_eff = tr_eff_e*tr_eff_p*tr_eff_pip;
+                hbd_tr_eff->Fill(bincoords, tr_eff);
+                eff *= tr_eff;
+            }
+            weight = eff>0 ? 1.0/eff : 1;
+            hbd->Fill(bincoords, weight);
         }
         virtual void Finalize(H10* d)
         {
@@ -130,6 +178,10 @@ class DH_H6Maker : public DataHandler
             if (hbd_nphe_eff) {
                 hbd_nphe_eff->Divide(hbd);
                 hbd_nphe_eff->Write();
+            }
+            if (hbd_tr_eff) {
+                hbd_tr_eff->Divide(hbd);
+                hbd_tr_eff->Write();
             }
             for (int ipoint=last_point_num; ipoint < h_nbins->GetMaxSize(); ipoint++) {
                 g_relerr_mean->RemovePoint(ipoint);
