@@ -77,12 +77,12 @@ def main(argv):
                 # pcor should go before fiducial cuts (efid and hfid),
                 # but only if fiducial parameters are recalculated
                 # based on already-corrected momenta
-                ("eid_efid_nphe_hfid_pcor", r.DH_Pcor),
-		          ("efid2", r.DH_Efid),
+                #("eid_efid_nphe_hfid_pcor", r.DH_Pcor),
+		("efid2", r.DH_Efid),
+                ("hfid2", r.DH_Hfid),
                 ("eid_efid_nphe_hfid_pcor_badsc", r.DH_SC_BadPdls),
                 ("eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_MMp_Exclusive),
                 ("mon_eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_Hists_Monitor),
-                #("h10_eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_CloneH10)
                 ("q2w_cuts", r.DH_Q2W_Cuts),
                 ("mon_eid_efid_nphe_hfid_pcor_badsc_mmp_q2w", r.DH_Hists_Monitor),
                 ("h6_eid_efid_nphe_hfid_pcor_badsc_mmp", r.DH_H6Maker_Exp)

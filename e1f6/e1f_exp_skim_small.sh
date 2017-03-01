@@ -7,5 +7,5 @@ export ROOTSYS=/apps/root/5.34.05/root
 source $ROOTSYS/bin/thisroot.sh
 export PATH=.:$PATH
 
-python skim_small.py -o skim.root -i "root_?????_pass1.a??.root" -w /volatile/clas/clase1/ephelps/phys-ana-omega/e1f6 -c /volatile/clas/clase1/ephelps/phys-ana-omega/e1f6/input.e1f.exp.parms
-
+cp -r /home/ephelps/omega/src/MomCorr ./MomCorr
+python skim_small.py -o skim.root -i "root_?????_pass1.a??.root" -w /home/ephelps/omega/src -c /home/ephelps/omega/src/input.e1f.exp.parms

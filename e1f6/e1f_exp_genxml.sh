@@ -18,8 +18,8 @@ EOF
 for run in "$@"
 do
    echo '  <Job>'
-   echo '    <Input src="/volatile/clas/clase1/ephelps/phys-ana-omega/e1f6/e1f_exp_skim_small.sh" dest="e1f_exp_skim_small.sh" />'
-   echo '    <Input src="/volatile/clas/clase1/ephelps/phys-ana-omega/e1f6/skim_small.py" dest="skim_small.py" />'
+   echo '    <Input src="/home/ephelps/omega/src/e1f_exp_skim_small.sh" dest="e1f_exp_skim_small.sh" />'
+   echo '    <Input src="/home/ephelps/omega/src/skim_small.py" dest="skim_small.py" />'
 
    for fn in $(ls /mss/clas/e1f/production/pass2/v1/root/main/root_${run}_pass1.a??.root)
    do

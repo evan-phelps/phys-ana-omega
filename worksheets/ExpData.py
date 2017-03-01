@@ -198,14 +198,14 @@ class ExpData:
 			self.h6w = fin['%s/%s'%(h6dir, h6w)]
 			self.h6treff = fin['%s/%s'%(h6dir, h6treff)]
 			self.h6y = fin['%s/%s'%(h6dir, h6y)]
-			# for i in range(0,self.h6w.GetNbins()):
-			# 	self.h6w.SetBinError(i, 0)
-			# self.h6y.Divide(self.h6w)
-			# if self.h6treff is not None and self.h6treff.GetEntries()>0:
-			# 	print('found h6treff')
-			# 	for i in range(0,self.h6treff.GetNbins()):
-			# 		self.h6treff.SetBinError(i, 0)
-			# 	self.h6y.Divide(self.h6treff)
+			for i in range(0,self.h6w.GetNbins()):
+				self.h6w.SetBinError(i, 0)
+			self.h6y.Divide(self.h6w)
+			if self.h6treff is not None and self.h6treff.GetEntries()>0:
+				print('found h6treff')
+				for i in range(0,self.h6treff.GetNbins()):
+					self.h6treff.SetBinError(i, 0)
+				self.h6y.Divide(self.h6treff)
 			h4_dims = [dimW, dimQ2, dimCosTheta, dimPhi] = [0, 1, 3, 4]
 			for i in [0,1,5]: #range(0,6):
 				self.h6y.GetAxis(i).SetRange(1, self.h6y.GetAxis(i).GetNbins())

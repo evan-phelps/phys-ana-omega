@@ -36,6 +36,7 @@ class DH_H6Maker : public DataHandler
     public:
         THnSparseF *hbd;
         THnSparseF *hbd_nphe_eff;
+        TH1 *h_nphe;
         THnSparseF *hbd_tr_eff;
         vector< vector<float> > tr_effs_e;
         vector< vector<float> > tr_effs_p;
@@ -44,6 +45,7 @@ class DH_H6Maker : public DataHandler
         float tr_eff_p;
         float tr_eff_pip;
         float tr_eff;
+        TH1 *h_tr_eff;
         static const int NPHE_MIN = 30;
         vector< vector<float> > parms_cc_nphe;
         TString fn_shape_sim;
@@ -62,6 +64,8 @@ class DH_H6Maker : public DataHandler
             hbd_nphe_eff = GetH6("hbd_nphe_eff", "nphe cutoff efficiency");
             hbd_tr_eff = GetH6("hbd_tr_eff", "track reconstruction efficiency");
             hbd_shape_norm_Q2 = GetH6("hbd_shape_norm_Q2", "first-order simulation shaping, Q2 only");
+            h_nphe = new TH1D("h_nphe", "nphe cut efficiency frequency", 100, 0, 1);
+            h_tr_eff = new TH1D("h_tr_eff", "track reconstruction efficiency frequency", 200, 0, 2);
             h_nbins = new TGraph(100);
             last_processed = 0;
             last_point_num = 0;
@@ -74,6 +78,8 @@ class DH_H6Maker : public DataHandler
             if (hbd_tr_eff) delete hbd_tr_eff;
             if (shape_sim_norm_Q2) delete shape_sim_norm_Q2;
             if (hbd_shape_norm_Q2) delete hbd_shape_norm_Q2;
+            delete h_nphe;
+            delete h_tr_eff;
             delete h_nbins;
         }
         virtual void Setup(H10 *d)
@@ -134,6 +140,7 @@ class DH_H6Maker : public DataHandler
                 }
                 hbd_nphe_eff->Fill(bincoords, cc_eff);
                 eff *= cc_eff;
+                h_nphe->Fill(cc_eff);
             }
 
             //if track recon efficiency exist for electrons, assume they exist for p and pip
@@ -167,9 +174,11 @@ class DH_H6Maker : public DataHandler
                 tr_eff = tr_eff_e*tr_eff_p*tr_eff_pip;
                 hbd_tr_eff->Fill(bincoords, tr_eff);
                 eff *= tr_eff;
+                h_tr_eff->Fill(tr_eff);
             }
+
             weight = eff>0 ? 1.0/eff : 1;
-            hbd->Fill(bincoords, weight);
+            hbd->Fill(bincoords); //, weight);
         }
         virtual void Finalize(H10* d)
         {
@@ -187,6 +196,8 @@ class DH_H6Maker : public DataHandler
                 g_relerr_mean->RemovePoint(ipoint);
                 h_nbins->RemovePoint(ipoint);
             }
+            h_nphe->Write();
+            h_tr_eff->Write();
             fDir->WriteObject(h_nbins, "h_nbins");
             fDir->WriteObject(g_relerr_mean, "g_relerr_mean");
         }

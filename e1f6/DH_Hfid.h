@@ -29,6 +29,7 @@ using namespace TMath;
 class DH_Hfid : public DataHandler
 {
     public:
+        float tightness;
         vector< vector<float> > parms_hfid_t0;
         vector< vector<float> > parms_hfid_F;
         vector< vector<float> > parms_hfid_b;
@@ -39,7 +40,7 @@ class DH_Hfid : public DataHandler
             float f = parms_hfid_F[sect-1][0];
             float b = parms_hfid_b[sect-1][0];
             float t0 = parms_hfid_t0[sect-1][0];
-            return f*(1-Exp(b*(t-t0)));
+            return f*(1-Exp(b*(t-t0)))-tightness;
         }
         DH_Hfid(std::string name = "DH_Hfid", TDirectory *pDir = NULL, H10 *h10looper = NULL) : DataHandler(name, pDir, h10looper)
         {
@@ -51,6 +52,7 @@ class DH_Hfid : public DataHandler
         }
         virtual void Setup(H10 *d)
         {
+            tightness = d->cfg->GetFloat("hposfid_tightness");
             parms_hfid_t0 = d->cfg->GetSectorParms("hposfid_t0");
             parms_hfid_F = d->cfg->GetSectorParms("hposfid_F");
             parms_hfid_b = d->cfg->GetSectorParms("hposfid_b");

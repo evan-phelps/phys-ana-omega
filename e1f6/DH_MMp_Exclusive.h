@@ -58,10 +58,10 @@ class DH_MMp_Exclusive : public DataHandler
 
             // if ( !(d->MMp >= 0.600 && d->MMp <= 0.966) ) return false;
             if ( !(d->MMp >= 0.4 && d->MMp <= 1.2) ) return false;
-            bool top_pip = (d->npip == 1 && d->MMppip < 0.3);
-            bool top_pim = (d->npim == 1 && d->MMppim < 0.3);
-            if ( (_top == 1 || _top == 3) && top_pip ) return false;
-            if ( (_top == 2 || _top == 3) && top_pim ) return false;
+            bool top_pip = (d->npip == 1 && d->MMppip >= 0.3);
+            bool top_pim = (d->npim == 1 && d->MMppim >= 0.3);
+            if ( (_top == 1 || _top == 3) && !top_pip ) return false;
+            if ( (_top == 2 || _top == 3) && !top_pim ) return false;
             if ( _top == -1 && !(top_pip || top_pim) ) return false;
 
             return true;
