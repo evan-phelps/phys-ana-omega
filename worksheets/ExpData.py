@@ -158,14 +158,19 @@ def get_vhists_from_sparse(h4):
 		herr.Fill(err)
 	return (hacc,herr)
 
-def get_vhists(h):
+def get_vhists(h, vmin=None, vmax=None,
+	              emin=None, emax=None):
 	hacc = rpy.plotting.Hist(1000,0,1,title='acc')
 	herr = rpy.plotting.Hist(1000,0,1,title='err')
 	for ibin in range(0,h.GetNcells()):
 		val = h.GetBinContent(ibin)
 		err = 0 if val==0 else h.GetBinError(ibin)/val
-		hacc.Fill(val)
-		herr.Fill(err)
+		if (vmin is None or val > vmin) and \
+		   (vmax is None or val < vmax) and \
+		   (emin is None or err > emin) and \
+		   (emax is None or err < emax):
+			hacc.Fill(val)
+			herr.Fill(err)
 	return (hacc,herr)
 
 def get_adjusted_edges(ax, x):
@@ -179,7 +184,8 @@ def get_adjusted_edges(ax, x):
 	return (_x, (bin0, bin1), xmid, xwidth)
 
 
-MMP_RANGES = [(0.68,0.745), (0.755,0.825), (0.835,0.9)]
+# MMP_RANGES = [(0.68,0.745), (0.755,0.825), (0.835,0.9)]
+MMP_RANGES = [(0.7,0.75), (0.755,0.825), (0.83,0.88)]
 
 class ExpData:
 
@@ -252,7 +258,7 @@ class ExpData:
 			self.h6y.GetAxis(i).SetBit(r.TAxis.kAxisRange)
 		return asrootpy(hmmp)
 
-	def load_h2s(self, W, Q2):
+	def load_h2s(self, W, Q2, bgw_bias=1, abs_eff=1):
 		h2s, hmmps, bgw8, WQ2_str = [], [], [], None
 		fitres = _, _, hmmp, bgparms, f, parms, q, stat = fit_mmp(self.get_hmmp(W, Q2), W, Q2)
 		ints = [0,0,0]
@@ -269,7 +275,7 @@ class ExpData:
 		#for (mmp0, mmp1),h in zip(self._mmpranges_,[hmmp, hbg, hmmp):
 		#	h.GetXaxis().SetRange(h.FindBin(mmp0), h.FindBin(mmp1))
 		#	ints.append(hbg.Integral())
-		bgw8 = ints[1]/(ints[0]+ints[2]) if ints[0]+ints[2]>0 else 0
+		bgw8 = bgw_bias*ints[1]/(ints[0]+ints[2]) if ints[0]+ints[2]>0 else 0
 		for i,h4 in enumerate(self.h4es,1):
 			axW = h4.GetAxis(0)
 			axQ2 = h4.GetAxis(1)
@@ -295,6 +301,7 @@ class ExpData:
 			h2.Sumw2()
 			h2.SetName(hname)
 			h2.SetDirectory(0)
+			h2.Scale(1/abs_eff)
 			h2s.append(h2)
 		h2 = h2s[1].Clone('%s_bgsubd'%h2s[1].GetName())
 		h2.Add(h2s[0], -1*bgw8)
@@ -304,7 +311,7 @@ class ExpData:
 		#print('adding key %s'%WQ2_str)
 		self.h2es[WQ2_str] = [h2, fitres, ints, h2s]
 		
-	def get_h2s(self, W, Q2):
+	def get_h2s(self, W, Q2, bgw_bias=1, abs_eff=1):
 		h4 = self.h4es[0]
 		axW = h4.GetAxis(0)
 		axQ2 = h4.GetAxis(1)
@@ -320,7 +327,7 @@ class ExpData:
 
 		WQ2_str = '%dx%d_%dx%d'%(Wmid, Wwidth, Q2mid, Q2width)
 		if WQ2_str not in self.h2es:
-			self.load_h2s(W, Q2)
+			self.load_h2s(W, Q2, bgw_bias, abs_eff)
 		return self.h2es[WQ2_str]
 
 
@@ -328,6 +335,7 @@ class SimData:
 
 	def __init__(self):
 		self.h6s = []
+		self.h6r = None
 		self.h4s = []
 		self.fns = []
 		self._mmpranges_ = MMP_RANGES
@@ -384,9 +392,26 @@ class SimData:
 			#h4a = h4r.Clone('h4a_%d'%(len(self.h4s)+1))
 			#h4a.Divide(h4t)
 			#self.h4s.append((h4t, h4r, h4a))
-			
+			self.h6r = h6r
 			self.h4s.append((h4t, h4r))
 		self.fns.append(fn)
+
+	def get_hmmp(self, W, Q2):
+		axW = self.h6r.GetAxis(0)
+		axQ2 = self.h6r.GetAxis(1)
+		_W, (Wbin0, Wbin1), _, _ = get_adjusted_edges(axW, W)
+		_Q2, (Q2bin0, Q2bin1), _, _ = get_adjusted_edges(axQ2, Q2)
+		for i in [0,1,5]: #range(0,6):
+			self.h6r.GetAxis(i).SetRange(1, self.h6r.GetAxis(i).GetNbins())
+			self.h6r.GetAxis(i).SetBit(r.TAxis.kAxisRange)
+		axW.SetRange(Wbin0,Wbin1)
+		axQ2.SetRange(Q2bin0,Q2bin1)
+		hmmp = self.h6r.Projection(5)
+		hmmp.SetDirectory(0)
+		for i in [0,1,5]: #range(0,6):
+			self.h6r.GetAxis(i).SetRange(1, self.h6r.GetAxis(i).GetNbins())
+			self.h6r.GetAxis(i).SetBit(r.TAxis.kAxisRange)
+		return asrootpy(hmmp)
 
 	def get_acc2d(self, W, Q2, mask=None, lo_acc=None):
 #		_W = W if isinstance(W, list) else [W,W]
