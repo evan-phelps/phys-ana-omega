@@ -1,3 +1,6 @@
+(see e1f6/README.md for first-stage data extraction, with descriptions
+of skimmers, filters, transformers, etc.)
+
 omega electroproduction analysis
 ================================
 
